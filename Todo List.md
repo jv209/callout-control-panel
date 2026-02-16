@@ -35,10 +35,10 @@ These steps transform the sample plugin template into the skeleton of the Enhanc
 **Deliverable:** `manifest.json` reflects the real plugin identity.
 
 ### 0.2 Update `package.json`
-- [ ] Change `name` to `enhanced-callout-manager`
-- [ ] Update `description`
-- [ ] Change `license` from `0-BSD` to `MIT` (since we're incorporating MIT-licensed code)
-- [ ] Add the npm dependencies that Plugin C needs:
+- [x] Change `name` to `enhanced-callout-manager`
+- [x] Update `description`
+- [x] Change `license` from `0-BSD` to `MIT` (since we're incorporating MIT-licensed code)
+- [x] Add the npm dependencies that Plugin C needs:
   ```
   @fortawesome/fontawesome-svg-core
   @fortawesome/free-solid-svg-icons
@@ -46,7 +46,7 @@ These steps transform the sample plugin template into the skeleton of the Enhanc
   @fortawesome/free-brands-svg-icons
   @javalent/utilities
   ```
-- [ ] Run `npm install` to generate an updated `package-lock.json`
+- [x] Run `npm install` to generate an updated `package-lock.json`
 
 **Deliverable:** Dependencies are declared and installed.
 

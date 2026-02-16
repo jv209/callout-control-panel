@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "enhanced-callout-manager",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Insert, detect, and manage custom callout types with a unified modal and full icon support.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
@@ -11,7 +11,7 @@
 		"lint": "eslint ."
 	},
 	"keywords": [],
-	"license": "0-BSD",
+	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^16.11.6",
 		"esbuild": "0.25.5",
@@ -24,6 +24,11 @@
 		"jiti": "2.6.1"
 	},
 	"dependencies": {
+		"@fortawesome/fontawesome-svg-core": "^6.5.0",
+		"@fortawesome/free-brands-svg-icons": "^6.5.0",
+		"@fortawesome/free-regular-svg-icons": "^6.5.0",
+		"@fortawesome/free-solid-svg-icons": "^6.5.0",
+		"@javalent/utilities": "^1.0.0",
 		"obsidian": "latest"
 	}
 }
