@@ -123,28 +123,45 @@ The goal of Phase 1 is to get a working plugin that does one thing well: **open 
 **Deliverable:** Modal looks correct when opened.
 
 ### 1.4 Wire up `main.ts`
-- [ ] Import `InsertCalloutModal` and the settings types
-- [ ] In `onload()`:
+- [x] Import `InsertCalloutModal` and the settings types
+- [x] In `onload()`:
   - Load settings from disk
   - Register the `insert-callout` command (opens the modal when triggered)
   - Register the settings tab
-- [ ] In `onunload()`: nothing needed yet (Obsidian handles cleanup for commands and settings)
-- [ ] Implement `loadSettings()` and `saveSettings()` methods
+- [x] In `onunload()`: nothing needed yet (Obsidian handles cleanup for commands and settings)
+- [x] Implement `loadSettings()` and `saveSettings()` methods
 
 **Why:** This is the glue that makes the modal accessible via Obsidian's command palette and hotkey system.
 
 **Deliverable:** You can install the plugin, assign a hotkey, press it, and insert a callout.
 
 ### 1.5 Create a basic settings tab (`src/settingsTab.ts`)
-- [ ] Port Plugin A's `settingsTab.ts` but only include:
+- [x] Inline settings tab in `main.ts` with:
   - Default callout type setting
   - Remember last used type toggle
   - Auto-focus content field toggle
-- [ ] Remove the snippet scanning toggle and detected types display (Phase 2)
+- [x] Remove the snippet scanning toggle and detected types display (Phase 2)
 
 **Deliverable:** Settings tab with basic preferences.
 
-### 1.6 Manual testing
+### 1.6 Add a quick-pick "Insert callout" command
+- [ ] Register a second command (`insert-callout-quick`) that uses Obsidian's `SuggestModal` to show a searchable list of callout types directly in the command palette flow — similar to how template plugins let you pick a template, then immediately insert it at the cursor
+- [ ] The flow: Command palette → "Insert callout (quick pick)" → type list appears → select one → callout markdown inserted with that type (no title/content modal, just the type block)
+- [ ] Keep the existing full modal command (`insert-callout`) as a separate command for when the user wants to set title, collapse state, and content
+
+**Why:** Two workflows serve different needs. The full modal is for detailed callouts. The quick pick is for fast insertion when you just need a callout block and will fill in the details inline.
+
+**Deliverable:** A second command that lets you pick a callout type and insert it in two keystrokes.
+
+### 1.7 Add an "Open settings" command
+- [ ] Register a command (`open-settings`) that programmatically opens the plugin's settings tab
+- [ ] Uses Obsidian's `setting.open()` + `setting.openTabById()` pattern
+
+**Why:** Gives users a fast way to access plugin settings from the command palette without navigating through menus.
+
+**Deliverable:** "Enhanced Callout Manager: Open settings" appears in the command palette.
+
+### 1.8 Manual testing
 - [ ] Build the plugin (`npm run build`)
 - [ ] Copy `main.js`, `manifest.json`, `styles.css` to your test vault
 - [ ] Verify:
@@ -175,12 +192,16 @@ This phase adds the ability to detect callout types that you (or a theme) have d
 
 **Deliverable:** A function that returns all custom callout types found in CSS snippets.
 
-### 2.2 Integrate snippet types into the modal
+### 2.2 Integrate snippet types into the modal with grouped dropdown
 - [ ] Update `InsertCalloutModal.prepareCalloutOptions()` to merge snippet types with built-in types
-- [ ] Show snippet types in a separate section of the dropdown (with a visual separator)
+- [ ] Add **section dividers** to the type dropdown: a "Default" header for the 14 built-in types and a "Custom" header for snippet-detected types
+- [ ] Use `<optgroup>` labels or styled separator options in the dropdown to visually group the two sections
 - [ ] Show snippet type count in parentheses if any are found
+- [ ] Also update the quick-pick `SuggestModal` (from 1.6) with the same grouping
 
-**Deliverable:** Custom callout types from snippets appear in the modal dropdown.
+**Why:** When there are many callout types from different sources, dividers make it easy to tell where a type came from and find what you're looking for.
+
+**Deliverable:** Custom callout types from snippets appear in the modal dropdown, visually separated from built-in types.
 
 ### 2.3 Add snippet scanning settings
 - [ ] Add the "Scan CSS snippets" toggle to the settings tab
@@ -278,13 +299,13 @@ This phase brings in Plugin C's callout management system. Users can define enti
 **Deliverable:** A settings tab where users can manage all aspects of the plugin.
 
 ### 3.8 Wire custom types into the insertion modal
-- [ ] Update `InsertCalloutModal.prepareCalloutOptions()` to include three sections:
-  1. User-created custom types (from management)
-  2. Snippet-detected types (from Phase 2)
-  3. Built-in Obsidian types
+- [ ] Extend the grouped dropdown (from 2.2) to include **three section dividers**: "Custom" (user-created), "Snippet" (detected from CSS), and "Default" (built-in Obsidian)
+- [ ] Order: Custom types first → Snippet types → Default types
+- [ ] Consider adding a "Manage callouts" link or button in the settings section of the dropdown groups, so users can jump to the manager from the modal
 - [ ] Render custom type icons correctly (Font Awesome SVG, downloaded pack icons, images — not just Lucide)
+- [ ] Apply the same three-section grouping to the quick-pick `SuggestModal` (from 1.6)
 
-**Deliverable:** The modal shows all callout types from all sources.
+**Deliverable:** The modal shows all callout types from all sources, organized into clearly labeled groups.
 
 ### 3.9 Wire up `main.ts` for Phase 3
 - [ ] Initialize `IconManager` in `onload()`
