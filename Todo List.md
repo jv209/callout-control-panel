@@ -67,14 +67,14 @@ These steps transform the sample plugin template into the skeleton of the Enhanc
 **Deliverable:** A single attribution file that satisfies all three MIT license requirements.
 
 ### 0.5 Replace sample plugin code in `src/`
-- [ ] Delete `src/main.ts` (the sample plugin entry point) — it will be rewritten
-- [ ] Delete `src/settings.ts` (the sample settings tab) — it will be rewritten
-- [ ] Create a minimal new `src/main.ts` that just loads and unloads (empty plugin shell)
+- [x] Delete `src/main.ts` (the sample plugin entry point) — it will be rewritten
+- [x] Delete `src/settings.ts` (the sample settings tab) — it will be rewritten
+- [x] Create a minimal new `src/main.ts` that just loads and unloads (empty plugin shell)
 
 **Deliverable:** The `src/` folder is clean and ready for real code.
 
 ### 0.6 Update `versions.json`
-- [ ] Reset to reflect the new plugin's first version (e.g., `"0.1.0": "1.4.0"`)
+- [x] Reset to reflect the new plugin's first version (e.g., `"0.1.0": "1.4.0"`)
 
 **Deliverable:** Version tracking starts fresh.
 
