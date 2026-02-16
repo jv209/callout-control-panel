@@ -102,13 +102,13 @@ The goal of Phase 1 is to get a working plugin that does one thing well: **open 
 **Deliverable:** A single `types.ts` that all future code imports from.
 
 ### 1.2 Port the insertion modal (`src/insertCalloutModal.ts`)
-- [ ] Copy Plugin A's `insertCalloutModal.ts` into `src/`
-- [ ] Remove all editing-toolbar dependencies:
+- [x] Copy Plugin A's `insertCalloutModal.ts` into `src/`
+- [x] Remove all editing-toolbar dependencies:
   - Replace `editingToolbarPlugin` references with the new plugin class
   - Remove `t()` translation calls — use plain English strings for now
   - Replace `this.plugin.commandsManager.getActiveEditor()` with Obsidian's standard API
-- [ ] Remove the snippet-type dropdown section (Phase 2 feature) — only show built-in types for now
-- [ ] Keep: type dropdown, title input, collapse selector, content textarea, icon preview, Ctrl/Cmd+Enter shortcut
+- [x] Remove the snippet-type dropdown section (Phase 2 feature) — only show built-in types for now
+- [x] Keep: type dropdown, title input, collapse selector, content textarea, icon preview, Ctrl/Cmd+Enter shortcut
 
 **Why:** The modal is the core user-facing feature. Getting it working with just the built-in types proves the plugin is functional.
 

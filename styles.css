@@ -1,8 +1,7 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+/* Shortcut hint shown at the bottom of the insertion modal */
+.insert-callout-shortcut-hint {
+	text-align: right;
+	font-size: 0.8em;
+	opacity: 0.7;
+	margin-top: 5px;
+}
