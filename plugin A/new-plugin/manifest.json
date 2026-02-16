@@ -1,0 +1,10 @@
+{
+  "id": "callout-modal",
+  "name": "Callout Modal",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "Insert Obsidian callouts via a modal dialog with hotkey support. Detects custom callout types from CSS snippets.",
+  "author": "",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}

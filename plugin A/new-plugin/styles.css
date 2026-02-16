@@ -1,0 +1,34 @@
+/*
+ * Callout Modal Plugin styles.
+ *
+ * Extracted from the Editing Toolbar plugin by Cuman
+ * (https://github.com/cumany/obsidian-editing-toolbar), MIT license.
+ */
+
+.insert-callout-modal textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.callout-type-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.callout-type-container .setting-item {
+  width: 100%;
+}
+
+.callout-icon-container {
+  display: flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+}
+
+.callout-icon-container svg {
+  width: 16px;
+  height: 16px;
+  color: rgb(var(--callout-color));
+}
