@@ -145,17 +145,17 @@ The goal of Phase 1 is to get a working plugin that does one thing well: **open 
 **Deliverable:** Settings tab with basic preferences.
 
 ### 1.6 Add a quick-pick "Insert callout" command
-- [ ] Register a second command (`insert-callout-quick`) that uses Obsidian's `SuggestModal` to show a searchable list of callout types directly in the command palette flow — similar to how template plugins let you pick a template, then immediately insert it at the cursor
-- [ ] The flow: Command palette → "Insert callout (quick pick)" → type list appears → select one → callout markdown inserted with that type (no title/content modal, just the type block)
-- [ ] Keep the existing full modal command (`insert-callout`) as a separate command for when the user wants to set title, collapse state, and content
+- [x] Register a second command (`insert-callout-quick`) that uses Obsidian's `SuggestModal` to show a searchable list of callout types directly in the command palette flow — similar to how template plugins let you pick a template, then immediately insert it at the cursor
+- [x] The flow: Command palette → "Insert callout (quick pick)" → type list appears → select one → callout markdown inserted with that type (no title/content modal, just the type block)
+- [x] Keep the existing full modal command (`insert-callout`) as a separate command for when the user wants to set title, collapse state, and content
 
 **Why:** Two workflows serve different needs. The full modal is for detailed callouts. The quick pick is for fast insertion when you just need a callout block and will fill in the details inline.
 
 **Deliverable:** A second command that lets you pick a callout type and insert it in two keystrokes.
 
 ### 1.7 Add an "Open settings" command
-- [ ] Register a command (`open-settings`) that programmatically opens the plugin's settings tab
-- [ ] Uses Obsidian's `setting.open()` + `setting.openTabById()` pattern
+- [x] Register a command (`open-settings`) that programmatically opens the plugin's settings tab
+- [x] Uses Obsidian's `setting.open()` + `setting.openTabById()` pattern
 
 **Why:** Gives users a fast way to access plugin settings from the command palette without navigating through menus.
 

@@ -1,6 +1,7 @@
 import { Plugin, PluginSettingTab, App, Setting } from "obsidian";
 import { type PluginSettings, DEFAULT_SETTINGS, BUILTIN_CALLOUT_TYPES } from "./types";
 import { InsertCalloutModal } from "./insertCalloutModal";
+import { QuickPickCalloutModal } from "./quickPickCalloutModal";
 
 export default class EnhancedCalloutManager extends Plugin {
 	settings: PluginSettings;
@@ -31,6 +32,31 @@ export default class EnhancedCalloutManager extends Plugin {
 				};
 
 				modal.open();
+			},
+		});
+
+		this.addCommand({
+			id: "insert-callout-quick",
+			name: "Insert callout (quick pick)",
+			editorCallback: () => {
+				const modal = new QuickPickCalloutModal(this.app, (type) => {
+					QuickPickCalloutModal.insertQuickCallout(this.app, type);
+					if (this.settings.rememberLastType) {
+						this.settings.lastUsedType = type;
+						this.saveSettings();
+					}
+				});
+				modal.open();
+			},
+		});
+
+		this.addCommand({
+			id: "open-settings",
+			name: "Open settings",
+			callback: () => {
+				const setting = (this.app as any).setting;
+				setting.open();
+				setting.openTabById(this.manifest.id);
 			},
 		});
 
