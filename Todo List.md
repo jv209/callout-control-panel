@@ -25,12 +25,12 @@ Each step has:
 These steps transform the sample plugin template into the skeleton of the Enhanced Callout Manager. Nothing functional yet — just renaming, configuring, and cleaning.
 
 ### 0.1 Update `manifest.json`
-- [ ] Change `id` from `sample-plugin` to `enhanced-callout-manager`
-- [ ] Change `name` to `Enhanced Callout Manager`
-- [ ] Update `description` to something like: "Insert, detect, and manage custom callout types with a unified modal and full icon support."
-- [ ] Change `author` and `authorUrl` to your info
-- [ ] Set `isDesktopOnly` to `false` (for now — will revisit if we use desktop-only APIs)
-- [ ] Bump `minAppVersion` to a recent Obsidian version (e.g., `1.4.0` or higher, depending on APIs used)
+- [x] Change `id` from `sample-plugin` to `enhanced-callout-manager`
+- [x] Change `name` to `Enhanced Callout Manager`
+- [x] Update `description` to something like: "Insert, detect, and manage custom callout types with a unified modal and full icon support."
+- [x] Change `author` and `authorUrl` to your info
+- [x] Set `isDesktopOnly` to `false` (for now — will revisit if we use desktop-only APIs)
+- [x] Bump `minAppVersion` to a recent Obsidian version (e.g., `1.4.0` or higher, depending on APIs used)
 
 **Deliverable:** `manifest.json` reflects the real plugin identity.
 

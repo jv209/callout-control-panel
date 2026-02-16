@@ -1,11 +1,10 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "enhanced-callout-manager",
+	"name": "Enhanced Callout Manager",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"minAppVersion": "1.4.0",
+	"description": "Insert, detect, and manage custom callout types with a unified modal and full icon support.",
+	"author": "jv209",
+	"authorUrl": "https://github.com/jv209",
 	"isDesktopOnly": false
 }
