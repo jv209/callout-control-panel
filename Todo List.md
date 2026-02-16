@@ -79,8 +79,8 @@ These steps transform the sample plugin template into the skeleton of the Enhanc
 **Deliverable:** Version tracking starts fresh.
 
 ### 0.7 Verify the build works
-- [ ] Run `npm run build` — it should compile the empty shell to `main.js` with zero errors
-- [ ] Run `npm run lint` — it should pass with no warnings
+- [x] Run `npm run build` — it should compile the empty shell to `main.js` with zero errors
+- [x] Run `npm run lint` — it should pass with no warnings
 
 **Deliverable:** Clean build pipeline confirmed.
 
