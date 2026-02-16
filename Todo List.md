@@ -51,18 +51,18 @@ These steps transform the sample plugin template into the skeleton of the Enhanc
 **Deliverable:** Dependencies are declared and installed.
 
 ### 0.3 Update `LICENSE`
-- [ ] Replace the current 0-BSD license with MIT license text
-- [ ] Add your name and year as the primary copyright holder
-- [ ] Reference the `ATTRIBUTION.md` file for third-party code
+- [x] Replace the current 0-BSD license with MIT license text
+- [x] Add your name and year as the primary copyright holder
+- [x] Reference the `ATTRIBUTION.md` file for third-party code
 
 **Deliverable:** License file matches the MIT license used by all source plugins.
 
 ### 0.4 Create `ATTRIBUTION.md`
-- [ ] Combine the attribution notices from all three source plugins into one file:
+- [x] Combine the attribution notices from all three source plugins into one file:
   - Editing Toolbar by Cuman (MIT) — callout insertion modal
   - Callout Manager by eth-p (MIT v1.1.0) — CSS detection pipeline
   - Admonitions by Jeremy Valentine (MIT v10.3.2) — callout management
-- [ ] Include the full MIT license text for each
+- [x] Include the full MIT license text for each
 
 **Deliverable:** A single attribution file that satisfies all three MIT license requirements.
 
