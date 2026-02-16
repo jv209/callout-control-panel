@@ -91,11 +91,11 @@ These steps transform the sample plugin template into the skeleton of the Enhanc
 The goal of Phase 1 is to get a working plugin that does one thing well: **open a modal via hotkey and insert a callout into the editor**. Only Obsidian's 14 built-in callout types are available at this stage. No custom types, no snippet scanning, no icon packs.
 
 ### 1.1 Create the unified type system (`src/types.ts`)
-- [ ] Define the core types that all modules will share:
+- [x] Define the core types that all modules will share:
   - `CalloutTypeInfo` — the universal type used by the modal dropdown (type name, icon, color, source)
   - `PluginSettings` — the master settings interface for the whole plugin
   - `DEFAULT_SETTINGS` — sensible defaults
-- [ ] Include the 14 built-in callout type definitions (from Plugin A's `types.ts`)
+- [x] Include the 14 built-in callout type definitions (from Plugin A's `types.ts`)
 
 **Why:** Everything in the plugin talks about "callout types." Having one shared definition prevents the three extracted codebases from fighting over incompatible type shapes.
 
