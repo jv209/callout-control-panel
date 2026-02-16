@@ -30,5 +30,8 @@ export default tseslint.config(
 		"version-bump.mjs",
 		"versions.json",
 		"main.js",
+		"plugin A",
+		"plugin B",
+		"plugin C",
 	]),
 );
