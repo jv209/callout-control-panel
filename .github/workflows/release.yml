@@ -5,6 +5,9 @@ on:
         tags:
             - "*"
 
+permissions:
+    contents: write
+
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -23,13 +26,19 @@ jobs:
                   npm ci
                   npm run build
 
-            - name: Create release
+            - name: Create release with assets
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   tag="${GITHUB_REF#refs/tags/}"
 
+                  # Create the release if it doesn't exist yet
                   gh release create "$tag" \
                     --title "Release $tag" \
                     --generate-notes \
+                    --draft=false 2>/dev/null || true
+
+                  # Upload (or replace) the required plugin assets
+                  gh release upload "$tag" \
+                    --clobber \
                     main.js manifest.json styles.css
