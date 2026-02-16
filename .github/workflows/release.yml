@@ -4,6 +4,14 @@ on:
     push:
         tags:
             - "*"
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: "Tag to upload assets for (e.g. v0.1.0)"
+                required: true
+
+permissions:
+    contents: write
 
 permissions:
     contents: write
@@ -30,7 +38,11 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  tag="${GITHUB_REF#refs/tags/}"
+                  if [ -n "${{ github.event.inputs.tag }}" ]; then
+                    tag="${{ github.event.inputs.tag }}"
+                  else
+                    tag="${GITHUB_REF#refs/tags/}"
+                  fi
 
                   # Create the release if it doesn't exist yet
                   gh release create "$tag" \
