@@ -115,7 +115,7 @@ The goal of Phase 1 is to get a working plugin that does one thing well: **open 
 **Deliverable:** `InsertCalloutModal` class that opens, shows 14 callout types, and inserts valid markdown.
 
 ### 1.3 Port the modal CSS (`styles.css`)
-- [ ] Replace the placeholder comment in `styles.css` with the extracted modal styles from Plugin A:
+- [x] Replace the placeholder comment in `styles.css` with the extracted modal styles from Plugin A:
   - `.insert-callout-modal textarea`
   - `.callout-type-container`
   - `.callout-icon-container`
