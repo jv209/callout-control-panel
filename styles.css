@@ -1,3 +1,41 @@
+/*
+ * Enhanced Callout Manager — Modal Styles
+ *
+ * Attribution: Derived from the Editing Toolbar plugin by Cuman
+ * (https://github.com/cumany/obsidian-editing-toolbar), licensed under MIT.
+ */
+
+/* Textarea fills the modal width */
+.insert-callout-modal textarea {
+	width: 100%;
+	resize: vertical;
+}
+
+/* Type selector row: icon preview + dropdown side by side */
+.callout-type-container {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.callout-type-container .setting-item {
+	width: 100%;
+}
+
+/* Icon preview box next to the type dropdown */
+.callout-icon-container {
+	display: flex;
+	width: 24px;
+	height: 24px;
+	align-items: center;
+}
+
+.callout-icon-container svg {
+	width: 16px;
+	height: 16px;
+	color: rgb(var(--callout-color));
+}
+
 /* Shortcut hint shown at the bottom of the insertion modal */
 .insert-callout-shortcut-hint {
 	text-align: right;
