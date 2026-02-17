@@ -1,4 +1,4 @@
-import { Plugin, PluginSettingTab, App, Setting, setIcon } from "obsidian";
+import { Plugin, PluginSettingTab, App, Setting, setIcon, getIcon } from "obsidian";
 import { type CalloutTypeInfo, type PluginSettings, DEFAULT_SETTINGS, BUILTIN_CALLOUT_TYPES } from "./types";
 import { InsertCalloutModal } from "./insertCalloutModal";
 import { QuickPickCalloutModal } from "./quickPickCalloutModal";
@@ -85,6 +85,12 @@ export default class EnhancedCalloutManager extends Plugin {
 	async refreshSnippetTypes(): Promise<void> {
 		if (this.settings.scanSnippets) {
 			const result = await parseSnippetCalloutTypes(this.app);
+			// Validate icon names against Obsidian's icon set
+			for (const st of result.types) {
+				if (!st.iconDefault && !getIcon(st.icon)) {
+					st.iconInvalid = true;
+				}
+			}
 			this.snippetTypes = result.types;
 			this.snippetWarnings = result.warnings;
 		} else {
@@ -170,8 +176,8 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 		if (this.plugin.settings.scanSnippets) {
 			const count = this.plugin.snippetTypes.length;
 			const colorWarningCount = this.plugin.snippetTypes.filter(st => st.color.startsWith("var(")).length;
-			const iconWarningCount = this.plugin.snippetTypes.filter(st => st.iconDefault).length;
-			const totalWarningCount = this.plugin.snippetTypes.filter(st => st.color.startsWith("var(") || st.iconDefault).length;
+			const iconWarningCount = this.plugin.snippetTypes.filter(st => st.iconDefault || st.iconInvalid).length;
+			const totalWarningCount = this.plugin.snippetTypes.filter(st => st.color.startsWith("var(") || st.iconDefault || st.iconInvalid).length;
 			const heading = count > 0
 				? `Detected types (${count})`
 				: "No custom types detected";
@@ -202,14 +208,19 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 						});
 				});
 
-			// Inline warning if any types are missing a color or icon definition
+			// Inline warning if any types have color/icon issues
 			if (totalWarningCount > 0) {
+				const iconMissingCount = this.plugin.snippetTypes.filter(st => st.iconDefault).length;
+				const iconInvalidCount = this.plugin.snippetTypes.filter(st => st.iconInvalid).length;
 				const parts: string[] = [];
 				if (colorWarningCount > 0) {
 					parts.push(`${colorWarningCount} missing color`);
 				}
-				if (iconWarningCount > 0) {
-					parts.push(`${iconWarningCount} missing icon`);
+				if (iconMissingCount > 0) {
+					parts.push(`${iconMissingCount} missing icon`);
+				}
+				if (iconInvalidCount > 0) {
+					parts.push(`${iconInvalidCount} invalid icon`);
 				}
 				const warnEl = detectedSetting.nameEl.createSpan({ cls: "detected-snippet-header-warning" });
 				setIcon(warnEl, "alert-triangle");
@@ -242,23 +253,28 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 
 					// Icon name column
 					const iconText = st.iconDefault ? "—" : st.icon;
-					rowEl.createSpan({ text: iconText, cls: "detected-snippet-col-iconname detected-snippet-type-meta" });
+					const iconNameEl = rowEl.createSpan({ text: iconText, cls: "detected-snippet-col-iconname detected-snippet-type-meta" });
+					if (st.iconInvalid) {
+						iconNameEl.addClass("detected-snippet-type-invalid");
+					}
 
 					// Color column
 					const colorText = st.color.startsWith("var(") ? "—" : `rgb(${st.color})`;
 					rowEl.createSpan({ text: colorText, cls: "detected-snippet-col-color detected-snippet-type-meta" });
 
-					// Status column (warning if no color or icon defined)
+					// Status column (warning if color/icon missing or icon invalid)
 					const statusEl = rowEl.createDiv({ cls: "detected-snippet-col-status" });
 					const missingColor = st.color.startsWith("var(");
 					const missingIcon = st.iconDefault === true;
-					if (missingColor || missingIcon) {
+					const invalidIcon = st.iconInvalid === true;
+					if (missingColor || missingIcon || invalidIcon) {
 						const reasons: string[] = [];
 						if (missingColor) reasons.push("no --callout-color");
 						if (missingIcon) reasons.push("no --callout-icon");
+						if (invalidIcon) reasons.push(`unknown icon "${st.icon}"`);
 						const warnEl = statusEl.createDiv({ cls: "detected-snippet-type-warning" });
 						setIcon(warnEl, "alert-triangle");
-						warnEl.setAttribute("aria-label", `Missing: ${reasons.join(", ")} — using defaults`);
+						warnEl.setAttribute("aria-label", reasons.join(", "));
 					}
 				}
 			}

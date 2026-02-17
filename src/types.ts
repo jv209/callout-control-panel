@@ -28,6 +28,8 @@ export interface CalloutTypeInfo {
 	source: CalloutSource;
 	/** True when the CSS block had no --callout-icon declaration (using default). */
 	iconDefault?: boolean;
+	/** True when the declared --callout-icon name doesn't resolve to a real icon. */
+	iconInvalid?: boolean;
 	/** Alternate names that resolve to this type (e.g., "summary" → "abstract"). */
 	aliases?: string[];
 }

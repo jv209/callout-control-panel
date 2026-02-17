@@ -118,7 +118,7 @@ Common causes: missing quotes around the type name, a missing closing brace, or 
 
 ### My callout shows a generic box icon
 
-The plugin couldn't find a `--callout-icon` declaration in your CSS block. A warning triangle will appear next to the callout in the settings panel. Make sure the icon name uses only letters, numbers, and hyphens (e.g., `lucide-star`, `lucide-alert-triangle`). A typo in the property name (`--callout-icons` instead of `--callout-icon`) will also cause this.
+The plugin couldn't find a `--callout-icon` declaration in your CSS block, or the declared icon name doesn't exist. A warning triangle will appear next to the callout in the settings panel, and the tooltip will tell you whether the icon is missing or invalid. Check for typos in both the property name (`--callout-icons` instead of `--callout-icon`) and the icon name itself (`lucide-chef-hatt` instead of `lucide-chef-hat`). The icon name column will show the invalid name with a strikethrough so you can spot it quickly.
 
 ### My callout uses the accent color instead of my custom color
 
