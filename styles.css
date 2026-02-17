@@ -80,18 +80,29 @@
 
 /* Detected snippet types list in settings */
 .detected-snippet-types {
-	margin: 0 0 12px 24px;
+	margin: 0 0 12px 5%;
 	padding: 6px 12px 6px 16px;
 	background: var(--background-secondary);
 	border-radius: 6px;
 	border-left: 3px solid var(--interactive-accent);
 }
 
-.detected-snippet-type-item {
-	display: flex;
+/* Table grid: Icon | Callout | Icon Name | Color | Status */
+.detected-snippet-type-row {
+	display: grid;
+	grid-template-columns: 24px 1fr 1fr 1fr 24px;
 	align-items: center;
-	gap: 10px;
+	gap: 8px;
 	padding: 4px 0;
+}
+
+.detected-snippet-type-header {
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-semibold);
+	opacity: 0.6;
+	border-bottom: 1px solid var(--background-modifier-border);
+	padding-bottom: 4px;
+	margin-bottom: 2px;
 }
 
 .detected-snippet-type-icon {
@@ -108,7 +119,7 @@
 	color: rgb(var(--callout-color));
 }
 
-.detected-snippet-type-label {
+.detected-snippet-col-callout {
 	font-size: var(--font-ui-small);
 }
 
@@ -116,4 +127,60 @@
 	font-size: var(--font-ui-smaller);
 	opacity: 0.5;
 	font-family: var(--font-monospace);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.detected-snippet-type-warning {
+	display: flex;
+	align-items: center;
+}
+
+.detected-snippet-type-warning svg {
+	width: 14px;
+	height: 14px;
+	color: var(--text-warning);
+}
+
+/* Malformed snippet warnings */
+.detected-snippet-warnings {
+	margin: 8px 0 12px 5%;
+	padding: 8px 12px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	border-left: 3px solid var(--text-warning);
+	font-size: var(--font-ui-small);
+}
+
+.detected-snippet-warnings-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: var(--font-semibold);
+	margin-bottom: 4px;
+}
+
+.detected-snippet-warnings-icon {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.detected-snippet-warnings-icon svg {
+	width: 14px;
+	height: 14px;
+	color: var(--text-warning);
+}
+
+.detected-snippet-warnings ul {
+	margin: 4px 0 0 8px;
+	padding-left: 16px;
+	opacity: 0.8;
+}
+
+.detected-snippet-warnings li {
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-smaller);
+	padding: 1px 0;
 }

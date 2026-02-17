@@ -2,11 +2,12 @@ import { Plugin, PluginSettingTab, App, Setting, setIcon } from "obsidian";
 import { type CalloutTypeInfo, type PluginSettings, DEFAULT_SETTINGS, BUILTIN_CALLOUT_TYPES } from "./types";
 import { InsertCalloutModal } from "./insertCalloutModal";
 import { QuickPickCalloutModal } from "./quickPickCalloutModal";
-import { parseSnippetCalloutTypes } from "./snippetParser";
+import { type SnippetWarning, parseSnippetCalloutTypes } from "./snippetParser";
 
 export default class EnhancedCalloutManager extends Plugin {
 	settings: PluginSettings;
 	snippetTypes: CalloutTypeInfo[] = [];
+	snippetWarnings: SnippetWarning[] = [];
 
 	async onload() {
 		await this.loadSettings();
@@ -83,9 +84,12 @@ export default class EnhancedCalloutManager extends Plugin {
 	/** Re-scan CSS snippets for custom callout types. */
 	async refreshSnippetTypes(): Promise<void> {
 		if (this.settings.scanSnippets) {
-			this.snippetTypes = await parseSnippetCalloutTypes(this.app);
+			const result = await parseSnippetCalloutTypes(this.app);
+			this.snippetTypes = result.types;
+			this.snippetWarnings = result.warnings;
 		} else {
 			this.snippetTypes = [];
+			this.snippetWarnings = [];
 		}
 	}
 }
@@ -165,47 +169,89 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 		// Show detected snippet types
 		if (this.plugin.settings.scanSnippets) {
 			const count = this.plugin.snippetTypes.length;
-			if (count > 0) {
-				new Setting(containerEl)
-					.setName(`Detected types (${count})`)
-					.setDesc("Custom callout types found in your enabled CSS snippets.")
-					.addExtraButton((btn) => {
-						btn.setIcon("folder-open")
-							.setTooltip("Open snippets folder")
-							.onClick(() => {
-								const snippetsPath = `${this.app.vault.configDir}/snippets`;
-								const opener = this.app as unknown as {
-									openWithDefaultApp(path: string): void;
-								};
-								opener.openWithDefaultApp(snippetsPath);
-							});
-					});
+			const heading = count > 0
+				? `Detected types (${count})`
+				: "No custom types detected";
+			const desc = count > 0
+				? "Custom callout types found in your enabled CSS snippets."
+				: "No callout definitions were found in your enabled CSS snippet files.";
 
+			new Setting(containerEl)
+				.setName(heading)
+				.setDesc(desc)
+				.addExtraButton((btn) => {
+					btn.setIcon("refresh-cw")
+						.setTooltip("Refresh snippets")
+						.onClick(async () => {
+							await this.plugin.refreshSnippetTypes();
+							this.display();
+						});
+				})
+				.addExtraButton((btn) => {
+					btn.setIcon("folder-open")
+						.setTooltip("Open snippets folder")
+						.onClick(() => {
+							const snippetsPath = `${this.app.vault.configDir}/snippets`;
+							const opener = this.app as unknown as {
+								openWithDefaultApp(path: string): void;
+							};
+							opener.openWithDefaultApp(snippetsPath);
+						});
+				});
+
+			if (count > 0) {
 				const listEl = containerEl.createDiv({ cls: "detected-snippet-types" });
+
+				// Table header
+				const headerEl = listEl.createDiv({ cls: "detected-snippet-type-row detected-snippet-type-header" });
+				headerEl.createSpan({ text: "Icon", cls: "detected-snippet-col-icon" });
+				headerEl.createSpan({ text: "Callout", cls: "detected-snippet-col-callout" });
+				headerEl.createSpan({ text: "Icon Name", cls: "detected-snippet-col-iconname" });
+				headerEl.createSpan({ text: "Color", cls: "detected-snippet-col-color" });
+				headerEl.createSpan({ text: "", cls: "detected-snippet-col-status" });
+
 				for (const st of this.plugin.snippetTypes) {
-					const itemEl = listEl.createDiv({ cls: "detected-snippet-type-item" });
-					const iconEl = itemEl.createDiv({ cls: "detected-snippet-type-icon" });
+					const rowEl = listEl.createDiv({ cls: "detected-snippet-type-row" });
+
+					// Icon column
+					const iconEl = rowEl.createDiv({ cls: "detected-snippet-col-icon detected-snippet-type-icon" });
 					setIcon(iconEl, st.icon);
 					iconEl.style.setProperty("--callout-color", st.color);
-					itemEl.createSpan({ text: st.label, cls: "detected-snippet-type-label" });
-					itemEl.createSpan({ text: st.icon, cls: "detected-snippet-type-meta" });
-					itemEl.createSpan({ text: `rgb(${st.color})`, cls: "detected-snippet-type-meta" });
+
+					// Callout name column
+					rowEl.createSpan({ text: st.label, cls: "detected-snippet-col-callout" });
+
+					// Icon name column
+					rowEl.createSpan({ text: st.icon, cls: "detected-snippet-col-iconname detected-snippet-type-meta" });
+
+					// Color column
+					const colorText = st.color.startsWith("var(") ? "—" : `rgb(${st.color})`;
+					rowEl.createSpan({ text: colorText, cls: "detected-snippet-col-color detected-snippet-type-meta" });
+
+					// Status column (warning if no color defined)
+					const statusEl = rowEl.createDiv({ cls: "detected-snippet-col-status" });
+					if (st.color.startsWith("var(")) {
+						const warnEl = statusEl.createDiv({ cls: "detected-snippet-type-warning" });
+						setIcon(warnEl, "alert-triangle");
+						warnEl.setAttribute("aria-label", "No color defined — using default");
+					}
 				}
-			} else {
-				new Setting(containerEl)
-					.setName("No custom types detected")
-					.setDesc("No callout definitions were found in your enabled CSS snippet files.")
-					.addExtraButton((btn) => {
-						btn.setIcon("folder-open")
-							.setTooltip("Open snippets folder")
-							.onClick(() => {
-								const snippetsPath = `${this.app.vault.configDir}/snippets`;
-								const opener = this.app as unknown as {
-									openWithDefaultApp(path: string): void;
-								};
-								opener.openWithDefaultApp(snippetsPath);
-							});
+			}
+
+			// Malformed callout warnings
+			if (this.plugin.snippetWarnings.length > 0) {
+				const warnBlock = containerEl.createDiv({ cls: "detected-snippet-warnings" });
+				const warnHeader = warnBlock.createDiv({ cls: "detected-snippet-warnings-header" });
+				const warnIcon = warnHeader.createDiv({ cls: "detected-snippet-warnings-icon" });
+				setIcon(warnIcon, "alert-triangle");
+				warnHeader.createSpan({ text: "Some snippet files contain malformed callout definitions" });
+
+				const warnList = warnBlock.createEl("ul");
+				for (const w of this.plugin.snippetWarnings) {
+					warnList.createEl("li", {
+						text: `${w.file} — ${w.malformedCount} malformed ${w.malformedCount === 1 ? "entry" : "entries"}`,
 					});
+				}
 			}
 		}
 	}

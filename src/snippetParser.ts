@@ -20,6 +20,20 @@ import type { App } from "obsidian";
 import type { CalloutTypeInfo } from "./types";
 import { BUILTIN_CALLOUT_TYPES } from "./types";
 
+/** Warning about a snippet file that contains malformed callout definitions. */
+export interface SnippetWarning {
+	/** Display name of the snippet file (e.g. "my-callouts.css"). */
+	file: string;
+	/** Number of callout-like patterns that failed to parse. */
+	malformedCount: number;
+}
+
+/** Result of scanning CSS snippets for callout types. */
+export interface SnippetParseResult {
+	types: CalloutTypeInfo[];
+	warnings: SnippetWarning[];
+}
+
 /** Shape returned by the undocumented vault adapter list() method. */
 interface AdapterListResult {
 	files: string[];
@@ -39,8 +53,9 @@ interface CustomCss {
  * are scanned. Returns only types that are NOT already in the built-in
  * list, so snippet definitions that shadow built-in types are excluded.
  */
-export async function parseSnippetCalloutTypes(app: App): Promise<CalloutTypeInfo[]> {
+export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseResult> {
 	const results: CalloutTypeInfo[] = [];
+	const warnings: SnippetWarning[] = [];
 
 	// Build a set of built-in type names (including aliases) for filtering
 	const builtinNames = new Set<string>();
@@ -67,7 +82,7 @@ export async function parseSnippetCalloutTypes(app: App): Promise<CalloutTypeInf
 		listing = await adapter.list(snippetsDir);
 	} catch {
 		// Snippets directory doesn't exist or can't be read
-		return results;
+		return { types: results, warnings };
 	}
 
 	const cssFiles = listing.files.filter((f) => {
@@ -86,10 +101,22 @@ export async function parseSnippetCalloutTypes(app: App): Promise<CalloutTypeInf
 			continue;
 		}
 
-		extractCalloutTypes(css, results, builtinNames);
+		// Count loose mentions of callout definitions (may include malformed ones)
+		const looseMatches = css.match(/\.callout\[data-callout/g);
+		const potentialCount = looseMatches ? looseMatches.length : 0;
+
+		// Count how many the strict regex actually parses
+		const strictParsed = extractCalloutTypes(css, results, builtinNames);
+
+		// If strict parsed fewer than potential, some entries are malformed
+		const malformedCount = potentialCount - strictParsed;
+		if (malformedCount > 0) {
+			const fileName = filePath.split("/").pop() ?? filePath;
+			warnings.push({ file: fileName, malformedCount });
+		}
 	}
 
-	return results;
+	return { types: results, warnings };
 }
 
 /**
@@ -106,14 +133,16 @@ function extractCalloutTypes(
 	css: string,
 	results: CalloutTypeInfo[],
 	builtinNames: Set<string>,
-): void {
+): number {
 	// Match .callout[data-callout="..."] followed by its { ... } block.
 	// The regex doesn't anchor to line start, so it handles ancestor
 	// selectors like ".theme-light .callout[...]" naturally.
 	const blockRegex = /\.callout\[data-callout=["']([^"']+)["']\]\s*\{([^}]*)}/g;
 	let match: RegExpExecArray | null;
+	let strictCount = 0;
 
 	while ((match = blockRegex.exec(css)) !== null) {
+		strictCount++;
 		const typeName = match[1];
 		const block = match[2];
 
@@ -151,4 +180,6 @@ function extractCalloutTypes(
 			source: "snippet",
 		});
 	}
+
+	return strictCount;
 }
