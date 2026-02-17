@@ -11,7 +11,7 @@ After every completed task, provide the following four items:
 
 ## Version tracking
 
-**Check this section before suggesting a version number.** The next version must be higher than the latest listed here.
+**Check this section before suggesting a version number.** The next version must be higher than the latest listed here. Minor corrections and small changes increment the patch version (e.g., v0.4.1, v0.4.2, ... v0.4.12). Patch numbers can go into double digits.
 
 | Version | Release title | Date |
 |---------|--------------|------|
@@ -25,5 +25,6 @@ After every completed task, provide the following four items:
 | v0.1.1 | Plugin activation and roadmap update | — |
 | v0.2.0 | Quick-pick insertion and settings command | — |
 | v0.3.0 | Phase 1 complete | — |
+| v0.4.0 | Snippet type metadata display | — |
 
-**Next version: v0.4.0**
+**Next version: v0.4.1**
