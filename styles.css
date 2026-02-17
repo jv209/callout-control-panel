@@ -158,6 +158,12 @@
 	white-space: nowrap;
 }
 
+/* Invalid icon name — struck through to indicate it won't resolve */
+.detected-snippet-type-invalid {
+	text-decoration: line-through;
+	opacity: 0.6;
+}
+
 .detected-snippet-type-warning {
 	display: flex;
 	align-items: center;
