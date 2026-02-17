@@ -188,6 +188,8 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 					setIcon(iconEl, st.icon);
 					iconEl.style.setProperty("--callout-color", st.color);
 					itemEl.createSpan({ text: st.label, cls: "detected-snippet-type-label" });
+					itemEl.createSpan({ text: st.icon, cls: "detected-snippet-type-meta" });
+					itemEl.createSpan({ text: `rgb(${st.color})`, cls: "detected-snippet-type-meta" });
 				}
 			} else {
 				new Setting(containerEl)
