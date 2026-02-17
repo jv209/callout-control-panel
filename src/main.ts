@@ -171,7 +171,7 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 					.setDesc("Custom callout types found in your enabled CSS snippets.")
 					.addExtraButton((btn) => {
 						btn.setIcon("folder-open")
-							.setTooltip("Open snippets folder in system file manager")
+							.setTooltip("Open snippets folder")
 							.onClick(() => {
 								const snippetsPath = `${this.app.vault.configDir}/snippets`;
 								const opener = this.app as unknown as {
@@ -195,7 +195,7 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 					.setDesc("No callout definitions were found in your enabled CSS snippet files.")
 					.addExtraButton((btn) => {
 						btn.setIcon("folder-open")
-							.setTooltip("Open snippets folder in system file manager")
+							.setTooltip("Open snippets folder")
 							.onClick(() => {
 								const snippetsPath = `${this.app.vault.configDir}/snippets`;
 								const opener = this.app as unknown as {
