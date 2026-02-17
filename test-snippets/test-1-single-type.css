@@ -1,0 +1,6 @@
+/* Test 1: Single callout type — simple case */
+
+.callout[data-callout="recipe"] {
+    --callout-color: 255, 145, 0;
+    --callout-icon: lucide-chef-hat;
+}
