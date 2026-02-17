@@ -150,7 +150,7 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Scan CSS snippets")
-			.setDesc("Detect custom callout types defined in your CSS snippet files.")
+			.setDesc("Detect custom callout types defined in your enabled CSS snippet files.")
 			.addToggle((toggle) => {
 				toggle.setValue(this.plugin.settings.scanSnippets);
 				toggle.onChange(async (value) => {
@@ -168,19 +168,42 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 			if (count > 0) {
 				new Setting(containerEl)
 					.setName(`Detected types (${count})`)
-					.setDesc("Custom callout types found in your CSS snippets.");
+					.setDesc("Custom callout types found in your enabled CSS snippets.")
+					.addExtraButton((btn) => {
+						btn.setIcon("folder-open")
+							.setTooltip("Open snippets folder in system file manager")
+							.onClick(() => {
+								const snippetsPath = `${this.app.vault.configDir}/snippets`;
+								const opener = this.app as unknown as {
+									openWithDefaultApp(path: string): void;
+								};
+								opener.openWithDefaultApp(snippetsPath);
+							});
+					});
 
 				const listEl = containerEl.createDiv({ cls: "detected-snippet-types" });
 				for (const st of this.plugin.snippetTypes) {
 					const itemEl = listEl.createDiv({ cls: "detected-snippet-type-item" });
 					const iconEl = itemEl.createDiv({ cls: "detected-snippet-type-icon" });
 					setIcon(iconEl, st.icon);
+					iconEl.style.setProperty("--callout-color", st.color);
 					itemEl.createSpan({ text: st.label, cls: "detected-snippet-type-label" });
 				}
 			} else {
 				new Setting(containerEl)
 					.setName("No custom types detected")
-					.setDesc("No callout definitions were found in your CSS snippet files.");
+					.setDesc("No callout definitions were found in your enabled CSS snippet files.")
+					.addExtraButton((btn) => {
+						btn.setIcon("folder-open")
+							.setTooltip("Open snippets folder in system file manager")
+							.onClick(() => {
+								const snippetsPath = `${this.app.vault.configDir}/snippets`;
+								const opener = this.app as unknown as {
+									openWithDefaultApp(path: string): void;
+								};
+								opener.openWithDefaultApp(snippetsPath);
+							});
+					});
 			}
 		}
 	}
