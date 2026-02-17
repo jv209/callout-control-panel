@@ -6,14 +6,20 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 	private allCalloutOptions: CalloutTypeInfo[] = [];
 	private onChoose: (type: string) => void;
 
-	constructor(app: App, onChoose: (type: string) => void) {
+	constructor(app: App, snippetTypes: CalloutTypeInfo[], onChoose: (type: string) => void) {
 		super(app);
 		this.onChoose = onChoose;
 		this.setPlaceholder("Choose a callout type...");
-		this.prepareCalloutOptions();
+		this.prepareCalloutOptions(snippetTypes);
 	}
 
-	private prepareCalloutOptions() {
+	private prepareCalloutOptions(snippetTypes: CalloutTypeInfo[]) {
+		// Snippet types first
+		for (const st of snippetTypes) {
+			this.allCalloutOptions.push(st);
+		}
+
+		// Then built-in types with aliases
 		for (const bt of BUILTIN_CALLOUT_TYPES) {
 			this.allCalloutOptions.push(bt);
 			if (bt.aliases) {
@@ -46,6 +52,14 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 		setIcon(iconEl, item.icon);
 		iconEl.style.setProperty("--callout-color", item.color);
 		container.createDiv({ cls: "quick-pick-callout-label", text: item.label });
+
+		// Show source tag for non-builtin types
+		if (item.source !== "builtin") {
+			container.createDiv({
+				cls: "quick-pick-callout-source",
+				text: item.source,
+			});
+		}
 	}
 
 	onChooseSuggestion(item: CalloutTypeInfo) {

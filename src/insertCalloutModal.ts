@@ -6,18 +6,20 @@
  *
  * Changes from original:
  * - Uses unified CalloutTypeInfo and BUILTIN_CALLOUT_TYPES from types.ts
- * - Removed snippet type support (Phase 2)
  * - Removed editing-toolbar and Admonition plugin dependencies
  * - Accepts settings-driven configuration (default type, auto-focus)
+ * - Grouped dropdown with "Default" and "Custom" sections (Phase 2)
  */
 
-import { App, Modal, Setting, setIcon, DropdownComponent, Platform, MarkdownView } from "obsidian";
+import { App, Modal, Setting, setIcon, Platform, MarkdownView } from "obsidian";
 import { type CalloutTypeInfo, BUILTIN_CALLOUT_TYPES } from "./types";
 
 /** Configuration passed from the plugin to the modal. */
 export interface InsertCalloutModalConfig {
 	defaultType: string;
 	autoFocusContent: boolean;
+	/** Snippet-detected callout types to show in a separate group. */
+	snippetTypes: CalloutTypeInfo[];
 }
 
 export class InsertCalloutModal extends Modal {
@@ -27,6 +29,8 @@ export class InsertCalloutModal extends Modal {
 	public collapse: "none" | "open" | "closed" = "none";
 	private insertButton: HTMLElement;
 	private contentTextArea: HTMLTextAreaElement;
+	private builtinOptions: CalloutTypeInfo[] = [];
+	private snippetOptions: CalloutTypeInfo[] = [];
 	private allCalloutOptions: CalloutTypeInfo[] = [];
 	private iconContainerEl: HTMLElement;
 	private autoFocusContent: boolean;
@@ -59,9 +63,12 @@ export class InsertCalloutModal extends Modal {
 	}
 
 	private prepareCalloutOptions() {
+		// Snippet types (already in CalloutTypeInfo form)
+		this.snippetOptions = [...this.config.snippetTypes];
+
 		// Built-in types with their aliases expanded into separate options
 		for (const bt of BUILTIN_CALLOUT_TYPES) {
-			this.allCalloutOptions.push({
+			this.builtinOptions.push({
 				type: bt.type,
 				label: bt.label,
 				icon: bt.icon,
@@ -70,7 +77,7 @@ export class InsertCalloutModal extends Modal {
 			});
 			if (bt.aliases) {
 				for (const alias of bt.aliases) {
-					this.allCalloutOptions.push({
+					this.builtinOptions.push({
 						type: alias,
 						label: `${bt.label} (${alias})`,
 						icon: bt.icon,
@@ -80,6 +87,9 @@ export class InsertCalloutModal extends Modal {
 				}
 			}
 		}
+
+		// Combined list for lookups (snippet types first)
+		this.allCalloutOptions = [...this.snippetOptions, ...this.builtinOptions];
 	}
 
 	onOpen() {
@@ -106,11 +116,33 @@ export class InsertCalloutModal extends Modal {
 
 		new Setting(typeContainer)
 			.setName("Callout type")
-			.addDropdown((dropdown: DropdownComponent) => {
-				for (const opt of this.allCalloutOptions) {
-					dropdown.addOption(opt.type, opt.label);
+			.addDropdown((dropdown) => {
+				const selectEl = dropdown.selectEl;
+
+				// Build the dropdown with optgroup sections
+				if (this.snippetOptions.length > 0) {
+					const snippetGroup = selectEl.createEl("optgroup", {
+						attr: { label: "Custom" },
+					});
+					for (const opt of this.snippetOptions) {
+						snippetGroup.createEl("option", {
+							value: opt.type,
+							text: opt.label,
+						});
+					}
 				}
 
+				const builtinGroup = selectEl.createEl("optgroup", {
+					attr: { label: "Default" },
+				});
+				for (const opt of this.builtinOptions) {
+					builtinGroup.createEl("option", {
+						value: opt.type,
+						text: opt.label,
+					});
+				}
+
+				// Validate and set initial value
 				if (!this.allCalloutOptions.some(opt => opt.type === this.type)) {
 					this.type = this.allCalloutOptions[0]?.type ?? "note";
 				}

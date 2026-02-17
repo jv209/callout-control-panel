@@ -1,10 +1,12 @@
-import { Plugin, PluginSettingTab, App, Setting } from "obsidian";
-import { type PluginSettings, DEFAULT_SETTINGS, BUILTIN_CALLOUT_TYPES } from "./types";
+import { Plugin, PluginSettingTab, App, Setting, setIcon } from "obsidian";
+import { type CalloutTypeInfo, type PluginSettings, DEFAULT_SETTINGS, BUILTIN_CALLOUT_TYPES } from "./types";
 import { InsertCalloutModal } from "./insertCalloutModal";
 import { QuickPickCalloutModal } from "./quickPickCalloutModal";
+import { parseSnippetCalloutTypes } from "./snippetParser";
 
 export default class EnhancedCalloutManager extends Plugin {
 	settings: PluginSettings;
+	snippetTypes: CalloutTypeInfo[] = [];
 
 	async onload() {
 		await this.loadSettings();
@@ -20,6 +22,7 @@ export default class EnhancedCalloutManager extends Plugin {
 				const modal = new InsertCalloutModal(this.app, {
 					defaultType,
 					autoFocusContent: this.settings.autoFocusContent,
+					snippetTypes: this.snippetTypes,
 				});
 
 				const origClose = modal.close.bind(modal);
@@ -39,7 +42,7 @@ export default class EnhancedCalloutManager extends Plugin {
 			id: "insert-callout-quick",
 			name: "Insert callout (quick pick)",
 			editorCallback: () => {
-				const modal = new QuickPickCalloutModal(this.app, (type) => {
+				const modal = new QuickPickCalloutModal(this.app, this.snippetTypes, (type) => {
 					QuickPickCalloutModal.insertQuickCallout(this.app, type);
 					if (this.settings.rememberLastType) {
 						this.settings.lastUsedType = type;
@@ -62,6 +65,11 @@ export default class EnhancedCalloutManager extends Plugin {
 		});
 
 		this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
+
+		// Scan snippet types once the workspace layout is ready
+		this.app.workspace.onLayoutReady(() => {
+			void this.refreshSnippetTypes();
+		});
 	}
 
 	async loadSettings() {
@@ -70,6 +78,15 @@ export default class EnhancedCalloutManager extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	/** Re-scan CSS snippets for custom callout types. */
+	async refreshSnippetTypes(): Promise<void> {
+		if (this.settings.scanSnippets) {
+			this.snippetTypes = await parseSnippetCalloutTypes(this.app);
+		} else {
+			this.snippetTypes = [];
+		}
 	}
 }
 
@@ -85,12 +102,19 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
+		// --- Insertion section ---
+		new Setting(containerEl).setName("Insertion").setHeading();
+
 		new Setting(containerEl)
 			.setName("Default callout type")
 			.setDesc("The callout type pre-selected when the modal opens.")
 			.addDropdown((dropdown) => {
 				for (const ct of BUILTIN_CALLOUT_TYPES) {
 					dropdown.addOption(ct.type, ct.label);
+				}
+				// Also include snippet types in the default type picker
+				for (const st of this.plugin.snippetTypes) {
+					dropdown.addOption(st.type, st.label);
 				}
 				dropdown.setValue(this.plugin.settings.defaultCalloutType);
 				dropdown.onChange(async (value) => {
@@ -120,5 +144,44 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
+
+		// --- Detection section ---
+		new Setting(containerEl).setName("Detection").setHeading();
+
+		new Setting(containerEl)
+			.setName("Scan CSS snippets")
+			.setDesc("Detect custom callout types defined in your CSS snippet files.")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.scanSnippets);
+				toggle.onChange(async (value) => {
+					this.plugin.settings.scanSnippets = value;
+					await this.plugin.saveSettings();
+					await this.plugin.refreshSnippetTypes();
+					// Re-render to update the detected types list
+					this.display();
+				});
+			});
+
+		// Show detected snippet types
+		if (this.plugin.settings.scanSnippets) {
+			const count = this.plugin.snippetTypes.length;
+			if (count > 0) {
+				new Setting(containerEl)
+					.setName(`Detected types (${count})`)
+					.setDesc("Custom callout types found in your CSS snippets.");
+
+				const listEl = containerEl.createDiv({ cls: "detected-snippet-types" });
+				for (const st of this.plugin.snippetTypes) {
+					const itemEl = listEl.createDiv({ cls: "detected-snippet-type-item" });
+					const iconEl = itemEl.createDiv({ cls: "detected-snippet-type-icon" });
+					setIcon(iconEl, st.icon);
+					itemEl.createSpan({ text: st.label, cls: "detected-snippet-type-label" });
+				}
+			} else {
+				new Setting(containerEl)
+					.setName("No custom types detected")
+					.setDesc("No callout definitions were found in your CSS snippet files.");
+			}
+		}
 	}
 }

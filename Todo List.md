@@ -183,37 +183,40 @@ The goal of Phase 1 is to get a working plugin that does one thing well: **open 
 This phase adds the ability to detect callout types that you (or a theme) have defined in CSS snippet files. When you have a snippet like `.callout[data-callout="recipe"]`, the modal will now show "recipe" as an available type.
 
 ### 2.1 Port the snippet parser (`src/snippetParser.ts`)
-- [ ] Copy Plugin A's `snippetParser.ts` into `src/`
-- [ ] Verify it works standalone:
-  - Reads `.obsidian/snippets/*.css`
+- [x] Adapted Plugin A's `snippetParser.ts` into `src/` using unified `CalloutTypeInfo` type
+- [x] Verify it works standalone:
+  - Reads `<configDir>/snippets/*.css` (uses `Vault.configDir`, not hardcoded path)
   - Extracts callout type names, icons, and colors via regex
-  - Returns an array of `SnippetCalloutType` (or the unified type from 1.1)
-- [ ] Handle edge cases: no snippets folder, empty files, read errors
+  - Returns an array of `CalloutTypeInfo` with `source: "snippet"`
+- [x] Handle edge cases: no snippets folder, empty files, read errors
+- [x] Deduplicates light/dark theme variants by type name (first occurrence kept)
+- [x] Filters out types that shadow built-in callout names
 
 **Deliverable:** A function that returns all custom callout types found in CSS snippets.
 
 ### 2.2 Integrate snippet types into the modal with grouped dropdown
-- [ ] Update `InsertCalloutModal.prepareCalloutOptions()` to merge snippet types with built-in types
-- [ ] Add **section dividers** to the type dropdown: a "Default" header for the 14 built-in types and a "Custom" header for snippet-detected types
-- [ ] Use `<optgroup>` labels or styled separator options in the dropdown to visually group the two sections
-- [ ] Show snippet type count in parentheses if any are found
-- [ ] Also update the quick-pick `SuggestModal` (from 1.6) with the same grouping
+- [x] Update `InsertCalloutModal` to accept `snippetTypes` via config
+- [x] Add **`<optgroup>`** section dividers: "Custom" header for snippet types, "Default" header for built-in types
+- [x] Snippet types appear first in dropdown, built-in types second
+- [x] Updated quick-pick `SuggestModal` to accept snippet types and show a "snippet" source tag
 
 **Why:** When there are many callout types from different sources, dividers make it easy to tell where a type came from and find what you're looking for.
 
 **Deliverable:** Custom callout types from snippets appear in the modal dropdown, visually separated from built-in types.
 
 ### 2.3 Add snippet scanning settings
-- [ ] Add the "Scan CSS snippets" toggle to the settings tab
-- [ ] Show the count and names of detected custom types
-- [ ] Wire the toggle to trigger a rescan when changed
+- [x] Add "Scan CSS snippets" toggle to the settings tab (under new "Detection" heading)
+- [x] Show the count and list of detected custom types with icons
+- [x] Wire the toggle to trigger a rescan and re-render when changed
+- [x] Settings tab organized into "Insertion" and "Detection" sections
 
 **Deliverable:** Users can enable/disable snippet scanning and see what was detected.
 
 ### 2.4 Trigger rescan at the right times
-- [ ] Scan on plugin load (inside `onLayoutReady()`)
-- [ ] Rescan when the snippet scanning setting is toggled
-- [ ] Store the results on the plugin instance so the modal can access them
+- [x] Scan on plugin load inside `onLayoutReady()`
+- [x] Rescan when the snippet scanning setting is toggled
+- [x] Store the results on the plugin instance (`snippetTypes`) so modals can access them
+- [x] Pass snippet types to both `InsertCalloutModal` and `QuickPickCalloutModal` when opened
 
 **Deliverable:** Snippet types are always up to date when the modal opens.
 

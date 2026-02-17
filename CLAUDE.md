@@ -8,3 +8,22 @@ After every completed task, provide the following four items:
 2. **Pull request description** — summary bullets and test plan
 3. **Version/release title** — suitable for a GitHub release
 4. **Version/release description** — what changed, aimed at end users
+
+## Version tracking
+
+**Check this section before suggesting a version number.** The next version must be higher than the latest listed here.
+
+| Version | Release title | Date |
+|---------|--------------|------|
+| v0.0.4 | License and attribution | — |
+| v0.0.6 | Clean slate for development | — |
+| v0.0.7 | Clean build pipeline confirmed | — |
+| v0.1.0-alpha.1 | Unified Type System | — |
+| v0.1.0-alpha.2 | Insertion Modal | — |
+| v0.1.0-alpha.3 | Modal Styling | — |
+| v0.1.0 | Working BRAT-installable release | — |
+| v0.1.1 | Plugin activation and roadmap update | — |
+| v0.2.0 | Quick-pick insertion and settings command | — |
+| v0.3.0 | Phase 1 complete | — |
+
+**Next version: v0.4.0**

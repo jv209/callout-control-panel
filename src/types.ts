@@ -42,6 +42,8 @@ export interface PluginSettings {
 	autoFocusContent: boolean;
 	/** Tracks the last used callout type (when rememberLastType is enabled). */
 	lastUsedType: string;
+	/** Whether to scan CSS snippet files for custom callout types. */
+	scanSnippets: boolean;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -49,6 +51,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	rememberLastType: false,
 	autoFocusContent: true,
 	lastUsedType: "note",
+	scanSnippets: true,
 };
 
 /**
