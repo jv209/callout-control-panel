@@ -78,13 +78,39 @@
 	background: var(--background-modifier-hover);
 }
 
-/* Detected snippet types list in settings */
+/* Inline warning icon next to the "Detected types" heading */
+.detected-snippet-header-warning {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 6px;
+	vertical-align: middle;
+}
+
+.detected-snippet-header-warning svg {
+	width: 14px;
+	height: 14px;
+	color: var(--text-warning);
+}
+
+/* Detected snippet types list in settings (collapsible) */
 .detected-snippet-types {
 	margin: 0 0 12px 5%;
 	padding: 6px 12px 6px 16px;
 	background: var(--background-secondary);
 	border-radius: 6px;
 	border-left: 3px solid var(--interactive-accent);
+}
+
+.detected-snippet-types-summary {
+	cursor: pointer;
+	font-size: var(--font-ui-smaller);
+	opacity: 0.6;
+	padding: 4px 0;
+	user-select: none;
+}
+
+.detected-snippet-types-summary:hover {
+	opacity: 0.9;
 }
 
 /* Table grid: Icon | Callout | Icon Name | Color | Status */

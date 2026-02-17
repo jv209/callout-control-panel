@@ -166,6 +166,7 @@ function extractCalloutTypes(
 		// Extract --callout-icon: icon-name
 		const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
 		const icon = iconMatch && iconMatch[1] ? iconMatch[1] : "lucide-box";
+		const iconDefault = !(iconMatch && iconMatch[1]);
 
 		// Title-case the type name for the display label
 		const label = typeName
@@ -178,6 +179,7 @@ function extractCalloutTypes(
 			icon,
 			color,
 			source: "snippet",
+			iconDefault,
 		});
 	}
 

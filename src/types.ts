@@ -26,6 +26,8 @@ export interface CalloutTypeInfo {
 	color: string;
 	/** Where this callout type was defined. */
 	source: CalloutSource;
+	/** True when the CSS block had no --callout-icon declaration (using default). */
+	iconDefault?: boolean;
 	/** Alternate names that resolve to this type (e.g., "summary" → "abstract"). */
 	aliases?: string[];
 }

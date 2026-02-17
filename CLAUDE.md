@@ -27,5 +27,7 @@ After every completed task, provide the following four items:
 | v0.3.0 | Phase 1 complete | — |
 | v0.4.0 | Snippet type metadata display | — |
 | v0.4.1 | Tooltip and indentation corrections | — |
+| v0.4.2 | Collapsible detected types | — |
+| v0.4.3 | Missing icon warnings and troubleshooting | 2026-02-17 |
 
-**Next version: v0.4.2**
+**Next version: v0.4.4**
