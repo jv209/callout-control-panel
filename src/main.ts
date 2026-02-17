@@ -170,6 +170,8 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 		if (this.plugin.settings.scanSnippets) {
 			const count = this.plugin.snippetTypes.length;
 			const colorWarningCount = this.plugin.snippetTypes.filter(st => st.color.startsWith("var(")).length;
+			const iconWarningCount = this.plugin.snippetTypes.filter(st => st.iconDefault).length;
+			const totalWarningCount = this.plugin.snippetTypes.filter(st => st.color.startsWith("var(") || st.iconDefault).length;
 			const heading = count > 0
 				? `Detected types (${count})`
 				: "No custom types detected";
@@ -200,14 +202,18 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 						});
 				});
 
-			// Inline warning if any types are missing a color definition
-			if (colorWarningCount > 0) {
+			// Inline warning if any types are missing a color or icon definition
+			if (totalWarningCount > 0) {
+				const parts: string[] = [];
+				if (colorWarningCount > 0) {
+					parts.push(`${colorWarningCount} missing color`);
+				}
+				if (iconWarningCount > 0) {
+					parts.push(`${iconWarningCount} missing icon`);
+				}
 				const warnEl = detectedSetting.nameEl.createSpan({ cls: "detected-snippet-header-warning" });
 				setIcon(warnEl, "alert-triangle");
-				warnEl.setAttribute(
-					"aria-label",
-					`${colorWarningCount} ${colorWarningCount === 1 ? "type" : "types"} missing a color definition`,
-				);
+				warnEl.setAttribute("aria-label", parts.join(", "));
 			}
 
 			if (count > 0) {
@@ -235,18 +241,24 @@ class EnhancedCalloutSettingTab extends PluginSettingTab {
 					rowEl.createSpan({ text: st.label, cls: "detected-snippet-col-callout" });
 
 					// Icon name column
-					rowEl.createSpan({ text: st.icon, cls: "detected-snippet-col-iconname detected-snippet-type-meta" });
+					const iconText = st.iconDefault ? "—" : st.icon;
+					rowEl.createSpan({ text: iconText, cls: "detected-snippet-col-iconname detected-snippet-type-meta" });
 
 					// Color column
 					const colorText = st.color.startsWith("var(") ? "—" : `rgb(${st.color})`;
 					rowEl.createSpan({ text: colorText, cls: "detected-snippet-col-color detected-snippet-type-meta" });
 
-					// Status column (warning if no color defined)
+					// Status column (warning if no color or icon defined)
 					const statusEl = rowEl.createDiv({ cls: "detected-snippet-col-status" });
-					if (st.color.startsWith("var(")) {
+					const missingColor = st.color.startsWith("var(");
+					const missingIcon = st.iconDefault === true;
+					if (missingColor || missingIcon) {
+						const reasons: string[] = [];
+						if (missingColor) reasons.push("no --callout-color");
+						if (missingIcon) reasons.push("no --callout-icon");
 						const warnEl = statusEl.createDiv({ cls: "detected-snippet-type-warning" });
 						setIcon(warnEl, "alert-triangle");
-						warnEl.setAttribute("aria-label", "No color defined — using default");
+						warnEl.setAttribute("aria-label", `Missing: ${reasons.join(", ")} — using defaults`);
 					}
 				}
 			}

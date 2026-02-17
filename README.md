@@ -99,7 +99,30 @@ If you have CSS snippets that define callout types, the plugin will detect them 
 }
 ```
 
-Both `--callout-color` (as an RGB tuple) and `--callout-icon` (as a Lucide icon name) are optional. If omitted, defaults will be used.
+Both `--callout-color` (as an RGB tuple) and `--callout-icon` (as a Lucide icon name) are optional. If omitted, defaults will be used — and the plugin will show a warning so you know something is missing.
+
+## Troubleshooting
+
+### My callout doesn't appear in the plugin at all
+
+The plugin only scans **enabled** CSS snippets. Make sure your snippet is toggled on in **Settings > Appearance > CSS snippets**. If the snippet is enabled but the callout still doesn't appear, the CSS block may be malformed — the plugin will show a warning with the file name and number of unparseable entries. Check that your definition follows this structure:
+
+```css
+.callout[data-callout="your-type"] {
+    --callout-color: 68, 138, 255;
+    --callout-icon: lucide-star;
+}
+```
+
+Common causes: missing quotes around the type name, a missing closing brace, or extra selectors that break the pattern.
+
+### My callout shows a generic box icon
+
+The plugin couldn't find a `--callout-icon` declaration in your CSS block. A warning triangle will appear next to the callout in the settings panel. Make sure the icon name uses only letters, numbers, and hyphens (e.g., `lucide-star`, `lucide-alert-triangle`). A typo in the property name (`--callout-icons` instead of `--callout-icon`) will also cause this.
+
+### My callout uses the accent color instead of my custom color
+
+The plugin couldn't parse a `--callout-color` value from your CSS block. A warning triangle will appear next to the callout in the settings panel. The color must be an RGB tuple of three numbers — for example, `--callout-color: 68, 138, 255;`. Hex values (`#44a8ff`), `rgb()` wrappers, and CSS color names (`red`) are not supported by Obsidian's callout color system.
 
 ## Attribution
 
