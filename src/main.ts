@@ -26,7 +26,7 @@ export default class EnhancedCalloutManager extends Plugin {
 				modal.close = () => {
 					if (this.settings.rememberLastType && modal.type) {
 						this.settings.lastUsedType = modal.type;
-						this.saveSettings();
+						void this.saveSettings();
 					}
 					origClose();
 				};
@@ -43,7 +43,7 @@ export default class EnhancedCalloutManager extends Plugin {
 					QuickPickCalloutModal.insertQuickCallout(this.app, type);
 					if (this.settings.rememberLastType) {
 						this.settings.lastUsedType = type;
-						this.saveSettings();
+						void this.saveSettings();
 					}
 				});
 				modal.open();
@@ -54,7 +54,8 @@ export default class EnhancedCalloutManager extends Plugin {
 			id: "open-settings",
 			name: "Open settings",
 			callback: () => {
-				const setting = (this.app as any).setting;
+				// app.setting is an undocumented Obsidian internal
+				const setting = (this.app as unknown as { setting: { open(): void; openTabById(id: string): void } }).setting;
 				setting.open();
 				setting.openTabById(this.manifest.id);
 			},
@@ -64,7 +65,7 @@ export default class EnhancedCalloutManager extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<PluginSettings>);
 	}
 
 	async saveSettings() {
