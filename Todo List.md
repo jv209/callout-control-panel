@@ -221,13 +221,13 @@ This phase adds the ability to detect callout types that you (or a theme) have d
 **Deliverable:** Snippet types are always up to date when the modal opens.
 
 ### 2.5 Test with real snippets
-- [ ] Create test snippet files with various patterns:
+- [x] Create test snippet files with various patterns:
   - Single callout type
   - Multiple callout types in one file
   - Missing icon (should fallback to `lucide-box`)
   - Missing color (should fallback to default)
   - Malformed CSS (should not crash)
-- [ ] Verify all detected types appear in the modal and insert correctly
+- [x] Verify all detected types appear in the modal and insert correctly
 
 **Deliverable:** Snippet detection is robust and handles real-world CSS.
 
