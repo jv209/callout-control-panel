@@ -64,3 +64,46 @@
 	height: 16px;
 	color: rgb(var(--callout-color));
 }
+
+.quick-pick-callout-label {
+	flex: 1;
+}
+
+/* Source tag shown next to snippet/custom types in the quick-pick list */
+.quick-pick-callout-source {
+	font-size: 0.75em;
+	opacity: 0.5;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: var(--background-modifier-hover);
+}
+
+/* Detected snippet types list in settings */
+.detected-snippet-types {
+	padding: 0 0 12px;
+}
+
+.detected-snippet-type-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+}
+
+.detected-snippet-type-icon {
+	display: flex;
+	width: 18px;
+	height: 18px;
+	align-items: center;
+	flex-shrink: 0;
+	opacity: 0.7;
+}
+
+.detected-snippet-type-icon svg {
+	width: 14px;
+	height: 14px;
+}
+
+.detected-snippet-type-label {
+	font-size: 0.9em;
+}
