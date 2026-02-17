@@ -1,6 +1,0 @@
-/* Test 4: Missing color — should fall back to var(--callout-default) */
-
-.callout[data-callout="sprint"] {
-    /* no --callout-color defined */
-    --callout-icon: lucide-zap;
-}

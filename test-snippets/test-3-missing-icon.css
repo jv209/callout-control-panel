@@ -1,6 +1,0 @@
-/* Test 3: Missing icon — should fall back to lucide-box */
-
-.callout[data-callout="review"] {
-    --callout-color: 200, 80, 80;
-    /* no --callout-icon defined */
-}
