@@ -1,5 +1,8 @@
+# Build output (delivered via GitHub Releases)
+main.js
+
 # vscode
-.vscode 
+.vscode
 
 # Intellij
 *.iml
@@ -14,5 +17,5 @@ node_modules
 # obsidian
 data.json
 
-# Exclude macOS Finder (System Explorer) View States
+# Exclude macOS Finder View States
 .DS_Store
