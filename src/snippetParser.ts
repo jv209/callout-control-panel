@@ -26,12 +26,18 @@ interface AdapterListResult {
 	folders: string[];
 }
 
+/** Undocumented Obsidian internal for CSS snippet management. */
+interface CustomCss {
+	enabledSnippets: Set<string>;
+}
+
 /**
- * Reads all .css files in the vault's snippets directory and extracts
- * any custom callout type definitions found.
+ * Reads enabled .css snippet files in the vault's snippets directory
+ * and extracts any custom callout type definitions found.
  *
- * Returns only types that are NOT already in the built-in list, so
- * snippet definitions that shadow built-in types are excluded.
+ * Only snippets that are toggled on in Obsidian's Appearance settings
+ * are scanned. Returns only types that are NOT already in the built-in
+ * list, so snippet definitions that shadow built-in types are excluded.
  */
 export async function parseSnippetCalloutTypes(app: App): Promise<CalloutTypeInfo[]> {
 	const results: CalloutTypeInfo[] = [];
@@ -47,6 +53,10 @@ export async function parseSnippetCalloutTypes(app: App): Promise<CalloutTypeInf
 		}
 	}
 
+	// Get enabled snippets from Obsidian's undocumented API
+	const customCss = (app as unknown as { customCss: CustomCss }).customCss;
+	const enabledSnippets = customCss.enabledSnippets;
+
 	const snippetsDir = `${app.vault.configDir}/snippets`;
 
 	let listing: AdapterListResult;
@@ -60,7 +70,13 @@ export async function parseSnippetCalloutTypes(app: App): Promise<CalloutTypeInf
 		return results;
 	}
 
-	const cssFiles = listing.files.filter((f) => f.endsWith(".css"));
+	const cssFiles = listing.files.filter((f) => {
+		if (!f.endsWith(".css")) return false;
+		// Extract snippet name (filename without .css extension)
+		const fileName = f.split("/").pop() ?? "";
+		const snippetName = fileName.replace(/\.css$/, "");
+		return enabledSnippets.has(snippetName);
+	});
 
 	for (const filePath of cssFiles) {
 		let css: string;
@@ -111,9 +127,11 @@ function extractCalloutTypes(
 		if (results.some((r) => r.type === typeName)) continue;
 
 		// Extract --callout-color: R, G, B
+		// Store as raw RGB tuple (e.g. "68, 138, 255") without rgb() wrapper,
+		// matching how built-in colors work with the CSS pattern rgb(var(--callout-color)).
 		const colorMatch = block.match(/--callout-color:\s*([\d\s,]+)/);
 		const color = colorMatch && colorMatch[1]
-			? `rgb(${colorMatch[1].trim()})`
+			? colorMatch[1].trim()
 			: "var(--callout-default)";
 
 		// Extract --callout-icon: icon-name
