@@ -26,5 +26,6 @@ After every completed task, provide the following four items:
 | v0.2.0 | Quick-pick insertion and settings command | — |
 | v0.3.0 | Phase 1 complete | — |
 | v0.4.0 | Snippet type metadata display | — |
+| v0.4.1 | Tooltip and indentation corrections | — |
 
-**Next version: v0.4.1**
+**Next version: v0.4.2**
