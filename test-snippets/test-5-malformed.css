@@ -1,0 +1,27 @@
+/* Test 5: Malformed CSS — should not crash the parser */
+
+/* Unclosed block */
+.callout[data-callout="broken" {
+    --callout-color: 100, 100, 100;
+
+/* Missing closing quote */
+.callout[data-callout="unclosed] {
+    --callout-icon: lucide-x;
+}
+
+/* This valid one should still be detected despite the noise above */
+.callout[data-callout="working"] {
+    --callout-color: 100, 180, 255;
+    --callout-icon: lucide-check-circle;
+}
+
+/* Light/dark duplicate — only first should be kept */
+.theme-light .callout[data-callout="seasonal"] {
+    --callout-color: 255, 200, 100;
+    --callout-icon: lucide-sun;
+}
+
+.theme-dark .callout[data-callout="seasonal"] {
+    --callout-color: 100, 80, 200;
+    --callout-icon: lucide-moon;
+}
