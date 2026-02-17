@@ -162,17 +162,17 @@ The goal of Phase 1 is to get a working plugin that does one thing well: **open 
 **Deliverable:** "Enhanced Callout Manager: Open settings" appears in the command palette.
 
 ### 1.8 Manual testing
-- [ ] Build the plugin (`npm run build`)
-- [ ] Copy `main.js`, `manifest.json`, `styles.css` to your test vault
-- [ ] Verify:
-  - [ ] Plugin loads without errors in the console
-  - [ ] Command appears in the command palette
-  - [ ] Modal opens and shows all 14 built-in types
-  - [ ] Icon preview updates when type changes
-  - [ ] Callout inserts correctly (empty line, non-empty line, with selection)
-  - [ ] Collapse states work (none, open, closed)
-  - [ ] Ctrl/Cmd+Enter keyboard shortcut works
-  - [ ] Settings save and persist across restarts
+- [x] Build the plugin (`npm run build`)
+- [x] Copy `main.js`, `manifest.json`, `styles.css` to your test vault
+- [x] Verify:
+  - [x] Plugin loads without errors in the console
+  - [x] Command appears in the command palette
+  - [x] Modal opens and shows all 14 built-in types
+  - [x] Icon preview updates when type changes
+  - [x] Callout inserts correctly (empty line, non-empty line, with selection)
+  - [x] Collapse states work (none, open, closed)
+  - [x] Ctrl/Cmd+Enter keyboard shortcut works
+  - [x] Settings save and persist across restarts
 
 **Deliverable:** A working MVP you can use in your vault.
 
