@@ -237,21 +237,21 @@ This phase adds the ability to detect callout types that you (or a theme) have d
 
 This phase brings in Plugin C's callout management system. Users can define entirely new callout types (with custom name, icon, and color) and have them work in their vault via generated CSS rules. Custom types are stored as structured data in plugin settings and output as an editable CSS snippet file.
 
-### 3.1 Port the Icon Manager (`src/icons/`)
-- [ ] Copy Plugin C's `icons/manager.ts` and `icons/packs.ts` into `src/icons/`
-- [ ] Update imports to match the new project structure
-- [ ] Verify Font Awesome icon loading works
-- [ ] Verify Obsidian native icon integration works
-- [ ] Verify downloadable pack support (Octicons, RPG Awesome)
+### 3.1 Port the Icon Manager (`src/icons/`) ✅
+- [x] Copy Plugin C's `icons/manager.ts` and `icons/packs.ts` into `src/icons/`
+- [x] Update imports to match the new project structure
+- [x] Verify Font Awesome icon loading works
+- [x] Verify Obsidian native icon integration works
+- [x] Verify downloadable pack support (Octicons, RPG Awesome)
 
 **Why first:** The Icon Manager is a dependency for nearly everything in Phase 3 — the icon picker, the settings modal, and the CSS generator all need it.
 
 **Deliverable:** `IconManager` class that loads and renders icons from all sources.
 
-### 3.2 Port the Icon Suggestion Modal (`src/modal/iconSuggestionModal.ts`)
-- [ ] Copy Plugin C's `modal/index.ts` (the fuzzy search icon picker)
-- [ ] Update imports
-- [ ] Verify it shows icons from all sources with fuzzy search, previews, and source labels
+### 3.2 Port the Icon Suggestion Modal (`src/modal/iconSuggestionModal.ts`) ✅
+- [x] Copy Plugin C's `modal/index.ts` (the fuzzy search icon picker)
+- [x] Update imports
+- [x] Verify it shows icons from all sources with fuzzy search, previews, and source labels
 
 **Deliverable:** A modal where users can search and select any available icon.
 
