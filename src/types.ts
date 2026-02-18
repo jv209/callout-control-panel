@@ -4,12 +4,30 @@
  * Attribution: Built-in callout type definitions are derived from
  * the Editing Toolbar plugin by Cuman
  * (https://github.com/cumany/obsidian-editing-toolbar), licensed under MIT.
+ *
+ * Icon types derived from obsidian-admonition v10.3.2
+ * (MIT, Jeremy Valentine).
  */
+
+import type { DownloadableIconPack } from "./icons/packs";
 
 /**
  * Where a callout type originates from.
  */
 export type CalloutSource = "builtin" | "snippet" | "custom" | "theme";
+
+/**
+ * Which icon pack an icon belongs to.
+ */
+export type IconType = "font-awesome" | "obsidian" | "image" | DownloadableIconPack;
+
+/**
+ * An icon reference: pack type + icon name (or image URL for type "image").
+ */
+export interface CalloutIconDefinition {
+	type?: IconType;
+	name?: string;
+}
 
 /**
  * Universal callout type information used by the modal dropdown
@@ -48,6 +66,10 @@ export interface PluginSettings {
 	lastUsedType: string;
 	/** Whether to scan CSS snippet files for custom callout types. */
 	scanSnippets: boolean;
+	/** Installed downloadable icon packs (e.g., "octicons", "rpg"). */
+	icons: DownloadableIconPack[];
+	/** Whether Font Awesome icons are available for selection. */
+	useFontAwesome: boolean;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -56,6 +78,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	autoFocusContent: true,
 	lastUsedType: "note",
 	scanSnippets: true,
+	icons: [],
+	useFontAwesome: true,
 };
 
 /**

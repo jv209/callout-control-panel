@@ -35,7 +35,9 @@ var DEFAULT_SETTINGS = {
   rememberLastType: false,
   autoFocusContent: true,
   lastUsedType: "note",
-  scanSnippets: true
+  scanSnippets: true,
+  icons: [],
+  useFontAwesome: true
 };
 var BUILTIN_CALLOUT_TYPES = [
   { type: "note", label: "Note", icon: "lucide-pencil", color: "var(--callout-default)", source: "builtin", aliases: [] },
