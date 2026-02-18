@@ -31,4 +31,4 @@ After every completed task, provide the following four items:
 | v0.4.3 | Missing icon warnings and troubleshooting | 2026-02-17 |
 | v0.4.4 | Invalid icon name detection | 2026-02-17 |
 
-**Next version: v0.4.5**
+**Next version: v0.5.0**
