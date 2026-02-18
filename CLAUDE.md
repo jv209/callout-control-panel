@@ -30,5 +30,8 @@ After every completed task, provide the following four items:
 | v0.4.2 | Collapsible detected types | — |
 | v0.4.3 | Missing icon warnings and troubleshooting | 2026-02-17 |
 | v0.4.4 | Invalid icon name detection | 2026-02-17 |
+| v0.4.5 | Human-readable build output | 2026-02-18 |
+| v0.4.6 | Phase 3 roadmap and design decisions | 2026-02-18 |
+| v0.4.7 | Icon Manager port from Plugin C | 2026-02-18 |
 
-**Next version: v0.4.5**
+**Next version: v0.5.0**
