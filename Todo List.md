@@ -269,11 +269,11 @@ This phase brings in Plugin C's callout management system. Users can define enti
 
 **Deliverable:** `CalloutManager` class that generates CSS rules via in-memory styles and an editable vault snippet file.
 
-### 3.4 Port color and validation utilities (`src/util/`)
-- [ ] Copy Plugin C's `util/color.ts`, `util/constants.ts`, `util/validator.ts`
-- [ ] Update imports
-- [ ] Fix the missing `saveSettings()` bug in the edit flow (documented in Plugin C's audit)
-- [ ] `injectColor` is the default behavior — colors are always written into the CSS rule unless the user explicitly turns injection off for a specific type or globally
+### 3.4 Port color and validation utilities (`src/util/`) ✅
+- [x] Copy Plugin C's `util/color.ts`, `util/constants.ts`, `util/validator.ts`
+- [x] Update imports
+- [x] Fix the missing `saveSettings()` bug in the edit flow (documented in Plugin C's audit)
+- [x] `injectColor` is the default behavior — colors are always written into the CSS rule unless the user explicitly turns injection off for a specific type or globally
 
 **Deliverable:** Color conversion, default callout definitions, and input validation utilities.
 
