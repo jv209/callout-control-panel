@@ -35,5 +35,6 @@ After every completed task, provide the following four items:
 | v0.4.7 | Icon Manager port from Plugin C | 2026-02-18 |
 | v0.5.0 | Version tracking catch-up | 2026-02-18 |
 | v0.5.1 | Icon Suggestion Modal port | 2026-02-18 |
+| v0.5.2 | Callout Manager port | 2026-02-18 |
 
-**Next version: v0.5.2**
+**Next version: v0.5.3**

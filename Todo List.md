@@ -255,15 +255,15 @@ This phase brings in Plugin C's callout management system. Users can define enti
 
 **Deliverable:** A modal where users can search and select any available icon.
 
-### 3.3 Port the Callout Manager (`src/callout/manager.ts`)
-- [ ] Copy Plugin C's `callout/manager.ts`
-- [ ] Update imports to use the unified type system
-- [ ] Fix the known "double CSS call" bug (documented in Plugin C's audit)
-- [ ] Use **dual output** as the default mode:
+### 3.3 Port the Callout Manager (`src/callout/manager.ts`) ✅
+- [x] Copy Plugin C's `callout/manager.ts`
+- [x] Update imports to use the unified type system
+- [x] Fix the known "double CSS call" bug (documented in Plugin C's audit)
+- [x] Use **dual output** as the default mode:
   - In-memory `<style>` element for instant rendering
   - Vault snippet file (`.obsidian/snippets/enhanced-callout-manager.css`) for persistence and user editability
-- [ ] Keep both in sync — any change to in-memory styles also writes the snippet file
-- [ ] Call `app.customCss.readSnippets()` after writing the snippet file so Obsidian picks up changes
+- [x] Keep both in sync — any change to in-memory styles also writes the snippet file
+- [x] Call `app.customCss.readSnippets()` after writing the snippet file so Obsidian picks up changes
 
 **Why dual output:** The `<style>` element gives instant rendering with no delay. The snippet file persists after plugin uninstall (callouts keep working) and is editable by the user. The existing snippet parser (Phase 2) can validate the file and flag issues if the user edits it manually.
 
