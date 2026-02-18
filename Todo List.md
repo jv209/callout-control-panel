@@ -283,10 +283,10 @@ This phase brings in Plugin C's callout management system. Users can define enti
 
 **Deliverable:** Reusable confirmation dialog and export selection modal.
 
-### 3.6 Port the localization system (`src/lang/`)
-- [ ] Copy Plugin C's `lang/helpers.ts` and `lang/locale/en.ts`
-- [ ] Update imports
-- [ ] (English only for now — other languages can be added later)
+### 3.6 Port the localization system (`src/lang/`) ✅
+- [x] Copy Plugin C's `lang/helpers.ts` and `lang/locale/en.ts`
+- [x] Update imports
+- [x] (English only for now — other languages can be added later)
 
 **Deliverable:** `t()` function that returns English UI strings.
 
