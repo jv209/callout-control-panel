@@ -235,7 +235,7 @@ This phase adds the ability to detect callout types that you (or a theme) have d
 
 ## Phase 3: Custom Callout Management — Create, Edit, Delete Types
 
-This phase brings in Plugin C's callout management system. Users can define entirely new callout types (with custom name, icon, and color) and have them work in their vault via generated CSS rules.
+This phase brings in Plugin C's callout management system. Users can define entirely new callout types (with custom name, icon, and color) and have them work in their vault via generated CSS rules. Custom types are stored as structured data in plugin settings and output as an editable CSS snippet file.
 
 ### 3.1 Port the Icon Manager (`src/icons/`)
 - [ ] Copy Plugin C's `icons/manager.ts` and `icons/packs.ts` into `src/icons/`
@@ -259,18 +259,21 @@ This phase brings in Plugin C's callout management system. Users can define enti
 - [ ] Copy Plugin C's `callout/manager.ts`
 - [ ] Update imports to use the unified type system
 - [ ] Fix the known "double CSS call" bug (documented in Plugin C's audit)
-- [ ] Keep both CSS output modes:
-  - In-memory `<style>` element (default)
-  - Vault snippet file (optional, controlled by settings)
+- [ ] Use **dual output** as the default mode:
+  - In-memory `<style>` element for instant rendering
+  - Vault snippet file (`.obsidian/snippets/enhanced-callout-manager.css`) for persistence and user editability
+- [ ] Keep both in sync — any change to in-memory styles also writes the snippet file
+- [ ] Call `app.customCss.readSnippets()` after writing the snippet file so Obsidian picks up changes
 
-**Why:** This is the engine that turns a callout definition (name + icon + color) into a CSS rule that Obsidian understands.
+**Why dual output:** The `<style>` element gives instant rendering with no delay. The snippet file persists after plugin uninstall (callouts keep working) and is editable by the user. The existing snippet parser (Phase 2) can validate the file and flag issues if the user edits it manually.
 
-**Deliverable:** `CalloutManager` class that generates and manages CSS rules for custom callouts.
+**Deliverable:** `CalloutManager` class that generates CSS rules via in-memory styles and an editable vault snippet file.
 
 ### 3.4 Port color and validation utilities (`src/util/`)
 - [ ] Copy Plugin C's `util/color.ts`, `util/constants.ts`, `util/validator.ts`
 - [ ] Update imports
 - [ ] Fix the missing `saveSettings()` bug in the edit flow (documented in Plugin C's audit)
+- [ ] `injectColor` is the default behavior — colors are always written into the CSS rule unless the user explicitly turns injection off for a specific type or globally
 
 **Deliverable:** Color conversion, default callout definitions, and input validation utilities.
 
@@ -289,13 +292,15 @@ This phase brings in Plugin C's callout management system. Users can define enti
 
 ### 3.7 Build the unified settings tab
 - [ ] Create a new `src/settingsTab.ts` that combines:
-  - **Section 1: Insertion** — Default type, remember last type, auto-focus (from Phase 1)
-  - **Section 2: Detection** — Snippet scanning toggle with count (from Phase 2)
-  - **Section 3: Custom types** — Add/edit/delete with preview list (from Plugin C's `settings.ts`)
-  - **Section 4: Import/Export** — JSON import, JSON export, CSS snippet export (from Plugin C)
-  - **Section 5: Icon packs** — Font Awesome toggle, downloadable pack management (from Plugin C)
-  - **Section 6: Behavior** — Color injection toggle (from Plugin C)
+  - **Section 1: How callouts are inserted** — Default type, remember last type, auto-focus (from Phase 1)
+  - **Section 2: Where callout types come from** — Snippet scanning toggle with count (from Phase 2)
+  - **Section 3: Your custom types** — Add/edit/delete with preview list (from Plugin C's `settings.ts`)
+  - **Section 4: Favorite callouts for quick access** — Up to 5 assignable slots, each mapped to any available callout type; unused slots are ignored
+  - **Section 5: Import/Export** — JSON import, JSON export, CSS snippet export (from Plugin C)
+  - **Section 6: Icon packs** — Font Awesome toggle, downloadable pack management (from Plugin C)
+  - **Section 7: Color and styling** — Color injection toggle, per-type override (from Plugin C)
 - [ ] Port Plugin C's `SettingsModal` (the create/edit form with icon picker, color picker, live preview)
+- [ ] Color picker design: circular picker with RGB value inputs (details to be finalized during implementation)
 
 **Why:** This is the biggest integration task. The settings tab is where all three plugins' UIs converge into one coherent experience.
 
@@ -304,24 +309,46 @@ This phase brings in Plugin C's callout management system. Users can define enti
 ### 3.8 Wire custom types into the insertion modal
 - [ ] Extend the grouped dropdown (from 2.2) to include **three section dividers**: "Custom" (user-created), "Snippet" (detected from CSS), and "Default" (built-in Obsidian)
 - [ ] Order: Custom types first → Snippet types → Default types
-- [ ] Consider adding a "Manage callouts" link or button in the settings section of the dropdown groups, so users can jump to the manager from the modal
 - [ ] Render custom type icons correctly (Font Awesome SVG, downloaded pack icons, images — not just Lucide)
 - [ ] Apply the same three-section grouping to the quick-pick `SuggestModal` (from 1.6)
 
 **Deliverable:** The modal shows all callout types from all sources, organized into clearly labeled groups.
 
-### 3.9 Wire up `main.ts` for Phase 3
+### 3.9 Add favorite callout commands
+- [ ] Register 5 stable commands at plugin load: "Insert favorite callout 1" through "Insert favorite callout 5"
+- [ ] Each command reads its assigned callout type from settings and inserts that type at the cursor
+- [ ] If a slot is unassigned, the command is a no-op (does nothing, no error) — users only configure the slots they want
+- [ ] Commands are always registered (stable hotkey slots) — only the mapped type changes
+- [ ] All other insertion workflows (full modal, quick-pick) work independently of favorites and remain available regardless of how many slots are configured
+
+**Why:** Up to five fixed command slots give hotkey flexibility without flooding the command palette. Users assign their most-used types and bind hotkeys as needed. Zero configuration is required — the feature is purely opt-in.
+
+**Deliverable:** Up to 5 assignable hotkey slots for instant callout insertion; fully functional plugin without any configured.
+
+### 3.10 Add circular detection guard
+- [ ] When the snippet parser scans `.obsidian/snippets/`, skip the plugin's own generated file (`enhanced-callout-manager.css`)
+- [ ] Use the filename as the identifier — if the user renames the file, it will be detected as a regular snippet (acceptable)
+
+**Why:** Without this guard, the plugin writes a custom callout to its snippet file, then the snippet parser detects it as a "snippet callout," creating a duplicate entry.
+
+**Deliverable:** No echo between plugin-generated CSS and snippet detection.
+
+### 3.11 Wire up `main.ts` for Phase 3
 - [ ] Initialize `IconManager` in `onload()`
 - [ ] Initialize `CalloutManager` in `onload()`
 - [ ] Load user-defined callout types from settings and register them with `CalloutManager`
 - [ ] Implement `addAdmonition()` and `removeAdmonition()` methods on the plugin class
 - [ ] Pass all type sources (built-in, snippet, custom) to the modal when it opens
+- [ ] Register the 5 favorite callout commands
 
 **Deliverable:** The full Phase 3 system is wired together and functional.
 
-### 3.10 Test the management workflow
+### 3.12 Test the management workflow
 - [ ] Create a new custom callout type (with FA icon, custom color)
 - [ ] Verify it appears in the modal and inserts correctly
+- [ ] Verify the snippet file is generated in `.obsidian/snippets/`
+- [ ] Manually edit the snippet file and verify the snippet parser flags any issues
+- [ ] Verify favorite callout slots work and insert the assigned type
 - [ ] Edit the type (change icon, color, name)
 - [ ] Delete the type
 - [ ] Import types from JSON
@@ -329,6 +356,7 @@ This phase brings in Plugin C's callout management system. Users can define enti
 - [ ] Export types as CSS snippet
 - [ ] Verify settings persist across restarts
 - [ ] Verify CSS rules are correctly generated
+- [ ] Verify callout styling persists after plugin unload (via snippet file)
 
 **Deliverable:** Complete create/edit/delete/import/export workflow works end to end.
 
@@ -426,7 +454,8 @@ These are components that need to be **written new** during integration. They do
 | **Unified settings interface** | Each plugin stores different settings in different shapes. We need one `PluginSettings` interface that covers insertion preferences, detection toggles, custom type definitions, icon pack states, and behavior flags. | 1 |
 | **Unified settings tab** | Each plugin has its own settings tab. We need one that organizes all settings into logical sections. | 3 |
 | **Type adapter layer** | When the modal opens, it needs to merge built-in types, snippet types, and user-created types into one list. The three plugins format these differently, so we need code that normalizes them. | 3 |
-| **Circular detection guard** | When Plugin C writes a custom callout CSS rule, Plugin B's watcher might detect it as a "snippet callout." We need logic to prevent this echo. | 4 |
+| **Circular detection guard** | When the plugin writes a custom callout CSS rule to its snippet file, the snippet parser might detect it as a "snippet callout." Logic to skip the plugin's own file prevents this echo. | 3 (step 3.10) |
+| **Favorite callout commands** | 5 stable command slots that users can map to their most-used callout types for direct hotkey access. Not present in any source plugin. | 3 (step 3.9) |
 
 ### Nice to have (later):
 
