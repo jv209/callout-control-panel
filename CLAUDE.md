@@ -33,5 +33,7 @@ After every completed task, provide the following four items:
 | v0.4.5 | Human-readable build output | 2026-02-18 |
 | v0.4.6 | Phase 3 roadmap and design decisions | 2026-02-18 |
 | v0.4.7 | Icon Manager port from Plugin C | 2026-02-18 |
+| v0.5.0 | Version tracking catch-up | 2026-02-18 |
+| v0.5.1 | Icon Suggestion Modal port | 2026-02-18 |
 
-**Next version: v0.5.0**
+**Next version: v0.5.2**
