@@ -277,9 +277,9 @@ This phase brings in Plugin C's callout management system. Users can define enti
 
 **Deliverable:** Color conversion, default callout definitions, and input validation utilities.
 
-### 3.5 Port the confirmation and export modals (`src/modal/`)
-- [ ] Copy Plugin C's `modal/confirm.ts` and `modal/export.ts`
-- [ ] Update imports
+### 3.5 Port the confirmation and export modals (`src/modal/`) ✅
+- [x] Copy Plugin C's `modal/confirm.ts` and `modal/export.ts`
+- [x] Update imports
 
 **Deliverable:** Reusable confirmation dialog and export selection modal.
 
