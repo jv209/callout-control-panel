@@ -1525,11 +1525,13 @@ async function parseSnippetCalloutTypes(app) {
   } catch (e) {
     return { types: results, warnings };
   }
+  const PLUGIN_SNIPPET_NAME = "enhanced-callout-manager";
   const cssFiles = listing.files.filter((f) => {
     var _a2;
     if (!f.endsWith(".css")) return false;
     const fileName = (_a2 = f.split("/").pop()) != null ? _a2 : "";
     const snippetName = fileName.replace(/\.css$/, "");
+    if (snippetName === PLUGIN_SNIPPET_NAME) return false;
     return enabledSnippets.has(snippetName);
   });
   for (const filePath of cssFiles) {
@@ -18462,6 +18464,21 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
         setting.openTabById(this.manifest.id);
       }
     });
+    for (let i = 0; i < 5; i++) {
+      this.addCommand({
+        id: `insert-favorite-${i + 1}`,
+        name: `Insert favorite callout ${i + 1}`,
+        editorCallback: () => {
+          const type = this.settings.favoriteCallouts[i];
+          if (!type) return;
+          QuickPickCalloutModal.insertQuickCallout(this.app, type);
+          if (this.settings.rememberLastType) {
+            this.settings.lastUsedType = type;
+            void this.saveSettings();
+          }
+        }
+      });
+    }
     this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
     this.app.workspace.onLayoutReady(async () => {
       await this.iconManager.load();
