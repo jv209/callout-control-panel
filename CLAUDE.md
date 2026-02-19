@@ -41,8 +41,9 @@ After every completed task, provide the following four items:
 | v0.5.5 | Localization system | 2026-02-18 |
 | v0.5.7 | Unified settings tab and custom type insertion | 2026-02-19 |
 | v0.5.8 | Favorite commands and circular detection guard | 2026-02-19 |
+| v0.5.9 | Settings crash fix and collapsible custom types | 2026-02-19 |
 
-**Next version: v0.5.9**
+**Next version: v0.5.10**
 
 ## Post-Phase 3 compliance review
 
