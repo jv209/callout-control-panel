@@ -39,9 +39,9 @@ After every completed task, provide the following four items:
 | v0.5.3 | Color and validation utilities | 2026-02-18 |
 | v0.5.4 | Confirmation and export modals | 2026-02-18 |
 | v0.5.5 | Localization system | 2026-02-18 |
-| v0.5.6 | Unified settings tab and custom type insertion | 2026-02-19 |
+| v0.5.7 | Unified settings tab and custom type insertion | 2026-02-19 |
 
-**Next version: v0.5.7**
+**Next version: v0.5.8**
 
 ## Post-Phase 3 compliance review
 
@@ -50,5 +50,5 @@ Audit against official Obsidian developer guidelines (docs.obsidian.md/Plugins/R
 1. **`outerHTML` read** (medium) — `callout/manager.ts:100` uses `.outerHTML` as a getter to serialize SVG into CSS. Reviewers flag any use of `innerHTML`/`outerHTML`/`insertAdjacentHTML`. Inherited from obsidian-admonition; defensible but will draw a comment.
 2. **Inline `style.setProperty`** (low) — 3 files set `--callout-color` via inline style. This is how Obsidian's own callout coloring works, so it's idiomatically correct, but guideline 25 says prefer CSS classes/variables.
 3. **Title case in modals** (low) — `export.ts:31` uses "Export Callout Types"; should be "Export callout types" per sentence case guideline. Check all modal titles.
-4. **`manifest.json` version mismatch** (high) — manifest says v0.4.4, but latest tracked version is v0.5.5+. Must be synced before release.
+4. **`manifest.json` version mismatch** (high) — manifest says v0.4.4, but latest tracked version is v0.5.7. Must be synced before release.
 5. **Network access disclosure** (medium) — `IconManager` downloads icon packs from `raw.githubusercontent.com` via `requestUrl()`. Developer policy requires README to disclose all network connections with justification.
