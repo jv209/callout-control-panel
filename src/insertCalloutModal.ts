@@ -8,18 +8,24 @@
  * - Uses unified CalloutTypeInfo and BUILTIN_CALLOUT_TYPES from types.ts
  * - Removed editing-toolbar and Admonition plugin dependencies
  * - Accepts settings-driven configuration (default type, auto-focus)
- * - Grouped dropdown with "Default" and "Custom" sections (Phase 2)
+ * - Three-section grouped dropdown: Custom → Snippet → Default (Phase 3)
+ * - Non-Lucide icon rendering via optional IconManager (Phase 3)
  */
 
 import { App, Modal, Setting, setIcon, Platform, MarkdownView } from "obsidian";
 import { type CalloutTypeInfo, BUILTIN_CALLOUT_TYPES } from "./types";
+import type { IconManager } from "./icons/manager";
 
 /** Configuration passed from the plugin to the modal. */
 export interface InsertCalloutModalConfig {
 	defaultType: string;
 	autoFocusContent: boolean;
-	/** Snippet-detected callout types to show in a separate group. */
+	/** Snippet-detected callout types (shown in the "Snippet" group). */
 	snippetTypes: CalloutTypeInfo[];
+	/** User-defined custom callout types (shown first, in the "Custom" group). */
+	customTypes?: CalloutTypeInfo[];
+	/** Icon manager for rendering Font Awesome / downloaded-pack icons. */
+	iconManager?: IconManager;
 }
 
 export class InsertCalloutModal extends Modal {
@@ -29,6 +35,7 @@ export class InsertCalloutModal extends Modal {
 	public collapse: "none" | "open" | "closed" = "none";
 	private insertButton: HTMLElement;
 	private contentTextArea: HTMLTextAreaElement;
+	private customOptions: CalloutTypeInfo[] = [];
 	private builtinOptions: CalloutTypeInfo[] = [];
 	private snippetOptions: CalloutTypeInfo[] = [];
 	private allCalloutOptions: CalloutTypeInfo[] = [];
@@ -63,7 +70,10 @@ export class InsertCalloutModal extends Modal {
 	}
 
 	private prepareCalloutOptions() {
-		// Snippet types (already in CalloutTypeInfo form)
+		// Custom types (user-defined) — shown first
+		this.customOptions = [...(this.config.customTypes ?? [])];
+
+		// Snippet types (CSS-detected)
 		this.snippetOptions = [...this.config.snippetTypes];
 
 		// Built-in types with their aliases expanded into separate options
@@ -88,8 +98,12 @@ export class InsertCalloutModal extends Modal {
 			}
 		}
 
-		// Combined list for lookups (snippet types first)
-		this.allCalloutOptions = [...this.snippetOptions, ...this.builtinOptions];
+		// Combined list for lookups: custom → snippet → builtin
+		this.allCalloutOptions = [
+			...this.customOptions,
+			...this.snippetOptions,
+			...this.builtinOptions,
+		];
 	}
 
 	onOpen() {
@@ -119,10 +133,23 @@ export class InsertCalloutModal extends Modal {
 			.addDropdown((dropdown) => {
 				const selectEl = dropdown.selectEl;
 
-				// Build the dropdown with optgroup sections
+				// Custom group (user-defined) — first
+				if (this.customOptions.length > 0) {
+					const customGroup = selectEl.createEl("optgroup", {
+						attr: { label: "Custom" },
+					});
+					for (const opt of this.customOptions) {
+						customGroup.createEl("option", {
+							value: opt.type,
+							text: opt.label,
+						});
+					}
+				}
+
+				// Snippet group (CSS-detected) — second
 				if (this.snippetOptions.length > 0) {
 					const snippetGroup = selectEl.createEl("optgroup", {
-						attr: { label: "Custom" },
+						attr: { label: "Snippet" },
 					});
 					for (const opt of this.snippetOptions) {
 						snippetGroup.createEl("option", {
@@ -132,6 +159,7 @@ export class InsertCalloutModal extends Modal {
 					}
 				}
 
+				// Default group (built-in Obsidian) — last
 				const builtinGroup = selectEl.createEl("optgroup", {
 					attr: { label: "Default" },
 				});
@@ -227,7 +255,19 @@ export class InsertCalloutModal extends Modal {
 		iconContainer.empty();
 
 		if (typeInfo) {
-			setIcon(iconContainer, typeInfo.icon);
+			// Use the full icon definition (Font Awesome / downloaded pack / image)
+			// when available, otherwise fall back to Lucide via setIcon.
+			let rendered = false;
+			if (typeInfo.iconDef && this.config.iconManager) {
+				const node = this.config.iconManager.getIconNode(typeInfo.iconDef);
+				if (node) {
+					iconContainer.appendChild(node);
+					rendered = true;
+				}
+			}
+			if (!rendered) {
+				setIcon(iconContainer, typeInfo.icon);
+			}
 			iconContainer.style.setProperty("--callout-color", typeInfo.color);
 		} else {
 			setIcon(iconContainer, "lucide-alert-circle");

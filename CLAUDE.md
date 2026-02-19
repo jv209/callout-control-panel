@@ -39,8 +39,9 @@ After every completed task, provide the following four items:
 | v0.5.3 | Color and validation utilities | 2026-02-18 |
 | v0.5.4 | Confirmation and export modals | 2026-02-18 |
 | v0.5.5 | Localization system | 2026-02-18 |
+| v0.5.6 | Unified settings tab and custom type insertion | 2026-02-19 |
 
-**Next version: v0.5.6**
+**Next version: v0.5.7**
 
 ## Post-Phase 3 compliance review
 
