@@ -85,11 +85,16 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 		return { types: results, warnings };
 	}
 
+	// Skip the plugin's own generated snippet to avoid circular detection
+	// (custom types written to this file would otherwise appear as snippet types).
+	const PLUGIN_SNIPPET_NAME = "enhanced-callout-manager";
+
 	const cssFiles = listing.files.filter((f) => {
 		if (!f.endsWith(".css")) return false;
 		// Extract snippet name (filename without .css extension)
 		const fileName = f.split("/").pop() ?? "";
 		const snippetName = fileName.replace(/\.css$/, "");
+		if (snippetName === PLUGIN_SNIPPET_NAME) return false;
 		return enabledSnippets.has(snippetName);
 	});
 

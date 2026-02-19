@@ -107,6 +107,25 @@ export default class EnhancedCalloutManager extends Plugin {
 			},
 		});
 
+		// Favorite callout commands — 5 stable slots that users can
+		// bind to hotkeys.  Each reads its assigned type at invocation
+		// time, so rebinding in settings takes effect immediately.
+		for (let i = 0; i < 5; i++) {
+			this.addCommand({
+				id: `insert-favorite-${i + 1}`,
+				name: `Insert favorite callout ${i + 1}`,
+				editorCallback: () => {
+					const type = this.settings.favoriteCallouts[i];
+					if (!type) return; // slot unassigned — no-op
+					QuickPickCalloutModal.insertQuickCallout(this.app, type);
+					if (this.settings.rememberLastType) {
+						this.settings.lastUsedType = type;
+						void this.saveSettings();
+					}
+				},
+			});
+		}
+
 		this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
 
 		// Load icon packs, inject custom callout CSS, and scan snippets
