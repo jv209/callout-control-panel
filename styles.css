@@ -265,3 +265,38 @@
 	padding: 6px 0;
 	border-top: none;
 }
+
+/* ─── Settings tab bar ─────────────────────────────────────────────────── */
+
+.ecm-tab-bar {
+	display: flex;
+	gap: 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+	margin-top: 16px;
+	margin-bottom: 0;
+}
+
+.ecm-tab-button {
+	padding: 8px 16px;
+	background: none;
+	border: none;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.ecm-tab-button:hover {
+	color: var(--text-normal);
+}
+
+.ecm-tab-button.ecm-tab-active {
+	color: var(--text-normal);
+	border-bottom-color: var(--interactive-accent);
+	font-weight: var(--font-semibold);
+}
+
+.ecm-tab-pane {
+	padding-top: 4px;
+}
