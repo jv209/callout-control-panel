@@ -470,26 +470,55 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    const sections = [
+    const alwaysVisible = [
       () => this.buildInsertionSection(containerEl),
-      () => this.buildDetectionSection(containerEl),
-      () => this.buildCustomTypesSection(containerEl),
-      () => this.buildFavoritesSection(containerEl),
-      () => this.buildImportExportSection(containerEl),
-      () => this.buildIconPacksSection(containerEl),
-      () => this.buildColorSection(containerEl)
+      () => this.buildDetectionSection(containerEl)
     ];
-    for (const section of sections) {
+    for (const section of alwaysVisible) {
       try {
         section();
       } catch (e) {
         console.error("Enhanced Callout Manager: settings section error", e);
       }
     }
+    const tabBar = containerEl.createDiv({ cls: "ecm-tab-bar" });
+    const tabContent = containerEl.createDiv({ cls: "ecm-tab-content" });
+    const tabs = [
+      { label: "Custom Callouts", builder: (el) => this.buildCustomTypesSection(el) },
+      { label: "Most Used Callouts", builder: (el) => this.buildFavoritesSection(el) },
+      { label: "Import / Export", builder: (el) => this.buildImportExportSection(el) },
+      { label: "Icon Packs", builder: (el) => this.buildIconPacksSection(el) }
+    ];
+    const panes = [];
+    for (const tab of tabs) {
+      const btn = tabBar.createEl("button", {
+        text: tab.label,
+        cls: "ecm-tab-button"
+      });
+      const pane = tabContent.createDiv({ cls: "ecm-tab-pane" });
+      pane.style.display = "none";
+      try {
+        tab.builder(pane);
+      } catch (e) {
+        console.error("Enhanced Callout Manager: settings section error", e);
+      }
+      panes.push(pane);
+      btn.addEventListener("click", () => {
+        tabBar.querySelectorAll(".ecm-tab-button").forEach(
+          (b) => b.removeClass("ecm-tab-active")
+        );
+        for (const p2 of panes) p2.style.display = "none";
+        btn.addClass("ecm-tab-active");
+        pane.style.display = "";
+      });
+    }
+    const firstBtn = tabBar.querySelector(".ecm-tab-button");
+    if (firstBtn) firstBtn.addClass("ecm-tab-active");
+    if (panes[0]) panes[0].style.display = "";
   }
-  // ── Section 1: Insertion ─────────────────────────────────────────────────
+  // ── Section 1: Default Settings ─────────────────────────────────────────
   buildInsertionSection(el) {
-    new import_obsidian4.Setting(el).setName("Insertion").setHeading();
+    new import_obsidian4.Setting(el).setName("Default Settings").setHeading();
     const allTypes = this.allAvailableTypes();
     new import_obsidian4.Setting(el).setName("Default callout type").setDesc("The callout type pre-selected when the modal opens.").addDropdown((dropdown) => {
       for (const ct of allTypes) {
@@ -515,10 +544,19 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
         await this.plugin.saveSettings();
       });
     });
+    new import_obsidian4.Setting(el).setName("Inject callout colors").setDesc(
+      "When enabled, the color you pick for a custom callout is applied automatically. When disabled, colors must be set manually via CSS."
+    ).addToggle((t2) => {
+      t2.setValue(this.plugin.settings.injectColor);
+      t2.onChange(async (v) => {
+        this.plugin.settings.injectColor = v;
+        await this.plugin.saveSettings();
+      });
+    });
   }
-  // ── Section 2: Detection ─────────────────────────────────────────────────
+  // ── Section 2: CSS Type Detection ───────────────────────────────────────
   buildDetectionSection(el) {
-    new import_obsidian4.Setting(el).setName("Detection").setHeading();
+    new import_obsidian4.Setting(el).setName("CSS Type Detection").setHeading();
     new import_obsidian4.Setting(el).setName("Scan CSS snippets").setDesc("Detect custom callout types defined in your enabled CSS snippet files.").addToggle((t2) => {
       t2.setValue(this.plugin.settings.scanSnippets);
       t2.onChange(async (v) => {
@@ -638,10 +676,10 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
       }
     }
   }
-  // ── Section 3: Custom types ───────────────────────────────────────────────
+  // ── Section 3: Custom Callouts ──────────────────────────────────────────
   buildCustomTypesSection(el) {
     var _a;
-    new import_obsidian4.Setting(el).setName("Custom types").setHeading();
+    new import_obsidian4.Setting(el).setName("Custom Callouts").setHeading();
     new import_obsidian4.Setting(el).setName("Add new type").setDesc("Create a custom callout type with a custom icon and color.").addButton((btn) => {
       btn.setButtonText("+").setTooltip("Add callout type").onClick(() => {
         const modal = new CalloutEditModal(this.app, this.plugin);
@@ -661,21 +699,14 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
     const customCallouts = Object.values(this.plugin.settings.customCallouts);
     if (customCallouts.length === 0) {
       el.createEl("p", {
-        text: "No custom types defined yet.",
+        text: "No custom callouts defined yet.",
         cls: "setting-item-description"
       });
       return;
     }
-    const detailsEl = el.createEl("details", {
-      cls: "custom-callout-types"
-    });
-    detailsEl.setAttribute("open", "");
-    detailsEl.createEl("summary", {
-      text: `Custom types (${customCallouts.length})`,
-      cls: "custom-callout-types-summary"
-    });
+    const listEl = el.createDiv({ cls: "custom-callout-types" });
     for (const callout of customCallouts) {
-      const setting = new import_obsidian4.Setting(detailsEl);
+      const setting = new import_obsidian4.Setting(listEl);
       const iconPreviewEl = setting.nameEl.createDiv({
         cls: "custom-callout-preview-icon"
       });
@@ -722,19 +753,52 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
       });
     }
   }
-  // ── Section 4: Favorites ─────────────────────────────────────────────────
+  // ── Section 4: Most Used Callouts ───────────────────────────────────────
   buildFavoritesSection(el) {
-    new import_obsidian4.Setting(el).setName("Favorites").setHeading();
+    new import_obsidian4.Setting(el).setName("Most Used Callouts").setHeading();
     new import_obsidian4.Setting(el).setDesc(
-      "Pin up to 5 callout types for quick access. Unused slots are ignored."
+      "Select your 5 most used callout types. You can then assign hotkeys to them."
     );
-    const allTypes = this.allAvailableTypes();
+    const customTypes = Object.values(this.plugin.settings.customCallouts).map(
+      (cc) => customCalloutToTypeInfo(cc, this.plugin.settings.injectColor)
+    );
+    const snippetTypes = this.plugin.snippetTypes;
+    const builtinTypes = BUILTIN_CALLOUT_TYPES;
     for (let i = 0; i < 5; i++) {
       new import_obsidian4.Setting(el).setName(`Favorite ${i + 1}`).addDropdown((dropdown) => {
         var _a;
-        dropdown.addOption("", "\u2014 (none)");
-        for (const ct of allTypes) {
-          dropdown.addOption(ct.type, ct.label);
+        const selectEl = dropdown.selectEl;
+        selectEl.createEl("option", { value: "", text: "\u2014 (none)" });
+        if (customTypes.length > 0) {
+          const customGroup = selectEl.createEl("optgroup", {
+            attr: { label: "Custom" }
+          });
+          for (const ct of customTypes) {
+            customGroup.createEl("option", {
+              value: ct.type,
+              text: ct.label
+            });
+          }
+        }
+        if (snippetTypes.length > 0) {
+          const snippetGroup = selectEl.createEl("optgroup", {
+            attr: { label: "Snippet" }
+          });
+          for (const ct of snippetTypes) {
+            snippetGroup.createEl("option", {
+              value: ct.type,
+              text: ct.label
+            });
+          }
+        }
+        const builtinGroup = selectEl.createEl("optgroup", {
+          attr: { label: "Default" }
+        });
+        for (const ct of builtinTypes) {
+          builtinGroup.createEl("option", {
+            value: ct.type,
+            text: ct.label
+          });
         }
         dropdown.setValue((_a = this.plugin.settings.favoriteCallouts[i]) != null ? _a : "");
         dropdown.onChange(async (value) => {
@@ -858,10 +922,10 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
     a.click();
     URL.revokeObjectURL(url);
   }
-  // ── Section 6: Icon packs ────────────────────────────────────────────────
+  // ── Section 6: Icon Packs ───────────────────────────────────────────────
   buildIconPacksSection(el) {
     var _a, _b;
-    new import_obsidian4.Setting(el).setName("Icon packs").setHeading();
+    new import_obsidian4.Setting(el).setName("Icon Packs").setHeading();
     new import_obsidian4.Setting(el).setName("Use Font Awesome icons").setDesc("Font Awesome Free icons will be available in the icon picker.").addToggle((t2) => {
       t2.setValue(this.plugin.settings.useFontAwesome);
       t2.onChange(async (v) => {
@@ -915,19 +979,6 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
         });
       });
     }
-  }
-  // ── Section 7: Color & styling ───────────────────────────────────────────
-  buildColorSection(el) {
-    new import_obsidian4.Setting(el).setName("Color & styling").setHeading();
-    new import_obsidian4.Setting(el).setName("Inject callout colors").setDesc(
-      "Apply the configured color to custom callout types. Disable to set colors manually via CSS."
-    ).addToggle((t2) => {
-      t2.setValue(this.plugin.settings.injectColor);
-      t2.onChange(async (v) => {
-        this.plugin.settings.injectColor = v;
-        await this.plugin.saveSettings();
-      });
-    });
   }
   // ── Helpers ──────────────────────────────────────────────────────────────
   /** All available types in display order: custom → snippet → built-in. */

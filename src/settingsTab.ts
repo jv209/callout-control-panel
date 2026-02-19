@@ -1,14 +1,15 @@
 /**
  * Unified settings tab for Enhanced Callout Manager.
  *
- * Sections:
- *   1. Insertion  — default type, remember last, auto-focus
- *   2. Detection  — snippet scanning + detected types table
- *   3. Custom types — add / edit / delete user-defined callouts
- *   4. Favorites  — up to 5 pinned type slots
- *   5. Import / Export — JSON and CSS export, JSON import
- *   6. Icon packs — Font Awesome toggle, downloadable pack management
- *   7. Color & styling — global color injection toggle
+ * Layout:
+ *   Always visible:
+ *     1. Default Settings  — default type, remember last, auto-focus, color injection
+ *     2. CSS Type Detection — snippet scanning + detected types table
+ *   Tabs:
+ *     3. Custom Callouts   — add / edit / delete user-defined callouts
+ *     4. Most Used Callouts — up to 5 pinned type slots
+ *     5. Import / Export    — JSON and CSS export, JSON import
+ *     6. Icon Packs         — Font Awesome toggle, downloadable pack management
  *
  * Also contains CalloutEditModal (create / edit a single custom type).
  *
@@ -91,29 +92,68 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		const sections = [
+		// ── Always-visible sections ──────────────────────────────────────
+		const alwaysVisible = [
 			() => this.buildInsertionSection(containerEl),
 			() => this.buildDetectionSection(containerEl),
-			() => this.buildCustomTypesSection(containerEl),
-			() => this.buildFavoritesSection(containerEl),
-			() => this.buildImportExportSection(containerEl),
-			() => this.buildIconPacksSection(containerEl),
-			() => this.buildColorSection(containerEl),
 		];
-
-		for (const section of sections) {
+		for (const section of alwaysVisible) {
 			try {
 				section();
 			} catch (e) {
 				console.error("Enhanced Callout Manager: settings section error", e);
 			}
 		}
+
+		// ── Tab bar ─────────────────────────────────────────────────────
+		const tabBar = containerEl.createDiv({ cls: "ecm-tab-bar" });
+		const tabContent = containerEl.createDiv({ cls: "ecm-tab-content" });
+
+		const tabs: { label: string; builder: (el: HTMLElement) => void }[] = [
+			{ label: "Custom Callouts", builder: (el) => this.buildCustomTypesSection(el) },
+			{ label: "Most Used Callouts", builder: (el) => this.buildFavoritesSection(el) },
+			{ label: "Import / Export", builder: (el) => this.buildImportExportSection(el) },
+			{ label: "Icon Packs", builder: (el) => this.buildIconPacksSection(el) },
+		];
+
+		const panes: HTMLElement[] = [];
+
+		for (const tab of tabs) {
+			const btn = tabBar.createEl("button", {
+				text: tab.label,
+				cls: "ecm-tab-button",
+			});
+			const pane = tabContent.createDiv({ cls: "ecm-tab-pane" });
+			pane.style.display = "none";
+
+			try {
+				tab.builder(pane);
+			} catch (e) {
+				console.error("Enhanced Callout Manager: settings section error", e);
+			}
+
+			panes.push(pane);
+
+			btn.addEventListener("click", () => {
+				tabBar.querySelectorAll(".ecm-tab-button").forEach((b) =>
+					b.removeClass("ecm-tab-active"),
+				);
+				for (const p of panes) p.style.display = "none";
+				btn.addClass("ecm-tab-active");
+				pane.style.display = "";
+			});
+		}
+
+		// Activate the first tab by default
+		const firstBtn = tabBar.querySelector(".ecm-tab-button");
+		if (firstBtn) firstBtn.addClass("ecm-tab-active");
+		if (panes[0]) panes[0].style.display = "";
 	}
 
-	// ── Section 1: Insertion ─────────────────────────────────────────────────
+	// ── Section 1: Default Settings ─────────────────────────────────────────
 
 	private buildInsertionSection(el: HTMLElement): void {
-		new Setting(el).setName("Insertion").setHeading();
+		new Setting(el).setName("Default Settings").setHeading();
 
 		const allTypes = this.allAvailableTypes();
 
@@ -152,12 +192,25 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
+
+		new Setting(el)
+			.setName("Inject callout colors")
+			.setDesc(
+				"When enabled, the color you pick for a custom callout is applied automatically. When disabled, colors must be set manually via CSS.",
+			)
+			.addToggle((t) => {
+				t.setValue(this.plugin.settings.injectColor);
+				t.onChange(async (v) => {
+					this.plugin.settings.injectColor = v;
+					await this.plugin.saveSettings();
+				});
+			});
 	}
 
-	// ── Section 2: Detection ─────────────────────────────────────────────────
+	// ── Section 2: CSS Type Detection ───────────────────────────────────────
 
 	private buildDetectionSection(el: HTMLElement): void {
-		new Setting(el).setName("Detection").setHeading();
+		new Setting(el).setName("CSS Type Detection").setHeading();
 
 		new Setting(el)
 			.setName("Scan CSS snippets")
@@ -319,10 +372,10 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		}
 	}
 
-	// ── Section 3: Custom types ───────────────────────────────────────────────
+	// ── Section 3: Custom Callouts ──────────────────────────────────────────
 
 	private buildCustomTypesSection(el: HTMLElement): void {
-		new Setting(el).setName("Custom types").setHeading();
+		new Setting(el).setName("Custom Callouts").setHeading();
 
 		new Setting(el)
 			.setName("Add new type")
@@ -351,23 +404,16 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 
 		if (customCallouts.length === 0) {
 			el.createEl("p", {
-				text: "No custom types defined yet.",
+				text: "No custom callouts defined yet.",
 				cls: "setting-item-description",
 			});
 			return;
 		}
 
-		const detailsEl = el.createEl("details", {
-			cls: "custom-callout-types",
-		});
-		detailsEl.setAttribute("open", "");
-		detailsEl.createEl("summary", {
-			text: `Custom types (${customCallouts.length})`,
-			cls: "custom-callout-types-summary",
-		});
+		const listEl = el.createDiv({ cls: "custom-callout-types" });
 
 		for (const callout of customCallouts) {
-			const setting = new Setting(detailsEl);
+			const setting = new Setting(listEl);
 
 			// Icon preview in name area
 			const iconPreviewEl = setting.nameEl.createDiv({
@@ -426,22 +472,64 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		}
 	}
 
-	// ── Section 4: Favorites ─────────────────────────────────────────────────
+	// ── Section 4: Most Used Callouts ───────────────────────────────────────
 
 	private buildFavoritesSection(el: HTMLElement): void {
-		new Setting(el).setName("Favorites").setHeading();
+		new Setting(el).setName("Most Used Callouts").setHeading();
 		new Setting(el).setDesc(
-			"Pin up to 5 callout types for quick access. Unused slots are ignored.",
+			"Select your 5 most used callout types. You can then assign hotkeys to them.",
 		);
 
-		const allTypes = this.allAvailableTypes();
+		const customTypes = Object.values(this.plugin.settings.customCallouts).map(
+			(cc) => customCalloutToTypeInfo(cc, this.plugin.settings.injectColor),
+		);
+		const snippetTypes = this.plugin.snippetTypes;
+		const builtinTypes = BUILTIN_CALLOUT_TYPES;
 
 		for (let i = 0; i < 5; i++) {
 			new Setting(el).setName(`Favorite ${i + 1}`).addDropdown((dropdown) => {
-				dropdown.addOption("", "— (none)");
-				for (const ct of allTypes) {
-					dropdown.addOption(ct.type, ct.label);
+				const selectEl = dropdown.selectEl;
+
+				// "none" option outside any group
+				selectEl.createEl("option", { value: "", text: "— (none)" });
+
+				// Custom group
+				if (customTypes.length > 0) {
+					const customGroup = selectEl.createEl("optgroup", {
+						attr: { label: "Custom" },
+					});
+					for (const ct of customTypes) {
+						customGroup.createEl("option", {
+							value: ct.type,
+							text: ct.label,
+						});
+					}
 				}
+
+				// Snippet group
+				if (snippetTypes.length > 0) {
+					const snippetGroup = selectEl.createEl("optgroup", {
+						attr: { label: "Snippet" },
+					});
+					for (const ct of snippetTypes) {
+						snippetGroup.createEl("option", {
+							value: ct.type,
+							text: ct.label,
+						});
+					}
+				}
+
+				// Default (built-in) group
+				const builtinGroup = selectEl.createEl("optgroup", {
+					attr: { label: "Default" },
+				});
+				for (const ct of builtinTypes) {
+					builtinGroup.createEl("option", {
+						value: ct.type,
+						text: ct.label,
+					});
+				}
+
 				dropdown.setValue(this.plugin.settings.favoriteCallouts[i] ?? "");
 				dropdown.onChange(async (value) => {
 					this.plugin.settings.favoriteCallouts[i] = value;
@@ -602,10 +690,10 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		URL.revokeObjectURL(url);
 	}
 
-	// ── Section 6: Icon packs ────────────────────────────────────────────────
+	// ── Section 6: Icon Packs ───────────────────────────────────────────────
 
 	private buildIconPacksSection(el: HTMLElement): void {
-		new Setting(el).setName("Icon packs").setHeading();
+		new Setting(el).setName("Icon Packs").setHeading();
 
 		new Setting(el)
 			.setName("Use Font Awesome icons")
@@ -683,25 +771,6 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 						});
 				});
 		}
-	}
-
-	// ── Section 7: Color & styling ───────────────────────────────────────────
-
-	private buildColorSection(el: HTMLElement): void {
-		new Setting(el).setName("Color & styling").setHeading();
-
-		new Setting(el)
-			.setName("Inject callout colors")
-			.setDesc(
-				"Apply the configured color to custom callout types. Disable to set colors manually via CSS.",
-			)
-			.addToggle((t) => {
-				t.setValue(this.plugin.settings.injectColor);
-				t.onChange(async (v) => {
-					this.plugin.settings.injectColor = v;
-					await this.plugin.saveSettings();
-				});
-			});
 	}
 
 	// ── Helpers ──────────────────────────────────────────────────────────────
