@@ -466,31 +466,25 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
+    this.activeTabIndex = 0;
   }
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    const alwaysVisible = [
-      () => this.buildInsertionSection(containerEl),
-      () => this.buildDetectionSection(containerEl)
-    ];
-    for (const section of alwaysVisible) {
-      try {
-        section();
-      } catch (e) {
-        console.error("Enhanced Callout Manager: settings section error", e);
-      }
-    }
     const tabBar = containerEl.createDiv({ cls: "ecm-tab-bar" });
     const tabContent = containerEl.createDiv({ cls: "ecm-tab-content" });
     const tabs = [
+      { label: "Default Settings", builder: (el) => this.buildInsertionSection(el) },
+      { label: "CSS Type Detection", builder: (el) => this.buildDetectionSection(el) },
       { label: "Custom Callouts", builder: (el) => this.buildCustomTypesSection(el) },
       { label: "Most Used Callouts", builder: (el) => this.buildFavoritesSection(el) },
       { label: "Import / Export", builder: (el) => this.buildImportExportSection(el) },
       { label: "Icon Packs", builder: (el) => this.buildIconPacksSection(el) }
     ];
+    const buttons = [];
     const panes = [];
-    for (const tab of tabs) {
+    for (let idx2 = 0; idx2 < tabs.length; idx2++) {
+      const tab = tabs[idx2];
       const btn = tabBar.createEl("button", {
         text: tab.label,
         cls: "ecm-tab-button"
@@ -502,23 +496,23 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
       } catch (e) {
         console.error("Enhanced Callout Manager: settings section error", e);
       }
+      buttons.push(btn);
       panes.push(pane);
+      const tabIdx = idx2;
       btn.addEventListener("click", () => {
-        tabBar.querySelectorAll(".ecm-tab-button").forEach(
-          (b) => b.removeClass("ecm-tab-active")
-        );
+        for (const b of buttons) b.removeClass("ecm-tab-active");
         for (const p2 of panes) p2.style.display = "none";
         btn.addClass("ecm-tab-active");
         pane.style.display = "";
+        this.activeTabIndex = tabIdx;
       });
     }
-    const firstBtn = tabBar.querySelector(".ecm-tab-button");
-    if (firstBtn) firstBtn.addClass("ecm-tab-active");
-    if (panes[0]) panes[0].style.display = "";
+    const idx = this.activeTabIndex < tabs.length ? this.activeTabIndex : 0;
+    if (buttons[idx]) buttons[idx].addClass("ecm-tab-active");
+    if (panes[idx]) panes[idx].style.display = "";
   }
   // ── Section 1: Default Settings ─────────────────────────────────────────
   buildInsertionSection(el) {
-    new import_obsidian4.Setting(el).setName("Default Settings").setHeading();
     const allTypes = this.allAvailableTypes();
     new import_obsidian4.Setting(el).setName("Default callout type").setDesc("The callout type pre-selected when the modal opens.").addDropdown((dropdown) => {
       for (const ct of allTypes) {
@@ -556,7 +550,6 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   }
   // ── Section 2: CSS Type Detection ───────────────────────────────────────
   buildDetectionSection(el) {
-    new import_obsidian4.Setting(el).setName("CSS Type Detection").setHeading();
     new import_obsidian4.Setting(el).setName("Scan CSS snippets").setDesc("Detect custom callout types defined in your enabled CSS snippet files.").addToggle((t2) => {
       t2.setValue(this.plugin.settings.scanSnippets);
       t2.onChange(async (v) => {
@@ -679,7 +672,6 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   // ── Section 3: Custom Callouts ──────────────────────────────────────────
   buildCustomTypesSection(el) {
     var _a;
-    new import_obsidian4.Setting(el).setName("Custom Callouts").setHeading();
     new import_obsidian4.Setting(el).setName("Add new type").setDesc("Create a custom callout type with a custom icon and color.").addButton((btn) => {
       btn.setButtonText("+").setTooltip("Add callout type").onClick(() => {
         const modal = new CalloutEditModal(this.app, this.plugin);
@@ -755,7 +747,6 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   }
   // ── Section 4: Most Used Callouts ───────────────────────────────────────
   buildFavoritesSection(el) {
-    new import_obsidian4.Setting(el).setName("Most Used Callouts").setHeading();
     new import_obsidian4.Setting(el).setDesc(
       "Select your 5 most used callout types. You can then assign hotkeys to them."
     );
@@ -810,7 +801,6 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   }
   // ── Section 5: Import / Export ───────────────────────────────────────────
   buildImportExportSection(el) {
-    new import_obsidian4.Setting(el).setName("Import / Export").setHeading();
     const hasCallouts = Object.keys(this.plugin.settings.customCallouts).length > 0;
     if (!import_obsidian4.Platform.isMobile) {
       new import_obsidian4.Setting(el).setName("Export as CSS snippet").setDesc(
@@ -925,7 +915,6 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   // ── Section 6: Icon Packs ───────────────────────────────────────────────
   buildIconPacksSection(el) {
     var _a, _b;
-    new import_obsidian4.Setting(el).setName("Icon Packs").setHeading();
     new import_obsidian4.Setting(el).setName("Use Font Awesome icons").setDesc("Font Awesome Free icons will be available in the icon picker.").addToggle((t2) => {
       t2.setValue(this.plugin.settings.useFontAwesome);
       t2.onChange(async (v) => {
@@ -951,15 +940,25 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
     }).addExtraButton((b) => {
       b.setIcon("plus-with-circle").setTooltip("Download").setDisabled(!available.length).onClick(async () => {
         if (!selectedPack) return;
-        await this.plugin.iconManager.downloadIcon(selectedPack);
+        try {
+          await this.plugin.iconManager.downloadIcon(selectedPack);
+        } catch (e) {
+          console.error("Enhanced Callout Manager: download failed", e);
+          new import_obsidian4.Notice("Could not download icon pack.");
+        }
         this.display();
       });
     });
     for (const pack of installed) {
       new import_obsidian4.Setting(el).setName((_b = DownloadableIcons[pack]) != null ? _b : pack).addExtraButton((b) => {
         b.setIcon("reset").setTooltip("Redownload").onClick(async () => {
-          await this.plugin.iconManager.removeIcon(pack);
-          await this.plugin.iconManager.downloadIcon(pack);
+          try {
+            await this.plugin.iconManager.removeIcon(pack);
+            await this.plugin.iconManager.downloadIcon(pack);
+          } catch (e) {
+            console.error("Enhanced Callout Manager: redownload failed", e);
+            new import_obsidian4.Notice("Could not redownload icon pack.");
+          }
           this.display();
         });
       }).addExtraButton((b) => {
@@ -974,7 +973,12 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
             );
             if (!ok) return;
           }
-          await this.plugin.iconManager.removeIcon(pack);
+          try {
+            await this.plugin.iconManager.removeIcon(pack);
+          } catch (e) {
+            console.error("Enhanced Callout Manager: remove failed", e);
+            new import_obsidian4.Notice("Could not remove icon pack.");
+          }
           this.display();
         });
       });
@@ -18294,7 +18298,14 @@ var IconManager = class {
     }
   }
   async removeIcon(pack) {
-    await this.plugin.app.vault.adapter.remove(this.localIconPath(pack));
+    try {
+      const path = this.localIconPath(pack);
+      if (await this.plugin.app.vault.adapter.exists(path)) {
+        await this.plugin.app.vault.adapter.remove(path);
+      }
+    } catch (e) {
+      console.error("Enhanced Callout Manager: could not remove icon file", e);
+    }
     delete this.DOWNLOADED[pack];
     this.plugin.settings.icons.remove(pack);
     this.plugin.settings.icons = [...new Set(this.plugin.settings.icons)];

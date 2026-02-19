@@ -270,9 +270,9 @@
 
 .ecm-tab-bar {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 0;
 	border-bottom: 1px solid var(--background-modifier-border);
-	margin-top: 16px;
 	margin-bottom: 0;
 }
 
@@ -281,18 +281,21 @@
 	background: none;
 	border: none;
 	border-bottom: 2px solid transparent;
+	border-radius: 4px 4px 0 0;
 	cursor: pointer;
-	color: var(--text-muted);
+	color: var(--text-faint);
 	font-size: var(--font-ui-small);
-	transition: color 0.15s ease, border-color 0.15s ease;
+	transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
 .ecm-tab-button:hover {
 	color: var(--text-normal);
+	background: var(--background-modifier-hover);
 }
 
 .ecm-tab-button.ecm-tab-active {
 	color: var(--text-normal);
+	background: var(--background-modifier-hover);
 	border-bottom-color: var(--interactive-accent);
 	font-weight: var(--font-semibold);
 }

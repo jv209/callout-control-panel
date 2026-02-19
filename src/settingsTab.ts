@@ -1,15 +1,13 @@
 /**
  * Unified settings tab for Enhanced Callout Manager.
  *
- * Layout:
- *   Always visible:
- *     1. Default Settings  — default type, remember last, auto-focus, color injection
- *     2. CSS Type Detection — snippet scanning + detected types table
- *   Tabs:
- *     3. Custom Callouts   — add / edit / delete user-defined callouts
- *     4. Most Used Callouts — up to 5 pinned type slots
- *     5. Import / Export    — JSON and CSS export, JSON import
- *     6. Icon Packs         — Font Awesome toggle, downloadable pack management
+ * Tabs:
+ *   1. Default Settings    — default type, remember last, auto-focus, color injection
+ *   2. CSS Type Detection  — snippet scanning + detected types table
+ *   3. Custom Callouts     — add / edit / delete user-defined callouts
+ *   4. Most Used Callouts  — up to 5 pinned type slots
+ *   5. Import / Export     — JSON and CSS export, JSON import
+ *   6. Icon Packs          — Font Awesome toggle, downloadable pack management
  *
  * Also contains CalloutEditModal (create / edit a single custom type).
  *
@@ -84,6 +82,8 @@ export function customCalloutToTypeInfo(
 // ─── Settings tab ─────────────────────────────────────────────────────────────
 
 export class EnhancedCalloutSettingTab extends PluginSettingTab {
+	private activeTabIndex = 0;
+
 	constructor(app: App, private plugin: SettingsTabPluginRef) {
 		super(app, plugin as unknown as import("obsidian").Plugin);
 	}
@@ -92,33 +92,24 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		// ── Always-visible sections ──────────────────────────────────────
-		const alwaysVisible = [
-			() => this.buildInsertionSection(containerEl),
-			() => this.buildDetectionSection(containerEl),
-		];
-		for (const section of alwaysVisible) {
-			try {
-				section();
-			} catch (e) {
-				console.error("Enhanced Callout Manager: settings section error", e);
-			}
-		}
-
 		// ── Tab bar ─────────────────────────────────────────────────────
 		const tabBar = containerEl.createDiv({ cls: "ecm-tab-bar" });
 		const tabContent = containerEl.createDiv({ cls: "ecm-tab-content" });
 
 		const tabs: { label: string; builder: (el: HTMLElement) => void }[] = [
+			{ label: "Default Settings", builder: (el) => this.buildInsertionSection(el) },
+			{ label: "CSS Type Detection", builder: (el) => this.buildDetectionSection(el) },
 			{ label: "Custom Callouts", builder: (el) => this.buildCustomTypesSection(el) },
 			{ label: "Most Used Callouts", builder: (el) => this.buildFavoritesSection(el) },
 			{ label: "Import / Export", builder: (el) => this.buildImportExportSection(el) },
 			{ label: "Icon Packs", builder: (el) => this.buildIconPacksSection(el) },
 		];
 
+		const buttons: HTMLElement[] = [];
 		const panes: HTMLElement[] = [];
 
-		for (const tab of tabs) {
+		for (let idx = 0; idx < tabs.length; idx++) {
+			const tab = tabs[idx]!;
 			const btn = tabBar.createEl("button", {
 				text: tab.label,
 				cls: "ecm-tab-button",
@@ -132,29 +123,28 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 				console.error("Enhanced Callout Manager: settings section error", e);
 			}
 
+			buttons.push(btn);
 			panes.push(pane);
 
+			const tabIdx = idx;
 			btn.addEventListener("click", () => {
-				tabBar.querySelectorAll(".ecm-tab-button").forEach((b) =>
-					b.removeClass("ecm-tab-active"),
-				);
+				for (const b of buttons) b.removeClass("ecm-tab-active");
 				for (const p of panes) p.style.display = "none";
 				btn.addClass("ecm-tab-active");
 				pane.style.display = "";
+				this.activeTabIndex = tabIdx;
 			});
 		}
 
-		// Activate the first tab by default
-		const firstBtn = tabBar.querySelector(".ecm-tab-button");
-		if (firstBtn) firstBtn.addClass("ecm-tab-active");
-		if (panes[0]) panes[0].style.display = "";
+		// Activate the remembered tab (or first if out of range)
+		const idx = this.activeTabIndex < tabs.length ? this.activeTabIndex : 0;
+		if (buttons[idx]) buttons[idx].addClass("ecm-tab-active");
+		if (panes[idx]) panes[idx].style.display = "";
 	}
 
 	// ── Section 1: Default Settings ─────────────────────────────────────────
 
 	private buildInsertionSection(el: HTMLElement): void {
-		new Setting(el).setName("Default Settings").setHeading();
-
 		const allTypes = this.allAvailableTypes();
 
 		new Setting(el)
@@ -210,8 +200,6 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	// ── Section 2: CSS Type Detection ───────────────────────────────────────
 
 	private buildDetectionSection(el: HTMLElement): void {
-		new Setting(el).setName("CSS Type Detection").setHeading();
-
 		new Setting(el)
 			.setName("Scan CSS snippets")
 			.setDesc("Detect custom callout types defined in your enabled CSS snippet files.")
@@ -375,8 +363,6 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	// ── Section 3: Custom Callouts ──────────────────────────────────────────
 
 	private buildCustomTypesSection(el: HTMLElement): void {
-		new Setting(el).setName("Custom Callouts").setHeading();
-
 		new Setting(el)
 			.setName("Add new type")
 			.setDesc("Create a custom callout type with a custom icon and color.")
@@ -475,7 +461,6 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	// ── Section 4: Most Used Callouts ───────────────────────────────────────
 
 	private buildFavoritesSection(el: HTMLElement): void {
-		new Setting(el).setName("Most Used Callouts").setHeading();
 		new Setting(el).setDesc(
 			"Select your 5 most used callout types. You can then assign hotkeys to them.",
 		);
@@ -542,8 +527,6 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	// ── Section 5: Import / Export ───────────────────────────────────────────
 
 	private buildImportExportSection(el: HTMLElement): void {
-		new Setting(el).setName("Import / Export").setHeading();
-
 		const hasCallouts =
 			Object.keys(this.plugin.settings.customCallouts).length > 0;
 
@@ -693,8 +676,6 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	// ── Section 6: Icon Packs ───────────────────────────────────────────────
 
 	private buildIconPacksSection(el: HTMLElement): void {
-		new Setting(el).setName("Icon Packs").setHeading();
-
 		new Setting(el)
 			.setName("Use Font Awesome icons")
 			.setDesc("Font Awesome Free icons will be available in the icon picker.")
@@ -735,7 +716,12 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 					.setDisabled(!available.length)
 					.onClick(async () => {
 						if (!selectedPack) return;
-						await this.plugin.iconManager.downloadIcon(selectedPack);
+						try {
+							await this.plugin.iconManager.downloadIcon(selectedPack);
+						} catch (e) {
+							console.error("Enhanced Callout Manager: download failed", e);
+							new Notice("Could not download icon pack.");
+						}
 						this.display();
 					});
 			});
@@ -747,8 +733,13 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 					b.setIcon("reset")
 						.setTooltip("Redownload")
 						.onClick(async () => {
-							await this.plugin.iconManager.removeIcon(pack);
-							await this.plugin.iconManager.downloadIcon(pack);
+							try {
+								await this.plugin.iconManager.removeIcon(pack);
+								await this.plugin.iconManager.downloadIcon(pack);
+							} catch (e) {
+								console.error("Enhanced Callout Manager: redownload failed", e);
+								new Notice("Could not redownload icon pack.");
+							}
 							this.display();
 						});
 				})
@@ -766,7 +757,12 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 								);
 								if (!ok) return;
 							}
-							await this.plugin.iconManager.removeIcon(pack);
+							try {
+								await this.plugin.iconManager.removeIcon(pack);
+							} catch (e) {
+								console.error("Enhanced Callout Manager: remove failed", e);
+								new Notice("Could not remove icon pack.");
+							}
 							this.display();
 						});
 				});
