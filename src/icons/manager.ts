@@ -132,7 +132,14 @@ export class IconManager {
 	}
 
 	async removeIcon(pack: DownloadableIconPack): Promise<void> {
-		await this.plugin.app.vault.adapter.remove(this.localIconPath(pack));
+		try {
+			const path = this.localIconPath(pack);
+			if (await this.plugin.app.vault.adapter.exists(path)) {
+				await this.plugin.app.vault.adapter.remove(path);
+			}
+		} catch (e) {
+			console.error("Enhanced Callout Manager: could not remove icon file", e);
+		}
 		delete this.DOWNLOADED[pack];
 		this.plugin.settings.icons.remove(pack);
 		this.plugin.settings.icons = [...new Set(this.plugin.settings.icons)];
