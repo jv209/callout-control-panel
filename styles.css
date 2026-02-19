@@ -216,3 +216,52 @@
 	font-size: var(--font-ui-smaller);
 	padding: 1px 0;
 }
+
+/* Custom callout icon preview in settings list */
+.custom-callout-preview-icon {
+	display: inline-flex;
+	width: 18px;
+	height: 18px;
+	align-items: center;
+	flex-shrink: 0;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+.custom-callout-preview-icon svg {
+	width: 14px;
+	height: 14px;
+	color: rgb(var(--callout-color));
+}
+
+.custom-callout-preview-icon img {
+	width: 14px;
+	height: 14px;
+}
+
+/* Custom callout types list in settings (collapsible) */
+.custom-callout-types {
+	margin: 0 0 12px 5%;
+	padding: 6px 12px 6px 16px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	border-left: 3px solid var(--interactive-accent);
+}
+
+.custom-callout-types-summary {
+	cursor: pointer;
+	font-size: var(--font-ui-smaller);
+	opacity: 0.6;
+	padding: 4px 0;
+	user-select: none;
+}
+
+.custom-callout-types-summary:hover {
+	opacity: 0.9;
+}
+
+/* Compact settings inside the custom types box */
+.custom-callout-types .setting-item {
+	padding: 6px 0;
+	border-top: none;
+}

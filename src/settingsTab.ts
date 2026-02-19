@@ -91,13 +91,23 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		this.buildInsertionSection(containerEl);
-		this.buildDetectionSection(containerEl);
-		this.buildCustomTypesSection(containerEl);
-		this.buildFavoritesSection(containerEl);
-		this.buildImportExportSection(containerEl);
-		this.buildIconPacksSection(containerEl);
-		this.buildColorSection(containerEl);
+		const sections = [
+			() => this.buildInsertionSection(containerEl),
+			() => this.buildDetectionSection(containerEl),
+			() => this.buildCustomTypesSection(containerEl),
+			() => this.buildFavoritesSection(containerEl),
+			() => this.buildImportExportSection(containerEl),
+			() => this.buildIconPacksSection(containerEl),
+			() => this.buildColorSection(containerEl),
+		];
+
+		for (const section of sections) {
+			try {
+				section();
+			} catch (e) {
+				console.error("Enhanced Callout Manager: settings section error", e);
+			}
+		}
 	}
 
 	// ── Section 1: Insertion ─────────────────────────────────────────────────
@@ -347,8 +357,17 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			return;
 		}
 
+		const detailsEl = el.createEl("details", {
+			cls: "custom-callout-types",
+		});
+		detailsEl.setAttribute("open", "");
+		detailsEl.createEl("summary", {
+			text: `Custom types (${customCallouts.length})`,
+			cls: "custom-callout-types-summary",
+		});
+
 		for (const callout of customCallouts) {
-			const setting = new Setting(el);
+			const setting = new Setting(detailsEl);
 
 			// Icon preview in name area
 			const iconPreviewEl = setting.nameEl.createDiv({

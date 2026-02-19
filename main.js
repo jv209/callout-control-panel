@@ -470,13 +470,22 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    this.buildInsertionSection(containerEl);
-    this.buildDetectionSection(containerEl);
-    this.buildCustomTypesSection(containerEl);
-    this.buildFavoritesSection(containerEl);
-    this.buildImportExportSection(containerEl);
-    this.buildIconPacksSection(containerEl);
-    this.buildColorSection(containerEl);
+    const sections = [
+      () => this.buildInsertionSection(containerEl),
+      () => this.buildDetectionSection(containerEl),
+      () => this.buildCustomTypesSection(containerEl),
+      () => this.buildFavoritesSection(containerEl),
+      () => this.buildImportExportSection(containerEl),
+      () => this.buildIconPacksSection(containerEl),
+      () => this.buildColorSection(containerEl)
+    ];
+    for (const section of sections) {
+      try {
+        section();
+      } catch (e) {
+        console.error("Enhanced Callout Manager: settings section error", e);
+      }
+    }
   }
   // ── Section 1: Insertion ─────────────────────────────────────────────────
   buildInsertionSection(el) {
@@ -657,8 +666,16 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
       });
       return;
     }
+    const detailsEl = el.createEl("details", {
+      cls: "custom-callout-types"
+    });
+    detailsEl.setAttribute("open", "");
+    detailsEl.createEl("summary", {
+      text: `Custom types (${customCallouts.length})`,
+      cls: "custom-callout-types-summary"
+    });
     for (const callout of customCallouts) {
-      const setting = new import_obsidian4.Setting(el);
+      const setting = new import_obsidian4.Setting(detailsEl);
       const iconPreviewEl = setting.nameEl.createDiv({
         cls: "custom-callout-preview-icon"
       });
@@ -18313,11 +18330,11 @@ var CalloutManager = class extends import_obsidian8.Component {
     this.style.detach();
   }
   /** Load all custom callouts into the style sheet and write the snippet. */
-  loadCallouts(callouts) {
+  async loadCallouts(callouts) {
     for (const callout of Object.values(callouts)) {
-      this.addCallout(callout, false);
+      void this.addCallout(callout, false);
     }
-    void this.writeSnippet();
+    await this.writeSnippet();
   }
   /**
    * Add or update a single custom callout's CSS rule.
@@ -18327,7 +18344,7 @@ var CalloutManager = class extends import_obsidian8.Component {
    * "double CSS call" bug from Plugin C where both the plugin and the
    * settings modal called addAdmonition independently.
    */
-  addCallout(callout, sync = true) {
+  async addCallout(callout, sync = true) {
     var _a, _b, _c;
     if (!callout.icon) return;
     const color = ((_a = callout.injectColor) != null ? _a : this.plugin.settings.injectColor) ? `--callout-color: ${callout.color};` : "";
@@ -18352,16 +18369,16 @@ var CalloutManager = class extends import_obsidian8.Component {
     this.indexing.push(callout.type);
     this.sheet.insertRule(rule, this.sheet.cssRules.length);
     if (sync) {
-      void this.writeSnippet();
+      await this.writeSnippet();
     }
   }
   /** Remove a custom callout's CSS rule. */
-  removeCallout(callout) {
+  async removeCallout(callout) {
     const index = this.indexing.indexOf(callout.type);
     if (index === -1) return;
     this.sheet.deleteRule(index);
     this.indexing.splice(index, 1);
-    void this.writeSnippet();
+    await this.writeSnippet();
   }
   /** Generate the full CSS string from the in-memory stylesheet. */
   generateCssString() {
@@ -18376,16 +18393,20 @@ var CalloutManager = class extends import_obsidian8.Component {
   }
   /** Write the in-memory styles to the vault snippet file. */
   async writeSnippet() {
-    const adapter = this.plugin.app.vault.adapter;
-    const css2 = this.generateCssString();
-    if (await adapter.exists(this.snippetPath)) {
-      await adapter.write(this.snippetPath, css2);
-    } else {
-      await this.plugin.app.vault.create(this.snippetPath, css2);
+    try {
+      const adapter = this.plugin.app.vault.adapter;
+      const css2 = this.generateCssString();
+      if (await adapter.exists(this.snippetPath)) {
+        await adapter.write(this.snippetPath, css2);
+      } else {
+        await this.plugin.app.vault.create(this.snippetPath, css2);
+      }
+      const customCss = this.plugin.app.customCss;
+      customCss.setCssEnabledStatus(SNIPPET_NAME, true);
+      customCss.readSnippets();
+    } catch (e) {
+      console.error("Enhanced Callout Manager: failed to write snippet", e);
     }
-    const customCss = this.plugin.app.customCss;
-    customCss.setCssEnabledStatus(SNIPPET_NAME, true);
-    customCss.readSnippets();
   }
 };
 
@@ -18482,7 +18503,7 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
     this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
     this.app.workspace.onLayoutReady(async () => {
       await this.iconManager.load();
-      this.calloutManager.loadCallouts(this.settings.customCallouts);
+      await this.calloutManager.loadCallouts(this.settings.customCallouts);
       await this.refreshSnippetTypes();
     });
   }
@@ -18515,22 +18536,22 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
   // ── Custom callout CRUD ───────────────────────────────────────────────────
   async addCustomCallout(callout) {
     this.settings.customCallouts[callout.type] = callout;
-    this.calloutManager.addCallout(callout);
+    await this.calloutManager.addCallout(callout);
     await this.saveSettings();
   }
   async removeCustomCallout(callout) {
     delete this.settings.customCallouts[callout.type];
-    this.calloutManager.removeCallout(callout);
+    await this.calloutManager.removeCallout(callout);
     await this.saveSettings();
   }
   async editCustomCallout(oldType, callout) {
     if (oldType !== callout.type) {
       const old = this.settings.customCallouts[oldType];
-      if (old) this.calloutManager.removeCallout(old);
+      if (old) await this.calloutManager.removeCallout(old);
       delete this.settings.customCallouts[oldType];
     }
     this.settings.customCallouts[callout.type] = callout;
-    this.calloutManager.addCallout(callout);
+    await this.calloutManager.addCallout(callout);
     await this.saveSettings();
   }
   // ── Helpers ───────────────────────────────────────────────────────────────

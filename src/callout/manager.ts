@@ -61,11 +61,11 @@ export class CalloutManager extends Component {
 	}
 
 	/** Load all custom callouts into the style sheet and write the snippet. */
-	loadCallouts(callouts: Record<string, CustomCallout>): void {
+	async loadCallouts(callouts: Record<string, CustomCallout>): Promise<void> {
 		for (const callout of Object.values(callouts)) {
-			this.addCallout(callout, false);
+			void this.addCallout(callout, false);
 		}
-		void this.writeSnippet();
+		await this.writeSnippet();
 	}
 
 	/**
@@ -76,7 +76,7 @@ export class CalloutManager extends Component {
 	 * "double CSS call" bug from Plugin C where both the plugin and the
 	 * settings modal called addAdmonition independently.
 	 */
-	addCallout(callout: CustomCallout, sync = true): void {
+	async addCallout(callout: CustomCallout, sync = true): Promise<void> {
 		if (!callout.icon) return;
 
 		const color =
@@ -113,17 +113,17 @@ export class CalloutManager extends Component {
 		this.sheet.insertRule(rule, this.sheet.cssRules.length);
 
 		if (sync) {
-			void this.writeSnippet();
+			await this.writeSnippet();
 		}
 	}
 
 	/** Remove a custom callout's CSS rule. */
-	removeCallout(callout: CustomCallout): void {
+	async removeCallout(callout: CustomCallout): Promise<void> {
 		const index = this.indexing.indexOf(callout.type);
 		if (index === -1) return;
 		this.sheet.deleteRule(index);
 		this.indexing.splice(index, 1);
-		void this.writeSnippet();
+		await this.writeSnippet();
 	}
 
 	/** Generate the full CSS string from the in-memory stylesheet. */
@@ -139,22 +139,26 @@ export class CalloutManager extends Component {
 
 	/** Write the in-memory styles to the vault snippet file. */
 	private async writeSnippet(): Promise<void> {
-		const adapter = this.plugin.app.vault.adapter;
-		const css = this.generateCssString();
+		try {
+			const adapter = this.plugin.app.vault.adapter;
+			const css = this.generateCssString();
 
-		if (await adapter.exists(this.snippetPath)) {
-			await adapter.write(this.snippetPath, css);
-		} else {
-			await this.plugin.app.vault.create(this.snippetPath, css);
+			if (await adapter.exists(this.snippetPath)) {
+				await adapter.write(this.snippetPath, css);
+			} else {
+				await this.plugin.app.vault.create(this.snippetPath, css);
+			}
+
+			const customCss = (this.plugin.app as unknown as {
+				customCss: {
+					setCssEnabledStatus(name: string, enabled: boolean): void;
+					readSnippets(): void;
+				};
+			}).customCss;
+			customCss.setCssEnabledStatus(SNIPPET_NAME, true);
+			customCss.readSnippets();
+		} catch (e) {
+			console.error("Enhanced Callout Manager: failed to write snippet", e);
 		}
-
-		const customCss = (this.plugin.app as unknown as {
-			customCss: {
-				setCssEnabledStatus(name: string, enabled: boolean): void;
-				readSnippets(): void;
-			};
-		}).customCss;
-		customCss.setCssEnabledStatus(SNIPPET_NAME, true);
-		customCss.readSnippets();
 	}
 }

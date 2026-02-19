@@ -132,7 +132,7 @@ export default class EnhancedCalloutManager extends Plugin {
 		// once the workspace layout is ready.
 		this.app.workspace.onLayoutReady(async () => {
 			await this.iconManager.load();
-			this.calloutManager.loadCallouts(this.settings.customCallouts);
+			await this.calloutManager.loadCallouts(this.settings.customCallouts);
 			await this.refreshSnippetTypes();
 		});
 	}
@@ -171,13 +171,13 @@ export default class EnhancedCalloutManager extends Plugin {
 
 	async addCustomCallout(callout: CustomCallout): Promise<void> {
 		this.settings.customCallouts[callout.type] = callout;
-		this.calloutManager.addCallout(callout);
+		await this.calloutManager.addCallout(callout);
 		await this.saveSettings();
 	}
 
 	async removeCustomCallout(callout: CustomCallout): Promise<void> {
 		delete this.settings.customCallouts[callout.type];
-		this.calloutManager.removeCallout(callout);
+		await this.calloutManager.removeCallout(callout);
 		await this.saveSettings();
 	}
 
@@ -187,11 +187,11 @@ export default class EnhancedCalloutManager extends Plugin {
 	): Promise<void> {
 		if (oldType !== callout.type) {
 			const old = this.settings.customCallouts[oldType];
-			if (old) this.calloutManager.removeCallout(old);
+			if (old) await this.calloutManager.removeCallout(old);
 			delete this.settings.customCallouts[oldType];
 		}
 		this.settings.customCallouts[callout.type] = callout;
-		this.calloutManager.addCallout(callout);
+		await this.calloutManager.addCallout(callout);
 		await this.saveSettings();
 	}
 
