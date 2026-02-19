@@ -315,31 +315,31 @@ This phase brings in Plugin C's callout management system. Users can define enti
 **Deliverable:** The modal shows all callout types from all sources, organized into clearly labeled groups.
 
 ### 3.9 Add favorite callout commands
-- [ ] Register 5 stable commands at plugin load: "Insert favorite callout 1" through "Insert favorite callout 5"
-- [ ] Each command reads its assigned callout type from settings and inserts that type at the cursor
-- [ ] If a slot is unassigned, the command is a no-op (does nothing, no error) — users only configure the slots they want
-- [ ] Commands are always registered (stable hotkey slots) — only the mapped type changes
-- [ ] All other insertion workflows (full modal, quick-pick) work independently of favorites and remain available regardless of how many slots are configured
+- [x] Register 5 stable commands at plugin load: "Insert favorite callout 1" through "Insert favorite callout 5"
+- [x] Each command reads its assigned callout type from settings and inserts that type at the cursor
+- [x] If a slot is unassigned, the command is a no-op (does nothing, no error) — users only configure the slots they want
+- [x] Commands are always registered (stable hotkey slots) — only the mapped type changes
+- [x] All other insertion workflows (full modal, quick-pick) work independently of favorites and remain available regardless of how many slots are configured
 
 **Why:** Up to five fixed command slots give hotkey flexibility without flooding the command palette. Users assign their most-used types and bind hotkeys as needed. Zero configuration is required — the feature is purely opt-in.
 
 **Deliverable:** Up to 5 assignable hotkey slots for instant callout insertion; fully functional plugin without any configured.
 
 ### 3.10 Add circular detection guard
-- [ ] When the snippet parser scans `.obsidian/snippets/`, skip the plugin's own generated file (`enhanced-callout-manager.css`)
-- [ ] Use the filename as the identifier — if the user renames the file, it will be detected as a regular snippet (acceptable)
+- [x] When the snippet parser scans `.obsidian/snippets/`, skip the plugin's own generated file (`enhanced-callout-manager.css`)
+- [x] Use the filename as the identifier — if the user renames the file, it will be detected as a regular snippet (acceptable)
 
 **Why:** Without this guard, the plugin writes a custom callout to its snippet file, then the snippet parser detects it as a "snippet callout," creating a duplicate entry.
 
 **Deliverable:** No echo between plugin-generated CSS and snippet detection.
 
 ### 3.11 Wire up `main.ts` for Phase 3
-- [ ] Initialize `IconManager` in `onload()`
-- [ ] Initialize `CalloutManager` in `onload()`
-- [ ] Load user-defined callout types from settings and register them with `CalloutManager`
-- [ ] Implement `addAdmonition()` and `removeAdmonition()` methods on the plugin class
-- [ ] Pass all type sources (built-in, snippet, custom) to the modal when it opens
-- [ ] Register the 5 favorite callout commands
+- [x] Initialize `IconManager` in `onload()`
+- [x] Initialize `CalloutManager` in `onload()`
+- [x] Load user-defined callout types from settings and register them with `CalloutManager`
+- [x] Implement `addAdmonition()` and `removeAdmonition()` methods on the plugin class
+- [x] Pass all type sources (built-in, snippet, custom) to the modal when it opens
+- [x] Register the 5 favorite callout commands
 
 **Deliverable:** The full Phase 3 system is wired together and functional.
 
