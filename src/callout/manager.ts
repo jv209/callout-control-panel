@@ -13,16 +13,11 @@
  */
 
 import { type App, Component } from "obsidian";
-import type { CalloutIconDefinition } from "../types";
+import type { CustomCallout } from "../types";
 import type { IconManager } from "../icons/manager";
 
-/** A custom callout type that the manager can generate CSS for. */
-export interface CustomCallout {
-	type: string;
-	icon: CalloutIconDefinition;
-	color: string; // RGB format: "r, g, b"
-	injectColor?: boolean;
-}
+// Re-export for callers that previously imported from here.
+export type { CustomCallout };
 
 /** Minimum plugin surface area needed by CalloutManager. */
 export interface CalloutManagerPluginRef {

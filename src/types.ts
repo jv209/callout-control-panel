@@ -38,8 +38,10 @@ export interface CalloutTypeInfo {
 	type: string;
 	/** Display label for the UI (e.g., "Note", "Warning"). */
 	label: string;
-	/** Icon name (e.g., "lucide-pencil"). */
+	/** Icon name (e.g., "lucide-pencil"). Used as fallback when iconDef is absent. */
 	icon: string;
+	/** Full icon definition for non-Lucide icons (Font Awesome, downloaded packs, images). */
+	iconDef?: CalloutIconDefinition;
 	/** CSS color value (e.g., "var(--callout-default)" or "rgb(r,g,b)"). */
 	color: string;
 	/** Where this callout type was defined. */
@@ -50,6 +52,21 @@ export interface CalloutTypeInfo {
 	iconInvalid?: boolean;
 	/** Alternate names that resolve to this type (e.g., "summary" → "abstract"). */
 	aliases?: string[];
+}
+
+/**
+ * A user-defined custom callout type, persisted to settings and rendered
+ * to CSS by CalloutManager.
+ */
+export interface CustomCallout {
+	/** The callout type ID used in markdown (e.g., "my-callout"). */
+	type: string;
+	/** Icon definition (Obsidian, Font Awesome, downloaded pack, or image). */
+	icon: CalloutIconDefinition;
+	/** Color in RGB format: "r, g, b". */
+	color: string;
+	/** Per-type override for color injection. Falls back to global setting when undefined. */
+	injectColor?: boolean;
 }
 
 /**
@@ -70,6 +87,12 @@ export interface PluginSettings {
 	icons: DownloadableIconPack[];
 	/** Whether Font Awesome icons are available for selection. */
 	useFontAwesome: boolean;
+	/** User-created custom callout type definitions. */
+	customCallouts: Record<string, CustomCallout>;
+	/** Whether to inject the configured color into custom callout CSS. */
+	injectColor: boolean;
+	/** Up to 5 pinned callout type IDs for quick access. Empty string = unused slot. */
+	favoriteCallouts: string[];
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -80,6 +103,9 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	scanSnippets: true,
 	icons: [],
 	useFontAwesome: true,
+	customCallouts: {},
+	injectColor: true,
+	favoriteCallouts: [],
 };
 
 /**

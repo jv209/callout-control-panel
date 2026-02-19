@@ -14,8 +14,7 @@
  * successful edit.
  */
 
-import type { CustomCallout } from "../callout/manager";
-import type { CalloutIconDefinition, IconType } from "../types";
+import type { CustomCallout, CalloutIconDefinition, IconType } from "../types";
 
 /** Minimum plugin surface area needed by the validator. */
 export interface ValidatorPluginRef {
