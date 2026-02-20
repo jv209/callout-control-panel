@@ -48,8 +48,9 @@ After every completed task, provide the following four items:
 | v0.6.0 | Robust CSS parser and test framework | 2026-02-20 |
 | v0.6.1 | Live stylesheet watcher | 2026-02-20 |
 | v0.6.2 | Multi-source callout collection | 2026-02-20 |
+| v0.6.3 | Hybrid callout resolver | 2026-02-20 |
 
-**Next version: v0.6.3**
+**Next version: v0.6.4**
 
 ## Post-Phase 3 compliance review
 

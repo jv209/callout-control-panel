@@ -53,14 +53,14 @@ var require_main = __commonJS({
     var main_exports2 = {};
     __export2(main_exports2, { FileInputSuggest: () => FileInputSuggest, FolderInputSuggest: () => FolderInputSuggest, FuzzyInputSuggest: () => FuzzyInputSuggest2, createCollapsibleSection: () => createCollapsibleSection, setNodeIcon: () => setNodeIcon });
     module2.exports = __toCommonJS2(main_exports2);
-    var import_obsidian10 = require("obsidian");
-    var FuzzyInputSuggest2 = class extends import_obsidian10.AbstractInputSuggest {
+    var import_obsidian11 = require("obsidian");
+    var FuzzyInputSuggest2 = class extends import_obsidian11.AbstractInputSuggest {
       constructor(app, input, items) {
         super(app, input.inputEl);
         this.items = items;
       }
       getSuggestions(query) {
-        let search = (0, import_obsidian10.prepareSimpleSearch)(query), results = [];
+        let search = (0, import_obsidian11.prepareSimpleSearch)(query), results = [];
         for (let item of this.items) {
           let match = search(this.getItemText(item));
           match && results.push({ item, match });
@@ -78,7 +78,7 @@ var require_main = __commonJS({
         this.renderTitle(content.createDiv("suggestion-title"), result), (_b = this.renderNote) == null ? void 0 : _b.call(this, content.createDiv("suggestion-note"), result), (_c = this.renderFlair) == null ? void 0 : _c.call(this, el.createDiv("suggestion-aux").createDiv("suggestion-flair"), result);
       }
       renderMatches(el, text2, matches, offset) {
-        (0, import_obsidian10.renderMatches)(el, text2, matches, offset);
+        (0, import_obsidian11.renderMatches)(el, text2, matches, offset);
       }
     };
     var import_obsidian22 = require("obsidian");
@@ -131,7 +131,7 @@ __export(main_exports, {
   default: () => EnhancedCalloutManager
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian9 = require("obsidian");
+var import_obsidian10 = require("obsidian");
 
 // src/types.ts
 var DEFAULT_SETTINGS = {
@@ -1631,6 +1631,9 @@ function getSnippetStyleElements(app) {
   var _a;
   return (_a = getCustomCss(app).csscache) != null ? _a : /* @__PURE__ */ new Map();
 }
+function getCurrentColorScheme(_app) {
+  return document.body.classList.contains("theme-dark") ? "dark" : "light";
+}
 async function fetchObsidianStyleSheet(app) {
   var _a, _b;
   void app;
@@ -2137,6 +2140,274 @@ function sourceFromKey(sourceKey) {
   if (sourceKey.startsWith("theme:")) return { type: "theme", theme: sourceKey.substring("theme:".length) };
   throw new Error("Unknown source key: " + sourceKey);
 }
+
+// src/callout-detection/ui/callout-preview.ts
+var import_obsidian7 = require("obsidian");
+var NO_ATTACH = Symbol();
+var CalloutPreviewComponent = class _CalloutPreviewComponent extends import_obsidian7.Component {
+  constructor(containerEl, options) {
+    super();
+    const { color, icon: icon2, id, title, content } = options;
+    const frag = document.createDocumentFragment();
+    const calloutEl = this.calloutEl = frag.createDiv({ cls: ["callout", "calloutmanager-preview"] });
+    const titleElContainer = calloutEl.createDiv({ cls: "callout-title" });
+    this.iconEl = titleElContainer.createDiv({ cls: "callout-icon" });
+    const titleEl = this.titleEl = titleElContainer.createDiv({ cls: "callout-title-inner" });
+    const contentEl = this.contentEl = content === void 0 ? void 0 : calloutEl.createDiv({ cls: "callout-content" });
+    this.setIcon(icon2);
+    this.setColor(color);
+    this.setCalloutID(id);
+    if (title == null) titleEl.textContent = id;
+    else if (typeof title === "function") title(titleEl);
+    else if (typeof title === "string") titleEl.textContent = title;
+    else titleEl.appendChild(title);
+    if (contentEl != null) {
+      if (typeof content === "function") content(contentEl);
+      else if (typeof content === "string") contentEl.textContent = content;
+      else contentEl.appendChild(content);
+    }
+    if (containerEl !== NO_ATTACH) {
+      _CalloutPreviewComponent.prototype.attachTo.call(this, containerEl);
+    }
+  }
+  setCalloutID(id) {
+    this.calloutEl.setAttribute("data-callout", id);
+    return this;
+  }
+  setIcon(icon2) {
+    const { iconEl, calloutEl } = this;
+    calloutEl.style.setProperty("--callout-icon", icon2);
+    iconEl.empty();
+    const iconSvg = (0, import_obsidian7.getIcon)(icon2);
+    if (iconSvg != null) this.iconEl.appendChild(iconSvg);
+    return this;
+  }
+  setColor(color) {
+    const { calloutEl } = this;
+    if (color == null) {
+      calloutEl.style.removeProperty("--callout-color");
+      return this;
+    }
+    calloutEl.style.setProperty("--callout-color", `${color.r}, ${color.g}, ${color.b}`);
+    return this;
+  }
+  attachTo(containerEl) {
+    containerEl.appendChild(this.calloutEl);
+    return this;
+  }
+  resetStylePropertyOverrides() {
+    this.calloutEl.style.removeProperty("--callout-color");
+    this.calloutEl.style.removeProperty("--callout-icon");
+  }
+};
+var IsolatedCalloutPreviewComponent = class _IsolatedCalloutPreviewComponent extends CalloutPreviewComponent {
+  constructor(containerEl, options) {
+    var _a, _b, _c;
+    super(NO_ATTACH, options);
+    const frag = document.createDocumentFragment();
+    const focused = (_a = options.focused) != null ? _a : false;
+    const colorScheme = options.colorScheme;
+    const readingView = ((_b = options.viewType) != null ? _b : "reading") === "reading";
+    const cssEls = (_c = options == null ? void 0 : options.cssEls) != null ? _c : getCurrentStyles(containerEl == null ? void 0 : containerEl.doc);
+    const shadowHostEl = this.shadowHostEl = frag.createDiv();
+    const shadowRoot = this.shadowRoot = shadowHostEl.attachShadow({ delegatesFocus: false, mode: "closed" });
+    const shadowHead = this.shadowHead = shadowRoot.createEl("head");
+    const shadowBody = this.shadowBody = shadowRoot.createEl("body");
+    const styleEls = this.styleEls = [];
+    for (const cssEl of cssEls) {
+      const cssElClone = cssEl.cloneNode(true);
+      if (cssEl.tagName === "STYLE") {
+        styleEls.push(cssElClone);
+      }
+      shadowHead.appendChild(cssElClone);
+    }
+    shadowHead.createEl("style", { text: SHADOW_DOM_RESET_STYLES });
+    this.customStyleEl = shadowHead.createEl("style", { attr: { "data-custom-styles": "true" } });
+    shadowBody.classList.add(`theme-${colorScheme}`, "obsidian-app");
+    const viewContentEl = shadowBody.createDiv({ cls: "app-container" }).createDiv({ cls: "horizontal-main-container" }).createDiv({ cls: "workspace" }).createDiv({ cls: "workspace-split mod-root" }).createDiv({ cls: `workspace-tabs ${focused ? "mod-active" : ""}` }).createDiv({ cls: "workspace-tab-container" }).createDiv({ cls: `workspace-leaf ${focused ? "mod-active" : ""}` }).createDiv({ cls: "workspace-leaf-content" }).createDiv({ cls: "view-content" });
+    const calloutParentEl = readingView ? createReadingViewContainer(viewContentEl) : createLiveViewContainer(viewContentEl);
+    calloutParentEl.appendChild(this.calloutEl);
+    if (containerEl != null) {
+      _IsolatedCalloutPreviewComponent.prototype.attachTo.call(this, containerEl);
+    }
+  }
+  updateStyles() {
+    return this.updateStylesWith(
+      getCurrentStyles(this.shadowHostEl.doc).filter((e) => e.tagName === "STYLE").map((e) => e.cloneNode(true))
+    );
+  }
+  updateStylesWith(styleEls) {
+    const { styleEls: oldStyleEls, customStyleEl } = this;
+    let i, end2;
+    let lastNode = customStyleEl.previousSibling;
+    for (i = 0, end2 = Math.min(styleEls.length, oldStyleEls.length); i < end2; i++) {
+      const el = styleEls[i];
+      oldStyleEls[i].replaceWith(el);
+      lastNode = el;
+    }
+    for (end2 = styleEls.length; i < end2; i++) {
+      const el = styleEls[i];
+      lastNode.insertAdjacentElement("afterend", el);
+      oldStyleEls.push(el);
+    }
+    const toRemove = oldStyleEls.splice(i, oldStyleEls.length - i);
+    for (const node of toRemove) node.remove();
+    return this;
+  }
+  removeStyles(predicate) {
+    for (let i = 0; i < this.styleEls.length; i++) {
+      const el = this.styleEls[i];
+      if (predicate(el)) {
+        el.remove();
+        this.styleEls.splice(i, 1);
+        i--;
+      }
+    }
+  }
+  setColorScheme(colorScheme) {
+    const { classList } = this.shadowBody;
+    classList.toggle("theme-dark", colorScheme === "dark");
+    classList.toggle("theme-light", colorScheme === "light");
+    return this;
+  }
+  attachTo(containerEl) {
+    containerEl.appendChild(this.shadowHostEl);
+    return this;
+  }
+};
+function getCurrentStyles(doc) {
+  var _a;
+  const els = [];
+  let node = (doc != null ? doc : window.document).head.firstElementChild;
+  for (; node != null; node = node.nextElementSibling) {
+    const nodeTag = node.tagName;
+    if (nodeTag === "STYLE" || nodeTag === "LINK" && ((_a = node.getAttribute("rel")) == null ? void 0 : _a.toLowerCase()) === "stylesheet") {
+      els.push(node);
+    }
+  }
+  return els;
+}
+function createReadingViewContainer(viewContentEl) {
+  return viewContentEl.createDiv({ cls: "markdown-reading-view" }).createDiv({ cls: "markdown-preview-view markdown-rendered" }).createDiv({ cls: "markdown-preview-section" }).createDiv();
+}
+function createLiveViewContainer(viewContentEl) {
+  return viewContentEl.createDiv({ cls: "markdown-source-view cm-s-obsidian mod-cm6 is-live-preview" }).createDiv({ cls: "cm-editor" }).createDiv({ cls: "cm-scroller" }).createDiv({ cls: "cm-sizer" }).createDiv({ cls: "cm-contentContainer" }).createDiv({ cls: "cm-content" }).createDiv({ cls: "cm-embed-block markdown-rendered cm-callout" });
+}
+var SHADOW_DOM_RESET_STYLES = `
+/* Reset layout for all elements above the callout in the shadow DOM. */
+.app-container,
+.horizontal-main-container,
+.workspace,
+.workspace-split,
+.workspace-tabs,
+.workspace-tab-container,
+.workspace-leaf,
+.workspace-leaf-content,
+.view-content,
+.markdown-reading-view,
+.markdown-source-view,
+.cm-editor,
+.cm-editor > .cm-scroller,
+.cm-sizer,
+.cm-contentContainer,
+.cm-content,
+.markdown-preview-view {
+	all: initial !important;
+	display: block !important;
+}
+
+.markdown-preview-section,
+.cm-callout {
+	color: var(--text-normal) !important;
+}
+
+.markdown-preview-section > div > .callout,
+.cm-callout > .callout,
+.calloutmanager-preview.callout {
+	margin: 0 !important;
+}
+
+.cm-callout,
+.callout {
+	font-size: var(--font-text-size) !important;
+	font-family: var(--font-text) !important;
+	line-height: var(--line-height-normal) !important;
+}
+
+body {
+	background-color: transparent !important;
+}
+`;
+
+// src/callout-detection/callout-resolver.ts
+var CalloutResolver = class {
+  constructor(app) {
+    this.app = app;
+    this.hostElement = document.body.createDiv({
+      cls: "calloutmanager-callout-resolver"
+    });
+    this.hostElement.style.setProperty("display", "none", "important");
+    this.calloutPreview = new IsolatedCalloutPreviewComponent(this.hostElement, {
+      id: "",
+      icon: "",
+      colorScheme: "dark"
+    });
+    this.calloutPreview.resetStylePropertyOverrides();
+  }
+  /**
+   * Reloads styles in the Shadow DOM to reflect CSS changes.
+   * Call this when themes or snippets change.
+   */
+  reloadStyles() {
+    this.calloutPreview.setColorScheme(getCurrentColorScheme(this.app));
+    this.calloutPreview.updateStyles();
+    this.calloutPreview.removeStyles((el) => el.getAttribute("data-callout-manager") === "style-overrides");
+  }
+  /**
+   * Removes the host element from the DOM. Call during plugin unload.
+   */
+  unload() {
+    this.hostElement.remove();
+  }
+  /**
+   * Gets computed styles for a callout by temporarily setting the data-callout attribute.
+   *
+   * @param id The callout ID.
+   * @param callback Receives the live CSSStyleDeclaration. Must extract values synchronously.
+   */
+  getCalloutStyles(id, callback) {
+    const { calloutEl } = this.calloutPreview;
+    calloutEl.setAttribute("data-callout", id);
+    return callback(window.getComputedStyle(calloutEl));
+  }
+  /**
+   * Gets the icon and color for a callout ID via computed styles.
+   */
+  getCalloutProperties(id) {
+    return this.getCalloutStyles(id, (styles2) => ({
+      icon: styles2.getPropertyValue("--callout-icon").trim(),
+      color: styles2.getPropertyValue("--callout-color").trim()
+    }));
+  }
+  /**
+   * Returns true when the regex-extracted properties look uncertain
+   * and the Shadow DOM resolver should be used as a verification pass.
+   *
+   * Triggers when:
+   *  - The color is the default fallback (no --callout-color found)
+   *    AND no icon was found either (fully empty definition)
+   *  - The color contains a CSS variable reference (var(...)) that
+   *    regex can't resolve — only getComputedStyle can
+   */
+  static needsVerification(color, iconDefault) {
+    if (color === "var(--callout-default)" && iconDefault) return true;
+    if (color.includes("var(")) return true;
+    return false;
+  }
+  get customStyleEl() {
+    return this.calloutPreview.customStyleEl;
+  }
+};
 
 // src/snippetParser.ts
 async function parseSnippetCalloutTypes(app) {
@@ -18795,7 +19066,7 @@ var text = api.text;
 var counter = api.counter;
 
 // src/icons/manager.ts
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 library$1.add(icons2, icons, icons3, faCopy);
 var IconManager = class {
   constructor(plugin) {
@@ -18845,7 +19116,7 @@ var IconManager = class {
     }
     this.iconDefinitions = [
       ...this.plugin.settings.useFontAwesome ? this.FONT_AWESOME_MAP.values() : [],
-      ...(0, import_obsidian7.getIconIds)().map((name) => {
+      ...(0, import_obsidian8.getIconIds)().map((name) => {
         return { type: "obsidian", name };
       }),
       ...downloaded
@@ -18861,7 +19132,7 @@ var IconManager = class {
   }
   async downloadIcon(pack) {
     try {
-      const response = await (0, import_obsidian7.requestUrl)(this.iconPath(pack));
+      const response = await (0, import_obsidian8.requestUrl)(this.iconPath(pack));
       const icons4 = response.json;
       this.plugin.settings.icons.push(pack);
       this.plugin.settings.icons = [...new Set(this.plugin.settings.icons)];
@@ -18872,10 +19143,10 @@ var IconManager = class {
       this.DOWNLOADED[pack] = icons4;
       await this.plugin.saveSettings();
       this.setIconDefinitions();
-      new import_obsidian7.Notice(`${DownloadableIcons[pack]} successfully downloaded.`);
+      new import_obsidian8.Notice(`${DownloadableIcons[pack]} successfully downloaded.`);
     } catch (e) {
       console.error(e);
-      new import_obsidian7.Notice("Could not download icon pack");
+      new import_obsidian8.Notice("Could not download icon pack");
     }
   }
   async removeIcon(pack) {
@@ -18901,7 +19172,7 @@ var IconManager = class {
       return "font-awesome";
     if (findIconDefinition$1({ iconName: str, prefix: "fab" }))
       return "font-awesome";
-    if ((0, import_obsidian7.getIconIds)().includes(str)) {
+    if ((0, import_obsidian8.getIconIds)().includes(str)) {
       return "obsidian";
     }
     for (const [pack, icons4] of Object.entries(this.DOWNLOADED)) {
@@ -18929,7 +19200,7 @@ var IconManager = class {
     }
     if (icon2.type === "obsidian") {
       const el = document.createElement("div");
-      (0, import_obsidian7.setIcon)(el, icon2.name);
+      (0, import_obsidian8.setIcon)(el, icon2.name);
       return el;
     }
     const svgContent = (_a = this.DOWNLOADED[icon2.type]) == null ? void 0 : _a[icon2.name];
@@ -18949,9 +19220,9 @@ var IconManager = class {
 };
 
 // src/callout/manager.ts
-var import_obsidian8 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 var SNIPPET_NAME = "enhanced-callout-manager";
-var CalloutManager = class extends import_obsidian8.Component {
+var CalloutManager = class extends import_obsidian9.Component {
   constructor(plugin) {
     super();
     this.plugin = plugin;
@@ -19054,7 +19325,7 @@ var CalloutManager = class extends import_obsidian8.Component {
 };
 
 // src/main.ts
-var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
+var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
   constructor() {
     super(...arguments);
     this.snippetTypes = [];
@@ -19194,11 +19465,16 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
         }
       });
       this.stylesheetWatcher.on("checkComplete", (anyChanges) => {
-        if (anyChanges && this.settings.scanSnippets) {
-          this.rebuildDetectedTypes();
+        if (anyChanges) {
+          this.calloutResolver.reloadStyles();
+          if (this.settings.scanSnippets) {
+            this.rebuildDetectedTypes();
+          }
         }
       });
       this.register(this.stylesheetWatcher.watch());
+      this.calloutResolver = new CalloutResolver(this.app);
+      this.register(() => this.calloutResolver.unload());
     });
   }
   async loadSettings() {
@@ -19231,7 +19507,7 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
     } else {
       const result = await parseSnippetCalloutTypes(this.app);
       for (const st of result.types) {
-        if (!st.iconDefault && !(0, import_obsidian9.getIcon)(st.icon)) {
+        if (!st.iconDefault && !(0, import_obsidian10.getIcon)(st.icon)) {
           st.iconInvalid = true;
         }
       }
@@ -19269,11 +19545,10 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
       for (const id of ids) {
         if (seen.has(id) || builtinNames.has(id)) continue;
         seen.add(id);
-        const props = extractCalloutProperties(css2, id);
-        const label = id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+        const props = this.resolveDetectedProps(css2, id);
         types.push({
           type: id,
-          label,
+          label: idToLabel(id),
           icon: props.icon,
           color: props.color,
           source: "snippet",
@@ -19287,11 +19562,10 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
       for (const id of themeIds) {
         if (seen.has(id) || builtinNames.has(id)) continue;
         seen.add(id);
-        const props = extractCalloutProperties(themeCss, id);
-        const label = id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+        const props = this.resolveDetectedProps(themeCss, id);
         types.push({
           type: id,
-          label,
+          label: idToLabel(id),
           icon: props.icon,
           color: props.color,
           source: "theme",
@@ -19300,12 +19574,34 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
       }
     }
     for (const st of types) {
-      if (!st.iconDefault && !(0, import_obsidian9.getIcon)(st.icon)) {
+      if (!st.iconDefault && !(0, import_obsidian10.getIcon)(st.icon)) {
         st.iconInvalid = true;
       }
     }
     this.snippetTypes = types;
     this.snippetWarnings = warnings;
+  }
+  /**
+   * Extract properties for a detected callout using regex as the fast
+   * path. If the result looks uncertain (unresolved CSS variable, no
+   * properties found at all), falls back to the Shadow DOM resolver.
+   */
+  resolveDetectedProps(css2, id) {
+    const props = extractCalloutProperties(css2, id);
+    if (!CalloutResolver.needsVerification(props.color, props.iconDefault)) {
+      return props;
+    }
+    if (this.calloutResolver) {
+      const resolved = this.calloutResolver.getCalloutProperties(id);
+      if (resolved.color || resolved.icon) {
+        return {
+          color: resolved.color || props.color,
+          icon: resolved.icon || props.icon,
+          iconDefault: !resolved.icon && props.iconDefault
+        };
+      }
+    }
+    return props;
   }
   /**
    * Resolve a callout ID to its display properties.
@@ -19320,7 +19616,7 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
       return { id, color: custom.color, icon: (_a = custom.icon.name) != null ? _a : "lucide-box" };
     }
     for (const css2 of this.cssTextCache.values()) {
-      const props = extractCalloutProperties(css2, id);
+      const props = this.resolveDetectedProps(css2, id);
       if (props.color !== "var(--callout-default)" || !props.iconDefault) {
         return { id, color: props.color, icon: props.icon };
       }
@@ -19360,6 +19656,9 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
     );
   }
 };
+function idToLabel(id) {
+  return id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 /*! Bundled license information:
 
 @fortawesome/free-regular-svg-icons/index.mjs:

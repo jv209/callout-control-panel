@@ -14,6 +14,9 @@ export type {
 	ObsidianStylesheet,
 } from './css-watcher';
 export { CalloutCollection } from './callout-collection';
+export { CalloutResolver } from './callout-resolver';
+export { CalloutPreviewComponent, IsolatedCalloutPreviewComponent } from './ui/callout-preview';
+export type { PreviewOptions, IsolatedPreviewOptions } from './ui/callout-preview';
 export {
 	getCurrentThemeID,
 	getThemeManifest,
@@ -27,4 +30,4 @@ export type {
 	ObsidianStyleSheetResult,
 	CustomStyleSheet,
 } from './obsidian-helpers';
-export type { CalloutID, Callout, CalloutProperties, CalloutSource } from './types';
+export type { CalloutID, Callout, CalloutProperties, CalloutSource, RGB } from './types';
