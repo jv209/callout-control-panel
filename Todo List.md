@@ -362,13 +362,16 @@ This phase brings in Plugin C's callout management system. Users can define enti
 
 ---
 
-## Phase 4: Enhanced Detection — Live CSS Monitoring (Future)
+## Phase 4: Enhanced Detection — Live CSS Monitoring
 
 This phase replaces the simple "scan on load" approach with Plugin B's real-time CSS detection pipeline. After this, callout types from themes and snippets are detected automatically as they change — no restart needed.
 
-### 4.1 Port the CSS parser (`src/callout-detection/css-parser.ts`)
-- [ ] Copy Plugin B's `css-parser.ts` and `css-parser.test.ts`
-- [ ] Replace Plugin A's simpler regex parser with this more robust one
+### 4.1 Port the CSS parser (`src/callout-detection/css-parser.ts`) ✅
+- [x] Copy Plugin B's `css-parser.ts` and `css-parser.test.ts`
+- [x] Replace Plugin A's simpler regex parser with this more robust one
+- [x] Set up Vitest test runner and verify all 8 parser tests pass
+- [x] Create `callout-detection/types.ts` with `CalloutID`, `Callout`, `CalloutSource` types
+- [x] Create `callout-detection/index.ts` barrel export
 
 ### 4.2 Port the Stylesheet Watcher (`src/callout-detection/css-watcher.ts`)
 - [ ] Copy Plugin B's `css-watcher.ts`
@@ -513,10 +516,11 @@ enhanced-callout-manager/
 │   │   └── locale/
 │   │       └── en.ts               # English strings (from Plugin C)
 │   │
-│   └── callout-detection/          # (Phase 4 — live CSS monitoring)
-│       ├── index.ts                # Barrel export
-│       ├── types.ts                # Detection-specific types
-│       ├── css-parser.ts           # Robust CSS callout ID extractor
+│   └── callout-detection/          # Phase 4 — live CSS monitoring
+│       ├── index.ts                # Barrel export ✅
+│       ├── types.ts                # Detection-specific types (CalloutID, Callout, CalloutSource) ✅
+│       ├── css-parser.ts           # Robust CSS callout ID extractor (from Plugin B) ✅
+│       ├── css-parser.test.ts      # 8 Vitest tests for the CSS parser ✅
 │       ├── css-watcher.ts          # Live stylesheet change monitor
 │       ├── callout-collection.ts   # Multi-source registry
 │       ├── callout-resolver.ts     # Shadow DOM CSS variable resolver

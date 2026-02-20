@@ -45,8 +45,9 @@ After every completed task, provide the following four items:
 | v0.5.10 | Tabbed settings and UI polish | 2026-02-19 |
 | v0.5.11 | All-tab layout and icon pack crash fix | 2026-02-19 |
 | v0.5.12 | Document plugin features | 2026-02-20 |
+| v0.6.0 | Robust CSS parser and test framework | 2026-02-20 |
 
-**Next version: v0.5.13**
+**Next version: v0.6.1**
 
 ## Post-Phase 3 compliance review
 

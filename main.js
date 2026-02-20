@@ -1573,6 +1573,44 @@ var QuickPickCalloutModal = class extends import_obsidian6.SuggestModal {
   }
 };
 
+// src/callout-detection/css-parser.ts
+function getCalloutsFromCSS(css2) {
+  var _a;
+  const REGEX_CALLOUT_SELECTOR = /\[data-callout([^\]]*)\]/gmi;
+  const REGEX_MATCH_QUOTED_STRING = {
+    "'": /^'([^']+)'( i)?$/,
+    '"': /^"([^"]+)"( i)?$/,
+    "": /^([^\]]+)$/
+  };
+  const attributeSelectors = [];
+  let matches;
+  while ((matches = REGEX_CALLOUT_SELECTOR.exec(css2)) != null) {
+    if (matches[1] != null) {
+      attributeSelectors.push(matches[1]);
+    }
+    REGEX_CALLOUT_SELECTOR.lastIndex = matches.index + matches[0].length;
+  }
+  const ids = [];
+  for (const attributeSelector of attributeSelectors) {
+    let selectorString;
+    if (attributeSelector.startsWith("=")) {
+      selectorString = attributeSelector.substring(1);
+    } else if (attributeSelector.startsWith("^=")) {
+      selectorString = attributeSelector.substring(2);
+    } else {
+      continue;
+    }
+    const quoteChar = selectorString.charAt(0);
+    const stringRegex = (_a = REGEX_MATCH_QUOTED_STRING[quoteChar]) != null ? _a : REGEX_MATCH_QUOTED_STRING[""];
+    if (!stringRegex) continue;
+    const innerMatch = stringRegex.exec(selectorString);
+    if (innerMatch != null && innerMatch[1] != null) {
+      ids.push(innerMatch[1]);
+    }
+  }
+  return ids;
+}
+
 // src/snippetParser.ts
 async function parseSnippetCalloutTypes(app) {
   var _a;
@@ -1613,10 +1651,16 @@ async function parseSnippetCalloutTypes(app) {
     } catch (e) {
       continue;
     }
-    const looseMatches = css2.match(/\.callout\[data-callout/g);
+    const discoveredIds = getCalloutsFromCSS(css2);
+    const looseMatches = css2.match(/\[data-callout/g);
     const potentialCount = looseMatches ? looseMatches.length : 0;
-    const strictParsed = extractCalloutTypes(css2, results, builtinNames);
-    const malformedCount = potentialCount - strictParsed;
+    const parsedCount = collectCalloutTypes(
+      css2,
+      discoveredIds,
+      results,
+      builtinNames
+    );
+    const malformedCount = potentialCount - parsedCount;
     if (malformedCount > 0) {
       const fileName = (_a = filePath.split("/").pop()) != null ? _a : filePath;
       warnings.push({ file: fileName, malformedCount });
@@ -1624,33 +1668,43 @@ async function parseSnippetCalloutTypes(app) {
   }
   return { types: results, warnings };
 }
-function extractCalloutTypes(css2, results, builtinNames) {
-  const blockRegex = /\.callout\[data-callout=["']([^"']+)["']\]\s*\{([^}]*)}/g;
-  let match;
-  let strictCount = 0;
-  while ((match = blockRegex.exec(css2)) !== null) {
-    strictCount++;
-    const typeName = match[1];
-    const block = match[2];
-    if (!typeName || !block) continue;
+function collectCalloutTypes(css2, discoveredIds, results, builtinNames) {
+  const seenInFile = /* @__PURE__ */ new Set();
+  for (const typeName of discoveredIds) {
+    if (seenInFile.has(typeName)) continue;
+    seenInFile.add(typeName);
     if (builtinNames.has(typeName)) continue;
     if (results.some((r2) => r2.type === typeName)) continue;
-    const colorMatch = block.match(/--callout-color:\s*([\d\s,]+)/);
-    const color = colorMatch && colorMatch[1] ? colorMatch[1].trim() : "var(--callout-default)";
-    const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
-    const icon2 = iconMatch && iconMatch[1] ? iconMatch[1] : "lucide-box";
-    const iconDefault = !(iconMatch && iconMatch[1]);
+    const props = extractCalloutProperties(css2, typeName);
     const label = typeName.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     results.push({
       type: typeName,
       label,
-      icon: icon2,
-      color,
+      icon: props.icon,
+      color: props.color,
       source: "snippet",
-      iconDefault
+      iconDefault: props.iconDefault
     });
   }
-  return strictCount;
+  return discoveredIds.length;
+}
+function extractCalloutProperties(css2, calloutId) {
+  const escaped = calloutId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const blockRegex = new RegExp(
+    `\\[data-callout(?:\\^)?=["']?${escaped}["']?\\][^{]*\\{([^}]*)\\}`,
+    "gi"
+  );
+  const match = blockRegex.exec(css2);
+  if (!(match == null ? void 0 : match[1])) {
+    return { color: "var(--callout-default)", icon: "lucide-box", iconDefault: true };
+  }
+  const block = match[1];
+  const colorMatch = block.match(/--callout-color:\s*([\d\s,]+)/);
+  const color = (colorMatch == null ? void 0 : colorMatch[1]) ? colorMatch[1].trim() : "var(--callout-default)";
+  const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
+  const icon2 = (iconMatch == null ? void 0 : iconMatch[1]) ? iconMatch[1] : "lucide-box";
+  const iconDefault = !(iconMatch == null ? void 0 : iconMatch[1]);
+  return { color, icon: icon2, iconDefault };
 }
 
 // node_modules/@fortawesome/free-regular-svg-icons/index.mjs
