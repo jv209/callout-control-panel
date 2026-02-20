@@ -373,10 +373,11 @@ This phase replaces the simple "scan on load" approach with Plugin B's real-time
 - [x] Create `callout-detection/types.ts` with `CalloutID`, `Callout`, `CalloutSource` types
 - [x] Create `callout-detection/index.ts` barrel export
 
-### 4.2 Port the Stylesheet Watcher (`src/callout-detection/css-watcher.ts`)
-- [ ] Copy Plugin B's `css-watcher.ts`
-- [ ] Copy `obsidian-helpers.ts` (the undocumented API wrappers)
-- [ ] Wire into `main.ts` to start watching on layout ready
+### 4.2 Port the Stylesheet Watcher (`src/callout-detection/css-watcher.ts`) ✅
+- [x] Copy Plugin B's `css-watcher.ts`
+- [x] Copy `obsidian-helpers.ts` (the undocumented API wrappers)
+- [x] Wire into `main.ts` to start watching on layout ready
+- [x] On `checkComplete` with changes, automatically rescan snippet types
 
 ### 4.3 Port the Callout Collection (`src/callout-detection/callout-collection.ts`)
 - [ ] Copy Plugin B's `callout-collection.ts` and `types.ts`
@@ -521,10 +522,10 @@ enhanced-callout-manager/
 │       ├── types.ts                # Detection-specific types (CalloutID, Callout, CalloutSource) ✅
 │       ├── css-parser.ts           # Robust CSS callout ID extractor (from Plugin B) ✅
 │       ├── css-parser.test.ts      # 8 Vitest tests for the CSS parser ✅
-│       ├── css-watcher.ts          # Live stylesheet change monitor
+│       ├── css-watcher.ts          # Live stylesheet change monitor (from Plugin B) ✅
+│       ├── obsidian-helpers.ts     # Undocumented API wrappers (from Plugin B) ✅
 │       ├── callout-collection.ts   # Multi-source registry
 │       ├── callout-resolver.ts     # Shadow DOM CSS variable resolver
-│       ├── obsidian-helpers.ts     # Undocumented API wrappers
 │       └── ui/
 │           └── callout-preview.ts  # Shadow DOM preview component
 │
