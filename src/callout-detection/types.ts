@@ -62,3 +62,13 @@ export interface CalloutSourceTheme {
 export interface CalloutSourceCustom {
 	type: 'custom';
 }
+
+/**
+ * A color in 8-bit RGB color space.
+ * Each component is between 0 and 255.
+ */
+export interface RGB {
+	r: number;
+	g: number;
+	b: number;
+}

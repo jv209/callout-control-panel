@@ -19,6 +19,7 @@ import { CalloutManager } from "./callout/manager";
 import {
 	StylesheetWatcher,
 	CalloutCollection,
+	CalloutResolver,
 	getCalloutsFromCSS,
 } from "./callout-detection";
 import type { Callout } from "./callout-detection/types";
@@ -31,6 +32,7 @@ export default class EnhancedCalloutManager extends Plugin {
 	calloutManager: CalloutManager;
 	stylesheetWatcher: StylesheetWatcher;
 	calloutCollection: CalloutCollection;
+	calloutResolver: CalloutResolver;
 
 	/** CSS text from watcher events, keyed by source (e.g. "snippet:my-file"). */
 	private cssTextCache = new Map<string, string>();
@@ -213,12 +215,23 @@ export default class EnhancedCalloutManager extends Plugin {
 			});
 
 			this.stylesheetWatcher.on('checkComplete', (anyChanges) => {
-				if (anyChanges && this.settings.scanSnippets) {
-					this.rebuildDetectedTypes();
+				if (anyChanges) {
+					// Reload Shadow DOM styles so resolver sees current CSS
+					this.calloutResolver.reloadStyles();
+					if (this.settings.scanSnippets) {
+						this.rebuildDetectedTypes();
+					}
 				}
 			});
 
 			this.register(this.stylesheetWatcher.watch());
+
+			// Shadow DOM resolver — verification fallback for cases where
+			// regex can't extract properties (CSS variable indirection,
+			// cascade/specificity conflicts). Created after watcher so
+			// its initial styles reflect the current theme and snippets.
+			this.calloutResolver = new CalloutResolver(this.app);
+			this.register(() => this.calloutResolver.unload());
 		});
 	}
 
@@ -305,14 +318,11 @@ export default class EnhancedCalloutManager extends Plugin {
 				if (seen.has(id) || builtinNames.has(id)) continue;
 				seen.add(id);
 
-				const props = extractCalloutProperties(css, id);
-				const label = id
-					.replace(/[-_]/g, " ")
-					.replace(/\b\w/g, (c) => c.toUpperCase());
+				const props = this.resolveDetectedProps(css, id);
 
 				types.push({
 					type: id,
-					label,
+					label: idToLabel(id),
 					icon: props.icon,
 					color: props.color,
 					source: "snippet",
@@ -329,14 +339,11 @@ export default class EnhancedCalloutManager extends Plugin {
 				if (seen.has(id) || builtinNames.has(id)) continue;
 				seen.add(id);
 
-				const props = extractCalloutProperties(themeCss, id);
-				const label = id
-					.replace(/[-_]/g, " ")
-					.replace(/\b\w/g, (c) => c.toUpperCase());
+				const props = this.resolveDetectedProps(themeCss, id);
 
 				types.push({
 					type: id,
-					label,
+					label: idToLabel(id),
 					icon: props.icon,
 					color: props.color,
 					source: "theme",
@@ -357,6 +364,37 @@ export default class EnhancedCalloutManager extends Plugin {
 	}
 
 	/**
+	 * Extract properties for a detected callout using regex as the fast
+	 * path. If the result looks uncertain (unresolved CSS variable, no
+	 * properties found at all), falls back to the Shadow DOM resolver.
+	 */
+	private resolveDetectedProps(
+		css: string,
+		id: string,
+	): { color: string; icon: string; iconDefault: boolean } {
+		const props = extractCalloutProperties(css, id);
+
+		// Fast path — regex found concrete values
+		if (!CalloutResolver.needsVerification(props.color, props.iconDefault)) {
+			return props;
+		}
+
+		// Fallback — use Shadow DOM resolver if available
+		if (this.calloutResolver) {
+			const resolved = this.calloutResolver.getCalloutProperties(id);
+			if (resolved.color || resolved.icon) {
+				return {
+					color: resolved.color || props.color,
+					icon: resolved.icon || props.icon,
+					iconDefault: !resolved.icon && props.iconDefault,
+				};
+			}
+		}
+
+		return props;
+	}
+
+	/**
 	 * Resolve a callout ID to its display properties.
 	 * Used by the CalloutCollection's lazy resolver.
 	 */
@@ -371,9 +409,9 @@ export default class EnhancedCalloutManager extends Plugin {
 			return { id, color: custom.color, icon: custom.icon.name ?? "lucide-box" };
 		}
 
-		// Snippet/theme types — extract from cached CSS
+		// Snippet/theme types — extract from cached CSS, with resolver fallback
 		for (const css of this.cssTextCache.values()) {
-			const props = extractCalloutProperties(css, id);
+			const props = this.resolveDetectedProps(css, id);
 			if (props.color !== "var(--callout-default)" || !props.iconDefault) {
 				return { id, color: props.color, icon: props.icon };
 			}
@@ -422,4 +460,9 @@ export default class EnhancedCalloutManager extends Plugin {
 			customCalloutToTypeInfo(cc, this.settings.injectColor),
 		);
 	}
+}
+
+/** Title-case a callout ID for display (e.g. "my-recipe" → "My Recipe"). */
+function idToLabel(id: string): string {
+	return id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

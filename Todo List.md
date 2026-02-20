@@ -389,10 +389,13 @@ This phase replaces the simple "scan on load" approach with Plugin B's real-time
 - [x] Sync custom callout CRUD (add/remove/edit) with the collection
 - [x] Theme-sourced callout types now detected alongside snippet types
 
-### 4.4 Port the Callout Resolver (optional)
-- [ ] Use regex parsing (current) as the fast default path
-- [ ] Add Shadow DOM resolver as a verification fallback for edge cases (variable indirection, cascade conflicts)
-- [ ] Resolver only fires when regex output looks uncertain (missing color, unresolved variables)
+### 4.4 Port the Callout Resolver (hybrid regex + Shadow DOM) ✅
+- [x] Use regex parsing (current) as the fast default path
+- [x] Add Shadow DOM resolver as a verification fallback for edge cases (variable indirection, cascade conflicts)
+- [x] Resolver only fires when regex output looks uncertain (missing color, unresolved variables)
+- [x] Port `IsolatedCalloutPreviewComponent` (Shadow DOM preview) and `CalloutPreviewComponent`
+- [x] Add `needsVerification()` static method that triggers resolver for: default fallback + no icon, or unresolved CSS variables
+- [x] Wire `resolveDetectedProps()` helper into `rebuildDetectedTypes()` and `resolveCalloutById()`
 
 ### 4.5 Port detection settings
 - [ ] Add Plugin B's three-toggle detection section (Obsidian, Theme, Snippet) to the settings tab
@@ -530,9 +533,9 @@ enhanced-callout-manager/
 │       ├── css-watcher.ts          # Live stylesheet change monitor (from Plugin B) ✅
 │       ├── obsidian-helpers.ts     # Undocumented API wrappers (from Plugin B) ✅
 │       ├── callout-collection.ts   # Multi-source registry (from Plugin B) ✅
-│       ├── callout-resolver.ts     # Shadow DOM CSS variable resolver
+│       ├── callout-resolver.ts     # Shadow DOM CSS variable resolver ✅
 │       └── ui/
-│           └── callout-preview.ts  # Shadow DOM preview component
+│           └── callout-preview.ts  # Shadow DOM preview component ✅
 │
 ├── plugin A/                        # Extraction source — reference only
 ├── plugin B/                        # Extraction source — reference only
