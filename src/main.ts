@@ -11,6 +11,7 @@ import { QuickPickCalloutModal } from "./quickPickCalloutModal";
 import { type SnippetWarning, parseSnippetCalloutTypes } from "./snippetParser";
 import { IconManager } from "./icons/manager";
 import { CalloutManager } from "./callout/manager";
+import { StylesheetWatcher } from "./callout-detection";
 
 export default class EnhancedCalloutManager extends Plugin {
 	settings: PluginSettings;
@@ -18,6 +19,7 @@ export default class EnhancedCalloutManager extends Plugin {
 	snippetWarnings: SnippetWarning[] = [];
 	iconManager: IconManager;
 	calloutManager: CalloutManager;
+	stylesheetWatcher: StylesheetWatcher;
 
 	async onload() {
 		await this.loadSettings();
@@ -128,12 +130,23 @@ export default class EnhancedCalloutManager extends Plugin {
 
 		this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
 
-		// Load icon packs, inject custom callout CSS, and scan snippets
-		// once the workspace layout is ready.
+		// Load icon packs, inject custom callout CSS, scan snippets,
+		// and start watching for live CSS changes once the workspace
+		// layout is ready.
 		this.app.workspace.onLayoutReady(async () => {
 			await this.iconManager.load();
 			await this.calloutManager.loadCallouts(this.settings.customCallouts);
 			await this.refreshSnippetTypes();
+
+			// Start live stylesheet monitoring — when themes or snippets
+			// change, rescan to keep the callout type list up to date.
+			this.stylesheetWatcher = new StylesheetWatcher(this.app);
+			this.stylesheetWatcher.on('checkComplete', (anyChanges) => {
+				if (anyChanges) {
+					void this.refreshSnippetTypes();
+				}
+			});
+			this.register(this.stylesheetWatcher.watch());
 		});
 	}
 

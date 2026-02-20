@@ -1611,6 +1611,216 @@ function getCalloutsFromCSS(css2) {
   return ids;
 }
 
+// src/callout-detection/obsidian-helpers.ts
+function getCustomCss(app) {
+  return app.customCss;
+}
+function getCurrentThemeID(app) {
+  var _a;
+  return (_a = getCustomCss(app).theme) != null ? _a : null;
+}
+function getThemeManifest(app, id) {
+  var _a, _b;
+  return (_b = (_a = getCustomCss(app).themes) == null ? void 0 : _a[id]) != null ? _b : null;
+}
+function getThemeStyleElement(app) {
+  var _a;
+  return (_a = getCustomCss(app).styleEl) != null ? _a : null;
+}
+function getSnippetStyleElements(app) {
+  var _a;
+  return (_a = getCustomCss(app).csscache) != null ? _a : /* @__PURE__ */ new Map();
+}
+async function fetchObsidianStyleSheet(app) {
+  var _a, _b;
+  void app;
+  try {
+    for (const sheet of Array.from(document.styleSheets)) {
+      try {
+        const href = (_a = sheet.href) != null ? _a : "";
+        if (href.includes("app.css") || ((_b = sheet.ownerNode) == null ? void 0 : _b.nodeName) === "STYLE") {
+          const rules = Array.from(sheet.cssRules);
+          const hasCalloutRules = rules.some((r2) => {
+            var _a2;
+            return (_a2 = r2.cssText) == null ? void 0 : _a2.includes("data-callout");
+          });
+          if (hasCalloutRules) {
+            const cssText = rules.map((r2) => r2.cssText).join("\n");
+            return { cssText, method: "dom" };
+          }
+        }
+      } catch (e) {
+      }
+    }
+  } catch (e) {
+  }
+  try {
+    const response = await fetch("app://obsidian.md/app.css");
+    if (response.ok) {
+      const cssText = await response.text();
+      return { cssText, method: "fetch" };
+    }
+  } catch (e) {
+  }
+  throw new Error("Unable to fetch the Obsidian built-in stylesheet.");
+}
+
+// src/callout-detection/css-watcher.ts
+var StylesheetWatcher = class {
+  constructor(app) {
+    this.app = app;
+    this.listeners = /* @__PURE__ */ new Map();
+    this.cachedSnippets = /* @__PURE__ */ new Map();
+    this.cachedObsidian = null;
+    this.cachedTheme = null;
+    this.watching = false;
+  }
+  /**
+   * Start watching for changes to stylesheets.
+   * @returns A callback function to pass to Plugin.register() for cleanup.
+   */
+  watch() {
+    if (this.watching) {
+      throw new Error("Already watching.");
+    }
+    this.watching = true;
+    const listener2 = () => this.checkForChanges(false);
+    this.app.workspace.on("css-change", listener2);
+    this.checkForChanges();
+    return () => {
+      if (!this.watching) return;
+      this.app.workspace.off("css-change", listener2);
+      this.watching = false;
+    };
+  }
+  /**
+   * Describes how the Obsidian stylesheet was fetched (for display in settings).
+   */
+  describeObsidianFetchMethod() {
+    var _a, _b;
+    switch ((_b = (_a = this.cachedObsidian) == null ? void 0 : _a.method) != null ? _b : "pending") {
+      case "dom":
+        return "using browser functions";
+      case "fetch":
+        return "by reading Obsidian's styles";
+      case "pending":
+        return "";
+    }
+  }
+  on(event, listener2) {
+    let listenersForEvent = this.listeners.get(event);
+    if (listenersForEvent === void 0) {
+      listenersForEvent = /* @__PURE__ */ new Set();
+      this.listeners.set(event, listenersForEvent);
+    }
+    listenersForEvent.add(listener2);
+  }
+  off(event, listener2) {
+    const listenersForEvent = this.listeners.get(event);
+    if (listenersForEvent === void 0) return;
+    listenersForEvent.delete(listener2);
+    if (listenersForEvent.size === 0) {
+      this.listeners.delete(event);
+    }
+  }
+  emit(event, ...data) {
+    const listenersForEvent = this.listeners.get(event);
+    if (listenersForEvent === void 0) return;
+    for (const listener2 of listenersForEvent) {
+      listener2(...data);
+    }
+  }
+  // ---- Change detection ----
+  /**
+   * Checks for any changes to the application stylesheets.
+   * If watch() is active, this is called automatically on css-change events.
+   *
+   * @param clear If true, the cache will be cleared first.
+   */
+  async checkForChanges(clear) {
+    let changed = false;
+    this.emit("checkStarted");
+    if (clear === true) {
+      this.cachedSnippets.clear();
+      this.cachedTheme = null;
+      this.cachedObsidian = null;
+    }
+    if (this.cachedObsidian == null) {
+      changed = await this.checkForChangesObsidian() || changed;
+    }
+    changed = this.checkForChangesSnippets() || changed;
+    changed = this.checkForChangesTheme() || changed;
+    this.emit("checkComplete", changed);
+    return changed;
+  }
+  async checkForChangesObsidian() {
+    try {
+      this.cachedObsidian = await fetchObsidianStyleSheet(this.app);
+      this.emit("change", {
+        type: "obsidian",
+        styles: this.cachedObsidian.cssText
+      });
+      return true;
+    } catch (ex) {
+      console.warn("Unable to fetch Obsidian stylesheet.", ex);
+      return false;
+    }
+  }
+  checkForChangesTheme() {
+    var _a;
+    const theme = getCurrentThemeID(this.app);
+    const themeManifest = theme == null ? null : getThemeManifest(this.app, theme);
+    const hasTheme = theme != null && themeManifest != null;
+    const styleEl = getThemeStyleElement(this.app);
+    const styles2 = (_a = styleEl == null ? void 0 : styleEl.textContent) != null ? _a : "";
+    if (this.cachedTheme != null && !hasTheme) {
+      this.emit("remove", { type: "theme", theme: this.cachedTheme.id, styles: this.cachedTheme.contents });
+      this.cachedTheme = null;
+      return true;
+    }
+    if (this.cachedTheme == null && hasTheme) {
+      this.cachedTheme = { id: theme, version: themeManifest.version, contents: styles2 };
+      this.emit("add", { type: "theme", theme, styles: styles2 });
+      return true;
+    }
+    if (!hasTheme || this.cachedTheme == null) return false;
+    const changed = this.cachedTheme.id !== theme || this.cachedTheme.version !== themeManifest.version || this.cachedTheme.contents !== styles2;
+    if (changed) {
+      this.cachedTheme = { id: theme, version: themeManifest.version, contents: styles2 };
+      this.emit("change", { type: "theme", theme, styles: styles2 });
+    }
+    return changed;
+  }
+  checkForChangesSnippets() {
+    let anyChanges = false;
+    const snippets = getSnippetStyleElements(this.app);
+    const knownSnippets = Array.from(this.cachedSnippets.entries());
+    for (const [id, cachedStyles] of knownSnippets) {
+      const styleEl = snippets.get(id);
+      if (styleEl == null) {
+        this.cachedSnippets.delete(id);
+        this.emit("remove", { type: "snippet", snippet: id, styles: cachedStyles });
+        anyChanges = true;
+        continue;
+      }
+      if (styleEl.textContent != null && styleEl.textContent !== cachedStyles) {
+        this.cachedSnippets.set(id, styleEl.textContent);
+        this.emit("change", { type: "snippet", snippet: id, styles: styleEl.textContent });
+        anyChanges = true;
+      }
+    }
+    for (const [id, styleEl] of snippets.entries()) {
+      if (styleEl == null) continue;
+      if (!this.cachedSnippets.has(id) && styleEl.textContent != null) {
+        this.cachedSnippets.set(id, styleEl.textContent);
+        this.emit("add", { type: "snippet", snippet: id, styles: styleEl.textContent });
+        anyChanges = true;
+      }
+    }
+    return anyChanges;
+  }
+};
+
 // src/snippetParser.ts
 async function parseSnippetCalloutTypes(app) {
   var _a;
@@ -18621,6 +18831,13 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
       await this.iconManager.load();
       await this.calloutManager.loadCallouts(this.settings.customCallouts);
       await this.refreshSnippetTypes();
+      this.stylesheetWatcher = new StylesheetWatcher(this.app);
+      this.stylesheetWatcher.on("checkComplete", (anyChanges) => {
+        if (anyChanges) {
+          void this.refreshSnippetTypes();
+        }
+      });
+      this.register(this.stylesheetWatcher.watch());
     });
   }
   async loadSettings() {
