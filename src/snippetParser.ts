@@ -191,7 +191,7 @@ function collectCalloutTypes(
  * Searches for any `[data-callout="id"]` (or unquoted / starts-with)
  * followed by a `{ ... }` block, then pulls the custom properties.
  */
-function extractCalloutProperties(
+export function extractCalloutProperties(
 	css: string,
 	calloutId: string,
 ): { color: string; icon: string; iconDefault: boolean } {

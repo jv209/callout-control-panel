@@ -379,15 +379,20 @@ This phase replaces the simple "scan on load" approach with Plugin B's real-time
 - [x] Wire into `main.ts` to start watching on layout ready
 - [x] On `checkComplete` with changes, automatically rescan snippet types
 
-### 4.3 Port the Callout Collection (`src/callout-detection/callout-collection.ts`)
-- [ ] Copy Plugin B's `callout-collection.ts` and `types.ts`
-- [ ] Replace the simple snippet type array with the multi-source collection
-- [ ] Track callout source attribution (built-in vs. theme vs. snippet vs. custom)
+### 4.3 Port the Callout Collection (`src/callout-detection/callout-collection.ts`) ✅
+- [x] Copy Plugin B's `callout-collection.ts` (types.ts already done in 4.1)
+- [x] Replace the simple snippet type array with the multi-source collection
+- [x] Track callout source attribution (built-in vs. theme vs. snippet vs. custom)
+- [x] Wire watcher events to feed IDs into collection sub-collections
+- [x] Create resolver that extracts properties from cached CSS, built-in types, and custom settings
+- [x] Rebuild `snippetTypes` from the collection on watcher `checkComplete`
+- [x] Sync custom callout CRUD (add/remove/edit) with the collection
+- [x] Theme-sourced callout types now detected alongside snippet types
 
 ### 4.4 Port the Callout Resolver (optional)
-- [ ] Copy Plugin B's `callout-resolver.ts` and `ui/callout-preview.ts`
-- [ ] This enables accurate icon/color resolution via Shadow DOM
-- [ ] Evaluate whether it's worth the complexity vs. regex parsing
+- [ ] Use regex parsing (current) as the fast default path
+- [ ] Add Shadow DOM resolver as a verification fallback for edge cases (variable indirection, cascade conflicts)
+- [ ] Resolver only fires when regex output looks uncertain (missing color, unresolved variables)
 
 ### 4.5 Port detection settings
 - [ ] Add Plugin B's three-toggle detection section (Obsidian, Theme, Snippet) to the settings tab
@@ -457,7 +462,7 @@ These are components that need to be **written new** during integration. They do
 | **Unified type system** | Plugin A uses `BuiltInCalloutType`, Plugin B uses `Callout`, Plugin C uses `Admonition`. We need one shared model. | 1 |
 | **Unified settings interface** | Each plugin stores different settings in different shapes. We need one `PluginSettings` interface that covers insertion preferences, detection toggles, custom type definitions, icon pack states, and behavior flags. | 1 |
 | **Unified settings tab** | Each plugin has its own settings tab. We need one that organizes all settings into logical sections. | 3 |
-| **Type adapter layer** | When the modal opens, it needs to merge built-in types, snippet types, and user-created types into one list. The three plugins format these differently, so we need code that normalizes them. | 3 |
+| **Type adapter layer** ✅ | When the modal opens, it needs to merge built-in types, snippet types, and user-created types into one list. The three plugins format these differently, so we need code that normalizes them. Now handled by `CalloutCollection` + `rebuildDetectedTypes()` + `resolveCalloutById()`. | 3→4 |
 | **Circular detection guard** | When the plugin writes a custom callout CSS rule to its snippet file, the snippet parser might detect it as a "snippet callout." Logic to skip the plugin's own file prevents this echo. | 3 (step 3.10) |
 | **Favorite callout commands** | 5 stable command slots that users can map to their most-used callout types for direct hotkey access. Not present in any source plugin. | 3 (step 3.9) |
 
@@ -524,7 +529,7 @@ enhanced-callout-manager/
 │       ├── css-parser.test.ts      # 8 Vitest tests for the CSS parser ✅
 │       ├── css-watcher.ts          # Live stylesheet change monitor (from Plugin B) ✅
 │       ├── obsidian-helpers.ts     # Undocumented API wrappers (from Plugin B) ✅
-│       ├── callout-collection.ts   # Multi-source registry
+│       ├── callout-collection.ts   # Multi-source registry (from Plugin B) ✅
 │       ├── callout-resolver.ts     # Shadow DOM CSS variable resolver
 │       └── ui/
 │           └── callout-preview.ts  # Shadow DOM preview component
