@@ -44,8 +44,9 @@ After every completed task, provide the following four items:
 | v0.5.9 | Settings crash fix and collapsible custom types | 2026-02-19 |
 | v0.5.10 | Tabbed settings and UI polish | 2026-02-19 |
 | v0.5.11 | All-tab layout and icon pack crash fix | 2026-02-19 |
+| v0.5.12 | Document plugin features | 2026-02-20 |
 
-**Next version: v0.5.12**
+**Next version: v0.5.13**
 
 ## Post-Phase 3 compliance review
 
