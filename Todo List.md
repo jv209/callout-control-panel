@@ -343,20 +343,20 @@ This phase brings in Plugin C's callout management system. Users can define enti
 
 **Deliverable:** The full Phase 3 system is wired together and functional.
 
-### 3.12 Test the management workflow
-- [ ] Create a new custom callout type (with FA icon, custom color)
-- [ ] Verify it appears in the modal and inserts correctly
-- [ ] Verify the snippet file is generated in `.obsidian/snippets/`
-- [ ] Manually edit the snippet file and verify the snippet parser flags any issues
-- [ ] Verify favorite callout slots work and insert the assigned type
-- [ ] Edit the type (change icon, color, name)
-- [ ] Delete the type
-- [ ] Import types from JSON
-- [ ] Export types to JSON
-- [ ] Export types as CSS snippet
-- [ ] Verify settings persist across restarts
-- [ ] Verify CSS rules are correctly generated
-- [ ] Verify callout styling persists after plugin unload (via snippet file)
+### 3.12 Test the management workflow ✅
+- [x] Create a new custom callout type (with FA icon, custom color)
+- [x] Verify it appears in the modal and inserts correctly
+- [x] Verify the snippet file is generated in `.obsidian/snippets/`
+- [x] Manually edit the snippet file and verify the snippet parser flags any issues
+- [x] Verify favorite callout slots work and insert the assigned type
+- [x] Edit the type (change icon, color, name)
+- [x] Delete the type
+- [x] Import types from JSON
+- [x] Export types to JSON
+- [x] Export types as CSS snippet
+- [x] Verify settings persist across restarts
+- [x] Verify CSS rules are correctly generated
+- [x] Verify callout styling persists after plugin unload (via snippet file)
 
 **Deliverable:** Complete create/edit/delete/import/export workflow works end to end.
 
@@ -427,7 +427,7 @@ This phase adds Plugin C's markdown post-processor features that modify how call
 - [ ] Review against Obsidian's [Plugin Guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines)
 - [ ] Review against Obsidian's [Developer Policies](https://docs.obsidian.md/Developer+policies)
 - [ ] Ensure no network calls without disclosure (Font Awesome icon pack downloads need a note)
-- [ ] Test on mobile (iOS and Android) — mark `isDesktopOnly` if needed
+- [ ] Test on mobile: verify command palette / quick-pick insertion works, icon pack cache writes succeed, and modals render on narrow screens — `isDesktopOnly` is already `false`
 - [ ] Create a GitHub release with `main.js`, `manifest.json`, `styles.css`
 - [ ] Submit PR to `obsidianmd/obsidian-releases`
 
@@ -463,7 +463,7 @@ These are components that need to be **written new** during integration. They do
 |-----------|-----|-------|
 | **Automated tests** | The extracted code has some tests (Plugin B's CSS parser). A proper test setup would help catch regressions. | 6 |
 | **GitHub Actions release workflow** | Automate the release process (build, create release, attach artifacts). The current CI only lints. | 6 |
-| **Mobile compatibility audit** | Some undocumented APIs (`app.customCss`) may not exist on mobile. Needs testing. | 6 |
+| **Mobile smoke test** | Verify command palette / quick-pick insertion, icon pack cache writes, and modal layout on narrow screens. Core APIs (`app.customCss`, `requestUrl`) are expected to work. | 6 |
 
 ---
 
