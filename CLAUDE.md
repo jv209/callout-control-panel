@@ -47,8 +47,9 @@ After every completed task, provide the following four items:
 | v0.5.12 | Document plugin features | 2026-02-20 |
 | v0.6.0 | Robust CSS parser and test framework | 2026-02-20 |
 | v0.6.1 | Live stylesheet watcher | 2026-02-20 |
+| v0.6.2 | Multi-source callout collection | 2026-02-20 |
 
-**Next version: v0.6.2**
+**Next version: v0.6.3**
 
 ## Post-Phase 3 compliance review
 

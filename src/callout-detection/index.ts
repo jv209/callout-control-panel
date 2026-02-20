@@ -13,6 +13,7 @@ export type {
 	ThemeStylesheet,
 	ObsidianStylesheet,
 } from './css-watcher';
+export { CalloutCollection } from './callout-collection';
 export {
 	getCurrentThemeID,
 	getThemeManifest,

@@ -1821,6 +1821,323 @@ var StylesheetWatcher = class {
   }
 };
 
+// src/callout-detection/callout-collection.ts
+var CalloutCollection = class {
+  constructor(resolver) {
+    this.resolver = resolver;
+    this.invalidated = /* @__PURE__ */ new Set();
+    this.invalidationCount = 0;
+    this.cacheById = /* @__PURE__ */ new Map();
+    this.cached = false;
+    this.snippets = new CalloutCollectionSnippets(this.invalidateSource.bind(this));
+    this.builtin = new CalloutCollectionObsidian(this.invalidateSource.bind(this));
+    this.theme = new CalloutCollectionTheme(this.invalidateSource.bind(this));
+    this.custom = new CalloutCollectionCustom(this.invalidateSource.bind(this));
+  }
+  get(id) {
+    if (!this.cached) this.buildCache();
+    const cached = this.cacheById.get(id);
+    if (cached === void 0) return void 0;
+    if (this.invalidated.has(cached)) {
+      this.resolveOne(cached);
+    }
+    return cached.callout;
+  }
+  has(id) {
+    if (!this.cached) this.buildCache();
+    return this.cacheById.has(id);
+  }
+  keys() {
+    if (!this.cached) this.buildCache();
+    return Array.from(this.cacheById.keys());
+  }
+  values() {
+    if (!this.cached) this.buildCache();
+    this.resolveAll();
+    return Array.from(this.cacheById.values()).map((c) => c.callout);
+  }
+  /**
+   * Returns a function that returns true if the collection has changed since creation.
+   */
+  hasChanged() {
+    const countSnapshot = this.invalidationCount;
+    return () => this.invalidationCount !== countSnapshot;
+  }
+  resolveOne(cached) {
+    this.doResolve(cached);
+    this.invalidated.delete(cached);
+  }
+  resolveAll() {
+    for (const cached of this.invalidated.values()) {
+      this.doResolve(cached);
+    }
+    this.invalidated.clear();
+  }
+  doResolve(cached) {
+    cached.callout = this.resolver(cached.id);
+    cached.callout.sources = Array.from(cached.sources.values()).map(sourceFromKey);
+  }
+  buildCache() {
+    var _a;
+    this.invalidated.clear();
+    this.cacheById.clear();
+    {
+      const source = sourceToKey({ type: "builtin" });
+      for (const callout of this.builtin.get()) {
+        this.addCalloutSource(callout, source);
+      }
+    }
+    if (this.theme.theme != null) {
+      const source = sourceToKey({ type: "theme", theme: this.theme.theme });
+      for (const callout of this.theme.get()) {
+        this.addCalloutSource(callout, source);
+      }
+    }
+    for (const snippet of this.snippets.keys()) {
+      const source = sourceToKey({ type: "snippet", snippet });
+      for (const callout of (_a = this.snippets.get(snippet)) != null ? _a : []) {
+        this.addCalloutSource(callout, source);
+      }
+    }
+    {
+      const source = sourceToKey({ type: "custom" });
+      for (const callout of this.custom.keys()) {
+        this.addCalloutSource(callout, source);
+      }
+    }
+    this.cached = true;
+  }
+  invalidate(id) {
+    if (!this.cached) return;
+    const callout = this.cacheById.get(id);
+    if (callout !== void 0) {
+      this.invalidated.add(callout);
+    }
+  }
+  addCalloutSource(id, sourceKey) {
+    let callout = this.cacheById.get(id);
+    if (callout == null) {
+      callout = new CachedCallout(id);
+      this.cacheById.set(id, callout);
+    }
+    callout.sources.add(sourceKey);
+    this.invalidated.add(callout);
+  }
+  removeCalloutSource(id, sourceKey) {
+    const callout = this.cacheById.get(id);
+    if (callout == null) return;
+    callout.sources.delete(sourceKey);
+    if (callout.sources.size === 0) {
+      this.cacheById.delete(id);
+      this.invalidated.delete(callout);
+    }
+  }
+  invalidateSource(src, data) {
+    const sourceKey = sourceToKey(src);
+    if (!this.cached) return;
+    for (const removed of data.removed) {
+      this.removeCalloutSource(removed, sourceKey);
+    }
+    for (const added of data.added) {
+      this.addCalloutSource(added, sourceKey);
+    }
+    for (const changed of data.changed) {
+      const callout = this.cacheById.get(changed);
+      if (callout != null) {
+        this.invalidated.add(callout);
+      }
+    }
+    this.invalidationCount++;
+  }
+};
+var CachedCallout = class {
+  constructor(id) {
+    this.id = id;
+    this.sources = /* @__PURE__ */ new Set();
+    this.callout = null;
+  }
+};
+var CalloutCollectionSnippets = class {
+  constructor(invalidate) {
+    this.data = /* @__PURE__ */ new Map();
+    this.invalidate = invalidate;
+  }
+  get(id) {
+    const value = this.data.get(id);
+    return value === void 0 ? void 0 : Array.from(value.values());
+  }
+  set(id, callouts) {
+    const source = { type: "snippet", snippet: id };
+    const old = this.data.get(id);
+    const updated = new Set(callouts);
+    this.data.set(id, updated);
+    if (old === void 0) {
+      this.invalidate(source, { added: callouts, changed: [], removed: [] });
+      return;
+    }
+    const diffs = diff(old, updated);
+    this.invalidate(source, { added: diffs.added, removed: diffs.removed, changed: diffs.same });
+  }
+  delete(id) {
+    const old = this.data.get(id);
+    const deleted = this.data.delete(id);
+    if (old !== void 0) {
+      this.invalidate(
+        { type: "snippet", snippet: id },
+        { added: [], changed: [], removed: Array.from(old.keys()) }
+      );
+    }
+    return deleted;
+  }
+  clear() {
+    for (const id of Array.from(this.data.keys())) {
+      this.delete(id);
+    }
+  }
+  keys() {
+    return Array.from(this.data.keys());
+  }
+};
+var CalloutCollectionObsidian = class {
+  constructor(invalidate) {
+    this.data = /* @__PURE__ */ new Set();
+    this.invalidate = invalidate;
+  }
+  set(callouts) {
+    const old = this.data;
+    const updated = this.data = new Set(callouts);
+    const diffs = diff(old, updated);
+    this.invalidate(
+      { type: "builtin" },
+      { added: diffs.added, removed: diffs.removed, changed: diffs.same }
+    );
+  }
+  get() {
+    return Array.from(this.data.values());
+  }
+};
+var CalloutCollectionTheme = class {
+  constructor(invalidate) {
+    this.data = /* @__PURE__ */ new Set();
+    this.invalidate = invalidate;
+    this.oldTheme = "";
+  }
+  get theme() {
+    return this.oldTheme;
+  }
+  set(theme, callouts) {
+    const old = this.data;
+    const oldTheme = this.oldTheme;
+    const updated = this.data = new Set(callouts);
+    this.oldTheme = theme;
+    if (oldTheme === theme) {
+      const diffs = diff(old, updated);
+      this.invalidate(
+        { type: "theme", theme },
+        { added: diffs.added, removed: diffs.removed, changed: diffs.same }
+      );
+      return;
+    }
+    this.invalidate(
+      { type: "theme", theme: oldTheme != null ? oldTheme : "" },
+      { added: [], removed: Array.from(old.values()), changed: [] }
+    );
+    this.invalidate(
+      { type: "theme", theme },
+      { added: callouts, removed: [], changed: [] }
+    );
+  }
+  delete() {
+    const old = this.data;
+    const oldTheme = this.oldTheme;
+    this.data = /* @__PURE__ */ new Set();
+    this.oldTheme = null;
+    this.invalidate(
+      { type: "theme", theme: oldTheme != null ? oldTheme : "" },
+      { added: [], removed: Array.from(old.values()), changed: [] }
+    );
+  }
+  get() {
+    return Array.from(this.data.values());
+  }
+};
+var CalloutCollectionCustom = class {
+  constructor(invalidate) {
+    this.data = [];
+    this.invalidate = invalidate;
+  }
+  has(id) {
+    return this.data.includes(id);
+  }
+  add(...ids) {
+    const set = new Set(this.data);
+    const added = [];
+    for (const id of ids) {
+      if (!set.has(id)) {
+        added.push(id);
+        set.add(id);
+        this.data.push(id);
+      }
+    }
+    if (added.length > 0) {
+      this.invalidate({ type: "custom" }, { added, removed: [], changed: [] });
+    }
+  }
+  delete(...ids) {
+    const { data } = this;
+    const removed = [];
+    for (const id of ids) {
+      const index = data.findIndex((existingId) => id === existingId);
+      if (index !== -1) {
+        data.splice(index, 1);
+        removed.push(id);
+      }
+    }
+    if (removed.length > 0) {
+      this.invalidate({ type: "custom" }, { added: [], removed, changed: [] });
+    }
+  }
+  keys() {
+    return this.data.slice(0);
+  }
+  clear() {
+    const removed = this.data;
+    this.data = [];
+    this.invalidate({ type: "custom" }, { added: [], removed, changed: [] });
+  }
+};
+function diff(before, after) {
+  const added = [];
+  const removed = [];
+  const same = [];
+  for (const item of before.values()) {
+    (after.has(item) ? same : removed).push(item);
+  }
+  for (const item of after.values()) {
+    if (!before.has(item)) added.push(item);
+  }
+  return { added, removed, same };
+}
+function sourceToKey(source) {
+  switch (source.type) {
+    case "builtin":
+      return "builtin";
+    case "snippet":
+      return `snippet:${source.snippet}`;
+    case "theme":
+      return `theme:${source.theme}`;
+    case "custom":
+      return `custom`;
+  }
+}
+function sourceFromKey(sourceKey) {
+  if (sourceKey === "builtin") return { type: "builtin" };
+  if (sourceKey === "custom") return { type: "custom" };
+  if (sourceKey.startsWith("snippet:")) return { type: "snippet", snippet: sourceKey.substring("snippet:".length) };
+  if (sourceKey.startsWith("theme:")) return { type: "theme", theme: sourceKey.substring("theme:".length) };
+  throw new Error("Unknown source key: " + sourceKey);
+}
+
 // src/snippetParser.ts
 async function parseSnippetCalloutTypes(app) {
   var _a;
@@ -18742,6 +19059,8 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
     super(...arguments);
     this.snippetTypes = [];
     this.snippetWarnings = [];
+    /** CSS text from watcher events, keyed by source (e.g. "snippet:my-file"). */
+    this.cssTextCache = /* @__PURE__ */ new Map();
   }
   async onload() {
     await this.loadSettings();
@@ -18757,6 +19076,16 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
       settings: this.settings
     });
     this.addChild(this.calloutManager);
+    this.calloutCollection = new CalloutCollection(
+      (id) => this.resolveCalloutById(id)
+    );
+    this.calloutCollection.builtin.set(
+      BUILTIN_CALLOUT_TYPES.map((t2) => t2.type)
+    );
+    const customIds = Object.keys(this.settings.customCallouts);
+    if (customIds.length > 0) {
+      this.calloutCollection.custom.add(...customIds);
+    }
     this.addCommand({
       id: "insert-callout",
       name: "Insert callout",
@@ -18832,9 +19161,41 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
       await this.calloutManager.loadCallouts(this.settings.customCallouts);
       await this.refreshSnippetTypes();
       this.stylesheetWatcher = new StylesheetWatcher(this.app);
+      this.stylesheetWatcher.on("add", (ss) => {
+        const ids = getCalloutsFromCSS(ss.styles);
+        if (ss.type === "snippet") {
+          this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
+          this.calloutCollection.snippets.set(ss.snippet, ids);
+        } else {
+          this.cssTextCache.set("theme", ss.styles);
+          this.calloutCollection.theme.set(ss.theme, ids);
+        }
+      });
+      this.stylesheetWatcher.on("change", (ss) => {
+        const ids = getCalloutsFromCSS(ss.styles);
+        if (ss.type === "snippet") {
+          this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
+          this.calloutCollection.snippets.set(ss.snippet, ids);
+        } else if (ss.type === "theme") {
+          this.cssTextCache.set("theme", ss.styles);
+          this.calloutCollection.theme.set(ss.theme, ids);
+        } else {
+          this.cssTextCache.set("obsidian", ss.styles);
+          this.calloutCollection.builtin.set(ids);
+        }
+      });
+      this.stylesheetWatcher.on("remove", (ss) => {
+        if (ss.type === "snippet") {
+          this.cssTextCache.delete(`snippet:${ss.snippet}`);
+          this.calloutCollection.snippets.delete(ss.snippet);
+        } else {
+          this.cssTextCache.delete("theme");
+          this.calloutCollection.theme.delete();
+        }
+      });
       this.stylesheetWatcher.on("checkComplete", (anyChanges) => {
-        if (anyChanges) {
-          void this.refreshSnippetTypes();
+        if (anyChanges && this.settings.scanSnippets) {
+          this.rebuildDetectedTypes();
         }
       });
       this.register(this.stylesheetWatcher.watch());
@@ -18850,9 +19211,24 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
   }
-  /** Re-scan CSS snippets for custom callout types. */
+  /**
+   * Re-scan CSS snippets for custom callout types.
+   *
+   * If the watcher is running, triggers a full recheck (which will
+   * update the collection and rebuild detected types via events).
+   * Otherwise falls back to disk-based scanning.
+   */
   async refreshSnippetTypes() {
-    if (this.settings.scanSnippets) {
+    var _a;
+    if (!this.settings.scanSnippets) {
+      this.snippetTypes = [];
+      this.snippetWarnings = [];
+      (_a = this.calloutCollection) == null ? void 0 : _a.snippets.clear();
+      return;
+    }
+    if (this.stylesheetWatcher) {
+      await this.stylesheetWatcher.checkForChanges(true);
+    } else {
       const result = await parseSnippetCalloutTypes(this.app);
       for (const st of result.types) {
         if (!st.iconDefault && !(0, import_obsidian9.getIcon)(st.icon)) {
@@ -18861,20 +19237,107 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
       }
       this.snippetTypes = result.types;
       this.snippetWarnings = result.warnings;
-    } else {
-      this.snippetTypes = [];
-      this.snippetWarnings = [];
     }
+  }
+  // ── Collection integration ────────────────────────────────────────────────
+  /**
+   * Rebuild snippetTypes from the callout collection's snippet/theme
+   * sub-collections and cached CSS text. Called by the watcher's
+   * checkComplete handler.
+   */
+  rebuildDetectedTypes() {
+    var _a, _b, _c, _d, _e;
+    const builtinNames = /* @__PURE__ */ new Set();
+    for (const bt of BUILTIN_CALLOUT_TYPES) {
+      builtinNames.add(bt.type);
+      for (const alias of (_a = bt.aliases) != null ? _a : []) builtinNames.add(alias);
+    }
+    const types = [];
+    const warnings = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const snippetId of this.calloutCollection.snippets.keys()) {
+      if (snippetId === "enhanced-callout-manager") continue;
+      const ids = (_b = this.calloutCollection.snippets.get(snippetId)) != null ? _b : [];
+      const css2 = (_c = this.cssTextCache.get(`snippet:${snippetId}`)) != null ? _c : "";
+      const looseCount = ((_d = css2.match(/\[data-callout/g)) != null ? _d : []).length;
+      if (looseCount > ids.length) {
+        warnings.push({
+          file: `${snippetId}.css`,
+          malformedCount: looseCount - ids.length
+        });
+      }
+      for (const id of ids) {
+        if (seen.has(id) || builtinNames.has(id)) continue;
+        seen.add(id);
+        const props = extractCalloutProperties(css2, id);
+        const label = id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+        types.push({
+          type: id,
+          label,
+          icon: props.icon,
+          color: props.color,
+          source: "snippet",
+          iconDefault: props.iconDefault
+        });
+      }
+    }
+    const themeCss = (_e = this.cssTextCache.get("theme")) != null ? _e : "";
+    if (themeCss) {
+      const themeIds = this.calloutCollection.theme.get();
+      for (const id of themeIds) {
+        if (seen.has(id) || builtinNames.has(id)) continue;
+        seen.add(id);
+        const props = extractCalloutProperties(themeCss, id);
+        const label = id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+        types.push({
+          type: id,
+          label,
+          icon: props.icon,
+          color: props.color,
+          source: "theme",
+          iconDefault: props.iconDefault
+        });
+      }
+    }
+    for (const st of types) {
+      if (!st.iconDefault && !(0, import_obsidian9.getIcon)(st.icon)) {
+        st.iconInvalid = true;
+      }
+    }
+    this.snippetTypes = types;
+    this.snippetWarnings = warnings;
+  }
+  /**
+   * Resolve a callout ID to its display properties.
+   * Used by the CalloutCollection's lazy resolver.
+   */
+  resolveCalloutById(id) {
+    var _a;
+    const builtin = BUILTIN_CALLOUT_TYPES.find((t2) => t2.type === id);
+    if (builtin) return { id, color: builtin.color, icon: builtin.icon };
+    const custom = this.settings.customCallouts[id];
+    if (custom) {
+      return { id, color: custom.color, icon: (_a = custom.icon.name) != null ? _a : "lucide-box" };
+    }
+    for (const css2 of this.cssTextCache.values()) {
+      const props = extractCalloutProperties(css2, id);
+      if (props.color !== "var(--callout-default)" || !props.iconDefault) {
+        return { id, color: props.color, icon: props.icon };
+      }
+    }
+    return { id, color: "var(--callout-default)", icon: "lucide-box" };
   }
   // ── Custom callout CRUD ───────────────────────────────────────────────────
   async addCustomCallout(callout) {
     this.settings.customCallouts[callout.type] = callout;
     await this.calloutManager.addCallout(callout);
+    this.calloutCollection.custom.add(callout.type);
     await this.saveSettings();
   }
   async removeCustomCallout(callout) {
     delete this.settings.customCallouts[callout.type];
     await this.calloutManager.removeCallout(callout);
+    this.calloutCollection.custom.delete(callout.type);
     await this.saveSettings();
   }
   async editCustomCallout(oldType, callout) {
@@ -18882,9 +19345,11 @@ var EnhancedCalloutManager = class extends import_obsidian9.Plugin {
       const old = this.settings.customCallouts[oldType];
       if (old) await this.calloutManager.removeCallout(old);
       delete this.settings.customCallouts[oldType];
+      this.calloutCollection.custom.delete(oldType);
     }
     this.settings.customCallouts[callout.type] = callout;
     await this.calloutManager.addCallout(callout);
+    this.calloutCollection.custom.add(callout.type);
     await this.saveSettings();
   }
   // ── Helpers ───────────────────────────────────────────────────────────────
