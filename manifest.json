@@ -1,7 +1,7 @@
 {
 	"id": "enhanced-callout-manager",
 	"name": "Enhanced Callout Manager",
-	"version": "0.5.11",
+	"version": "0.6.7",
 	"minAppVersion": "1.4.0",
 	"description": "Insert, detect, and manage custom callout types with a unified modal and full icon support.",
 	"author": "jv209",

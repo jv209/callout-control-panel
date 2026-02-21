@@ -129,7 +129,7 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 		// The robust parser handles more patterns (unquoted, complex selectors)
 		// than this heuristic, so malformed warnings only fire when something
 		// looks clearly intended as a callout def but wasn't parseable.
-		const looseMatches = css.match(/\[data-callout/g);
+		const looseMatches = css.match(/\[data-callout[\^]?=/g);
 		const potentialCount = looseMatches ? looseMatches.length : 0;
 
 		const parsedCount = collectCalloutTypes(
