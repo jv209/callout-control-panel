@@ -50,8 +50,9 @@ After every completed task, provide the following four items:
 | v0.6.2 | Multi-source callout collection | 2026-02-20 |
 | v0.6.3 | Hybrid callout resolver | 2026-02-20 |
 | v0.6.4 | Detection source toggles | 2026-02-21 |
+| v0.6.5 | Settings crash fix and detection fallback | 2026-02-21 |
 
-**Next version: v0.6.5**
+**Next version: v0.6.6**
 
 ## Post-Phase 3 compliance review
 

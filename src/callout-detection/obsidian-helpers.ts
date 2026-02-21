@@ -60,9 +60,39 @@ export function getThemeStyleElement(app: App): HTMLStyleElement | null {
 
 /**
  * Gets a Map of snippet ID -> <style> element for all enabled snippets.
+ *
+ * Primary: reads from app.customCss.csscache (Obsidian's undocumented cache).
+ * Fallback: if csscache is missing or empty, scans document.head for <style>
+ * elements that Obsidian injects for enabled snippets.
  */
 export function getSnippetStyleElements(app: App): Map<string, HTMLStyleElement> {
-	return getCustomCss(app).csscache ?? new Map();
+	const cc = getCustomCss(app);
+
+	// Primary path — csscache is a Map<snippetName, HTMLStyleElement>
+	if (cc.csscache instanceof Map && cc.csscache.size > 0) {
+		return cc.csscache;
+	}
+
+	// Fallback — scan <style> elements that Obsidian injects for snippets.
+	// Obsidian gives each snippet <style> a data-* attribute or id matching
+	// the snippet name. We also try the enabledSnippets set to filter.
+	const result = new Map<string, HTMLStyleElement>();
+	const enabled = (cc as Record<string, unknown>).enabledSnippets;
+	if (!(enabled instanceof Set) || enabled.size === 0) return result;
+
+	for (const el of Array.from(document.querySelectorAll('head > style'))) {
+		const styleEl = el as HTMLStyleElement;
+		// Check common Obsidian snippet attributes
+		const snippetId =
+			styleEl.getAttribute('data-snippet-id') ??
+			styleEl.getAttribute('data-snippet') ??
+			styleEl.id;
+		if (snippetId && enabled.has(snippetId)) {
+			result.set(snippetId, styleEl);
+		}
+	}
+
+	return result;
 }
 
 // ---- Color scheme helpers ----
