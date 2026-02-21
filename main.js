@@ -139,7 +139,7 @@ var DEFAULT_SETTINGS = {
   rememberLastType: false,
   autoFocusContent: true,
   lastUsedType: "note",
-  scanSnippets: true,
+  calloutDetection: { obsidian: true, theme: true, snippet: true },
   icons: [],
   useFontAwesome: true,
   customCallouts: {},
@@ -550,16 +550,35 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   }
   // ── Section 2: CSS Type Detection ───────────────────────────────────────
   buildDetectionSection(el) {
-    new import_obsidian4.Setting(el).setName("Scan CSS snippets").setDesc("Detect custom callout types defined in your enabled CSS snippet files.").addToggle((t2) => {
-      t2.setValue(this.plugin.settings.scanSnippets);
+    const det = this.plugin.settings.calloutDetection;
+    new import_obsidian4.Setting(el).setName("Obsidian").setDesc("Detect callouts defined in Obsidian's built-in stylesheet.").addToggle((t2) => {
+      t2.setValue(det.obsidian);
       t2.onChange(async (v) => {
-        this.plugin.settings.scanSnippets = v;
+        det.obsidian = v;
         await this.plugin.saveSettings();
         await this.plugin.refreshSnippetTypes();
         this.display();
       });
     });
-    if (!this.plugin.settings.scanSnippets) return;
+    new import_obsidian4.Setting(el).setName("Theme").setDesc("Detect callouts defined by the active theme.").addToggle((t2) => {
+      t2.setValue(det.theme);
+      t2.onChange(async (v) => {
+        det.theme = v;
+        await this.plugin.saveSettings();
+        await this.plugin.refreshSnippetTypes();
+        this.display();
+      });
+    });
+    new import_obsidian4.Setting(el).setName("Snippet").setDesc("Detect callouts defined in your enabled CSS snippet files.").addToggle((t2) => {
+      t2.setValue(det.snippet);
+      t2.onChange(async (v) => {
+        det.snippet = v;
+        await this.plugin.saveSettings();
+        await this.plugin.refreshSnippetTypes();
+        this.display();
+      });
+    });
+    if (!det.snippet && !det.theme) return;
     const count = this.plugin.snippetTypes.length;
     const colorWarnCount = this.plugin.snippetTypes.filter(
       (st) => st.color.startsWith("var(")
@@ -19433,24 +19452,29 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
       await this.refreshSnippetTypes();
       this.stylesheetWatcher = new StylesheetWatcher(this.app);
       this.stylesheetWatcher.on("add", (ss) => {
-        const ids = getCalloutsFromCSS(ss.styles);
-        if (ss.type === "snippet") {
+        const det = this.settings.calloutDetection;
+        if (ss.type === "snippet" && det.snippet) {
+          const ids = getCalloutsFromCSS(ss.styles);
           this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
           this.calloutCollection.snippets.set(ss.snippet, ids);
-        } else {
+        } else if (ss.type === "theme" && det.theme) {
+          const ids = getCalloutsFromCSS(ss.styles);
           this.cssTextCache.set("theme", ss.styles);
           this.calloutCollection.theme.set(ss.theme, ids);
         }
       });
       this.stylesheetWatcher.on("change", (ss) => {
-        const ids = getCalloutsFromCSS(ss.styles);
-        if (ss.type === "snippet") {
+        const det = this.settings.calloutDetection;
+        if (ss.type === "snippet" && det.snippet) {
+          const ids = getCalloutsFromCSS(ss.styles);
           this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
           this.calloutCollection.snippets.set(ss.snippet, ids);
-        } else if (ss.type === "theme") {
+        } else if (ss.type === "theme" && det.theme) {
+          const ids = getCalloutsFromCSS(ss.styles);
           this.cssTextCache.set("theme", ss.styles);
           this.calloutCollection.theme.set(ss.theme, ids);
-        } else {
+        } else if (ss.type === "obsidian" && det.obsidian) {
+          const ids = getCalloutsFromCSS(ss.styles);
           this.cssTextCache.set("obsidian", ss.styles);
           this.calloutCollection.builtin.set(ids);
         }
@@ -19467,7 +19491,8 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
       this.stylesheetWatcher.on("checkComplete", (anyChanges) => {
         if (anyChanges) {
           this.calloutResolver.reloadStyles();
-          if (this.settings.scanSnippets) {
+          const det = this.settings.calloutDetection;
+          if (det.snippet || det.theme || det.obsidian) {
             this.rebuildDetectedTypes();
           }
         }
@@ -19478,11 +19503,17 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
     });
   }
   async loadSettings() {
-    this.settings = Object.assign(
+    var _a;
+    const loaded2 = await this.loadData();
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded2);
+    this.settings.calloutDetection = Object.assign(
       {},
-      DEFAULT_SETTINGS,
-      await this.loadData()
+      DEFAULT_SETTINGS.calloutDetection,
+      (_a = loaded2 == null ? void 0 : loaded2.calloutDetection) != null ? _a : {}
     );
+    if ((loaded2 == null ? void 0 : loaded2.scanSnippets) === false) {
+      this.settings.calloutDetection.snippet = false;
+    }
   }
   async saveSettings() {
     await this.saveData(this.settings);
@@ -19495,16 +19526,18 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
    * Otherwise falls back to disk-based scanning.
    */
   async refreshSnippetTypes() {
-    var _a;
-    if (!this.settings.scanSnippets) {
-      this.snippetTypes = [];
-      this.snippetWarnings = [];
+    var _a, _b;
+    const det = this.settings.calloutDetection;
+    if (!det.snippet) {
       (_a = this.calloutCollection) == null ? void 0 : _a.snippets.clear();
-      return;
+    }
+    if (!det.theme) {
+      this.cssTextCache.delete("theme");
+      (_b = this.calloutCollection) == null ? void 0 : _b.theme.delete();
     }
     if (this.stylesheetWatcher) {
       await this.stylesheetWatcher.checkForChanges(true);
-    } else {
+    } else if (det.snippet) {
       const result = await parseSnippetCalloutTypes(this.app);
       for (const st of result.types) {
         if (!st.iconDefault && !(0, import_obsidian10.getIcon)(st.icon)) {
@@ -19513,6 +19546,9 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
       }
       this.snippetTypes = result.types;
       this.snippetWarnings = result.warnings;
+    } else {
+      this.snippetTypes = [];
+      this.snippetWarnings = [];
     }
   }
   // ── Collection integration ────────────────────────────────────────────────
@@ -19531,6 +19567,10 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
     const types = [];
     const warnings = [];
     const seen = /* @__PURE__ */ new Set();
+    const det = this.settings.calloutDetection;
+    if (!det.snippet) {
+      this.calloutCollection.snippets.clear();
+    }
     for (const snippetId of this.calloutCollection.snippets.keys()) {
       if (snippetId === "enhanced-callout-manager") continue;
       const ids = (_b = this.calloutCollection.snippets.get(snippetId)) != null ? _b : [];
@@ -19556,7 +19596,7 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
         });
       }
     }
-    const themeCss = (_e = this.cssTextCache.get("theme")) != null ? _e : "";
+    const themeCss = det.theme ? (_e = this.cssTextCache.get("theme")) != null ? _e : "" : "";
     if (themeCss) {
       const themeIds = this.calloutCollection.theme.get();
       for (const id of themeIds) {

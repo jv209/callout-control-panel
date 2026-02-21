@@ -290,27 +290,26 @@ This phase brings in Plugin C's callout management system. Users can define enti
 
 **Deliverable:** `t()` function that returns English UI strings.
 
-### 3.7 Build the unified settings tab
-- [ ] Create a new `src/settingsTab.ts` that combines:
-  - **Section 1: How callouts are inserted** — Default type, remember last type, auto-focus (from Phase 1)
-  - **Section 2: Where callout types come from** — Snippet scanning toggle with count (from Phase 2)
-  - **Section 3: Your custom types** — Add/edit/delete with preview list (from Plugin C's `settings.ts`)
-  - **Section 4: Favorite callouts for quick access** — Up to 5 assignable slots, each mapped to any available callout type; unused slots are ignored
-  - **Section 5: Import/Export** — JSON import, JSON export, CSS snippet export (from Plugin C)
-  - **Section 6: Icon packs** — Font Awesome toggle, downloadable pack management (from Plugin C)
-  - **Section 7: Color and styling** — Color injection toggle, per-type override (from Plugin C)
-- [ ] Port Plugin C's `SettingsModal` (the create/edit form with icon picker, color picker, live preview)
-- [ ] Color picker design: circular picker with RGB value inputs (details to be finalized during implementation)
+### 3.7 Build the unified settings tab ✅
+- [x] Create a new `src/settingsTab.ts` that combines:
+  - **Tab 1: Default Settings** — default type, remember last type, auto-focus, color injection
+  - **Tab 2: CSS Type Detection** — source toggles with detected-types count and collapsible table
+  - **Tab 3: Custom Callouts** — add/edit/delete with icon + color preview list
+  - **Tab 4: Most Used Callouts** — up to 5 favorite slots, each mapped to any available callout type
+  - **Tab 5: Import / Export** — JSON import, JSON export, CSS snippet export
+  - **Tab 6: Icon Packs** — Font Awesome toggle, downloadable pack management
+- [x] Port Plugin C's `SettingsModal` as `CalloutEditModal` (create/edit form with icon picker, color picker, live preview)
+- [x] Color picker: native `<input type="color">` with RGB conversion utilities; simpler than circular picker and sufficient for the use case
 
 **Why:** This is the biggest integration task. The settings tab is where all three plugins' UIs converge into one coherent experience.
 
 **Deliverable:** A settings tab where users can manage all aspects of the plugin.
 
-### 3.8 Wire custom types into the insertion modal
-- [ ] Extend the grouped dropdown (from 2.2) to include **three section dividers**: "Custom" (user-created), "Snippet" (detected from CSS), and "Default" (built-in Obsidian)
-- [ ] Order: Custom types first → Snippet types → Default types
-- [ ] Render custom type icons correctly (Font Awesome SVG, downloaded pack icons, images — not just Lucide)
-- [ ] Apply the same three-section grouping to the quick-pick `SuggestModal` (from 1.6)
+### 3.8 Wire custom types into the insertion modal ✅
+- [x] Extend the grouped dropdown (from 2.2) to include **three section dividers**: "Custom" (user-created), "Snippet" (detected from CSS), and "Default" (built-in Obsidian)
+- [x] Order: Custom types first → Snippet types → Default types
+- [x] Render custom type icons correctly (Font Awesome SVG, downloaded pack icons, images — not just Lucide)
+- [x] Apply the same three-section grouping to the quick-pick `SuggestModal` (from 1.6)
 
 **Deliverable:** The modal shows all callout types from all sources, organized into clearly labeled groups.
 
@@ -397,9 +396,12 @@ This phase replaces the simple "scan on load" approach with Plugin B's real-time
 - [x] Add `needsVerification()` static method that triggers resolver for: default fallback + no icon, or unresolved CSS variables
 - [x] Wire `resolveDetectedProps()` helper into `rebuildDetectedTypes()` and `resolveCalloutById()`
 
-### 4.5 Port detection settings
-- [ ] Add Plugin B's three-toggle detection section (Obsidian, Theme, Snippet) to the settings tab
-- [ ] Add conditional per-callout styling support (by theme, by color scheme)
+### 4.5 Port detection settings ✅
+- [x] Add Plugin B's three-toggle detection section (Obsidian, Theme, Snippet) to the settings tab — replaces the old single `scanSnippets` toggle
+- [x] Migrate old `scanSnippets: false` setting to `calloutDetection.snippet: false` on first load
+- [x] Wire toggles through `main.ts`: watcher event handlers check each toggle before processing, `rebuildDetectedTypes` skips disabled sources, `refreshSnippetTypes` clears data for disabled sources
+- [x] Detection settings stored as `calloutDetection: { obsidian, theme, snippet }` in `PluginSettings`
+- [ ] Conditional per-callout styling (by theme, by color scheme) — deferred to a later phase; Plugin B's `CalloutSettings` types are available when needed
 
 ### 4.6 Test live detection
 - [ ] Install/change a theme → verify new callout types appear automatically

@@ -200,20 +200,50 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	// ── Section 2: CSS Type Detection ───────────────────────────────────────
 
 	private buildDetectionSection(el: HTMLElement): void {
+		const det = this.plugin.settings.calloutDetection;
+
 		new Setting(el)
-			.setName("Scan CSS snippets")
-			.setDesc("Detect custom callout types defined in your enabled CSS snippet files.")
+			.setName("Obsidian")
+			.setDesc("Detect callouts defined in Obsidian's built-in stylesheet.")
 			.addToggle((t) => {
-				t.setValue(this.plugin.settings.scanSnippets);
+				t.setValue(det.obsidian);
 				t.onChange(async (v) => {
-					this.plugin.settings.scanSnippets = v;
+					det.obsidian = v;
 					await this.plugin.saveSettings();
 					await this.plugin.refreshSnippetTypes();
 					this.display();
 				});
 			});
 
-		if (!this.plugin.settings.scanSnippets) return;
+		new Setting(el)
+			.setName("Theme")
+			.setDesc("Detect callouts defined by the active theme.")
+			.addToggle((t) => {
+				t.setValue(det.theme);
+				t.onChange(async (v) => {
+					det.theme = v;
+					await this.plugin.saveSettings();
+					await this.plugin.refreshSnippetTypes();
+					this.display();
+				});
+			});
+
+		new Setting(el)
+			.setName("Snippet")
+			.setDesc("Detect callouts defined in your enabled CSS snippet files.")
+			.addToggle((t) => {
+				t.setValue(det.snippet);
+				t.onChange(async (v) => {
+					det.snippet = v;
+					await this.plugin.saveSettings();
+					await this.plugin.refreshSnippetTypes();
+					this.display();
+				});
+			});
+
+		// Only show the detected-types list when snippet or theme detection is on.
+		// (Obsidian built-ins are always available in the modal from BUILTIN_CALLOUT_TYPES.)
+		if (!det.snippet && !det.theme) return;
 
 		const count = this.plugin.snippetTypes.length;
 		const colorWarnCount = this.plugin.snippetTypes.filter(
