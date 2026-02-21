@@ -51,6 +51,7 @@ export interface SettingsTabPluginRef {
 	snippetWarnings: SnippetWarning[];
 	iconManager: IconManager;
 	calloutManager: CalloutManager;
+	onTypesChanged?: () => void;
 	refreshSnippetTypes(): Promise<void>;
 	saveSettings(): Promise<void>;
 	addCustomCallout(callout: CustomCallout): Promise<void>;
@@ -89,6 +90,9 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
+		// Register auto-refresh so async rebuildDetectedTypes() updates the tab.
+		this.plugin.onTypesChanged = () => this.display();
+
 		const { containerEl } = this;
 		containerEl.empty();
 
@@ -444,7 +448,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			} else {
 				setIcon(iconPreviewEl, "lucide-alert-circle");
 			}
-			if (callout.injectColor ?? this.plugin.settings.injectColor) {
+			if ((callout.injectColor ?? this.plugin.settings.injectColor) && callout.color) {
 				iconPreviewEl.style.setProperty("--callout-color", callout.color);
 			}
 			setting.nameEl.createSpan({ text: callout.type });
@@ -550,8 +554,12 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 
 				dropdown.setValue(this.plugin.settings.favoriteCallouts[i] ?? "");
 				dropdown.onChange(async (value) => {
-					this.plugin.settings.favoriteCallouts[i] = value;
-					await this.plugin.saveSettings();
+					try {
+						this.plugin.settings.favoriteCallouts[i] = value;
+						await this.plugin.saveSettings();
+					} catch (e) {
+						console.error("Enhanced Callout Manager: favorites save error", e);
+					}
 				});
 			});
 		}
@@ -722,8 +730,12 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 					} catch (e) {
 						console.error("Enhanced Callout Manager: icon toggle error", e);
 					}
+					this.display();
 				});
 			});
+
+		// Additional icon packs require Font Awesome — hide when FA is off.
+		if (!this.plugin.settings.useFontAwesome) return;
 
 		const installed = this.plugin.settings.icons;
 		const available = (

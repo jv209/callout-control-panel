@@ -34,6 +34,9 @@ export default class EnhancedCalloutManager extends Plugin {
 	calloutCollection: CalloutCollection;
 	calloutResolver: CalloutResolver;
 
+	/** Called whenever snippetTypes is rebuilt. Used by the settings tab to auto-refresh. */
+	onTypesChanged?: () => void;
+
 	/** CSS text from watcher events, keyed by source (e.g. "snippet:my-file"). */
 	private cssTextCache = new Map<string, string>();
 
@@ -223,19 +226,9 @@ export default class EnhancedCalloutManager extends Plugin {
 				if (anyChanges) {
 					// Reload Shadow DOM styles so resolver sees current CSS
 					this.calloutResolver?.reloadStyles();
-					const det = this.settings.calloutDetection ?? { obsidian: true, theme: true, snippet: true };
-					if (det.snippet || det.theme || det.obsidian) {
-						// Only rebuild if the watcher produced data, or we
-						// have no existing results. This prevents the watcher
-						// from overwriting disk-scan results with an empty
-						// array when csscache is unavailable.
-						const hasWatcherData =
-							this.calloutCollection.snippets.keys().length > 0 ||
-							this.calloutCollection.theme.get().length > 0;
-						if (hasWatcherData || this.snippetTypes.length === 0) {
-							this.rebuildDetectedTypes();
-						}
-					}
+					// Always rebuild — the collection is seeded from disk
+					// if csscache is unavailable, so this is always safe.
+					this.rebuildDetectedTypes();
 				}
 			});
 
@@ -260,6 +253,10 @@ export default class EnhancedCalloutManager extends Plugin {
 		// corrupted data.json or different plugin versions.
 		if (!Array.isArray(this.settings.icons)) this.settings.icons = [];
 		if (!Array.isArray(this.settings.favoriteCallouts)) this.settings.favoriteCallouts = [];
+		// Ensure favoriteCallouts always has exactly 5 slots so dropdown indices are stable.
+		while (this.settings.favoriteCallouts.length < 5) {
+			this.settings.favoriteCallouts.push("");
+		}
 		if (
 			this.settings.customCallouts == null ||
 			typeof this.settings.customCallouts !== "object" ||
@@ -293,9 +290,10 @@ export default class EnhancedCalloutManager extends Plugin {
 	/**
 	 * Re-scan CSS snippets for custom callout types.
 	 *
-	 * If the watcher is running, triggers a full recheck (which will
-	 * update the collection and rebuild detected types via events).
-	 * Otherwise falls back to disk-based scanning.
+	 * If the watcher is running, seeds the collection from disk when
+	 * csscache is unavailable, then triggers a watcher recheck which
+	 * calls rebuildDetectedTypes() via the checkComplete event.
+	 * Before the watcher starts, seeds the collection from disk directly.
 	 */
 	async refreshSnippetTypes(): Promise<void> {
 		const det = this.settings.calloutDetection ?? { obsidian: true, theme: true, snippet: true };
@@ -303,32 +301,46 @@ export default class EnhancedCalloutManager extends Plugin {
 		// Clear snippet data if snippet detection is off
 		if (!det.snippet) {
 			this.calloutCollection?.snippets.clear();
+			for (const key of Array.from(this.cssTextCache.keys())) {
+				if (key.startsWith("snippet:")) this.cssTextCache.delete(key);
+			}
 		}
 
 		// Clear theme data if theme detection is off
 		if (!det.theme) {
-			this.cssTextCache.delete('theme');
+			this.cssTextCache.delete("theme");
 			this.calloutCollection?.theme.delete();
 		}
 
 		if (this.stylesheetWatcher) {
-			// Watcher is active — force a full recheck.
-			// The checkComplete handler will call rebuildDetectedTypes().
+			// Watcher is active — if snippet detection is on but the
+			// collection is empty (csscache unavailable), seed from disk
+			// so rebuildDetectedTypes() has data to work with.
+			if (det.snippet && this.calloutCollection.snippets.keys().length === 0) {
+				await this.seedCollectionFromDisk();
+			}
+			// Force a full recheck; checkComplete calls rebuildDetectedTypes().
 			await this.stylesheetWatcher.checkForChanges(true);
 		} else if (det.snippet) {
-			// Fallback: disk-based scan (before watcher is initialized).
-			// Only needed for snippets; theme/obsidian are watcher-only.
-			const result = await parseSnippetCalloutTypes(this.app);
-			for (const st of result.types) {
-				if (!st.iconDefault && !getIcon(st.icon)) {
-					st.iconInvalid = true;
-				}
-			}
-			this.snippetTypes = result.types;
-			this.snippetWarnings = result.warnings;
+			// Watcher not yet started — seed collection from disk and rebuild.
+			await this.seedCollectionFromDisk();
+			this.rebuildDetectedTypes();
 		} else {
 			this.snippetTypes = [];
 			this.snippetWarnings = [];
+		}
+	}
+
+	/**
+	 * Seed the callout collection and cssTextCache from a disk-based
+	 * snippet scan. Used when app.customCss.csscache is unavailable
+	 * so the stylesheet watcher cannot find snippet stylesheets.
+	 */
+	private async seedCollectionFromDisk(): Promise<void> {
+		const result = await parseSnippetCalloutTypes(this.app);
+		for (const [snippetName, { ids, css }] of result.snippetMap) {
+			this.cssTextCache.set(`snippet:${snippetName}`, css);
+			this.calloutCollection.snippets.set(snippetName, ids);
 		}
 	}
 
@@ -420,6 +432,10 @@ export default class EnhancedCalloutManager extends Plugin {
 
 		this.snippetTypes = types;
 		this.snippetWarnings = warnings;
+
+		// Notify the settings tab to re-render so the detected types
+		// list updates after an async watcher event.
+		this.onTypesChanged?.();
 	}
 
 	/**

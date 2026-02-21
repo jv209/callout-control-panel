@@ -294,10 +294,10 @@
 }
 
 .ecm-tab-button.ecm-tab-active {
-	color: var(--text-normal);
-	background: var(--background-modifier-hover);
-	border-bottom-color: var(--interactive-accent);
-	font-weight: var(--font-semibold);
+	color: var(--text-normal) !important;
+	background: var(--background-modifier-hover) !important;
+	border-bottom-color: var(--interactive-accent) !important;
+	font-weight: var(--font-semibold) !important;
 }
 
 .ecm-tab-pane {
