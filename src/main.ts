@@ -179,26 +179,31 @@ export default class EnhancedCalloutManager extends Plugin {
 			this.stylesheetWatcher = new StylesheetWatcher(this.app);
 
 			this.stylesheetWatcher.on('add', (ss) => {
-				const ids = getCalloutsFromCSS(ss.styles);
-				if (ss.type === 'snippet') {
+				const det = this.settings.calloutDetection;
+				if (ss.type === 'snippet' && det.snippet) {
+					const ids = getCalloutsFromCSS(ss.styles);
 					this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
 					this.calloutCollection.snippets.set(ss.snippet, ids);
-				} else {
+				} else if (ss.type === 'theme' && det.theme) {
+					const ids = getCalloutsFromCSS(ss.styles);
 					this.cssTextCache.set('theme', ss.styles);
 					this.calloutCollection.theme.set(ss.theme, ids);
 				}
 			});
 
 			this.stylesheetWatcher.on('change', (ss) => {
-				const ids = getCalloutsFromCSS(ss.styles);
-				if (ss.type === 'snippet') {
+				const det = this.settings.calloutDetection;
+				if (ss.type === 'snippet' && det.snippet) {
+					const ids = getCalloutsFromCSS(ss.styles);
 					this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
 					this.calloutCollection.snippets.set(ss.snippet, ids);
-				} else if (ss.type === 'theme') {
+				} else if (ss.type === 'theme' && det.theme) {
+					const ids = getCalloutsFromCSS(ss.styles);
 					this.cssTextCache.set('theme', ss.styles);
 					this.calloutCollection.theme.set(ss.theme, ids);
-				} else {
+				} else if (ss.type === 'obsidian' && det.obsidian) {
 					// Obsidian built-in stylesheet — update builtin IDs
+					const ids = getCalloutsFromCSS(ss.styles);
 					this.cssTextCache.set('obsidian', ss.styles);
 					this.calloutCollection.builtin.set(ids);
 				}
@@ -218,7 +223,8 @@ export default class EnhancedCalloutManager extends Plugin {
 				if (anyChanges) {
 					// Reload Shadow DOM styles so resolver sees current CSS
 					this.calloutResolver.reloadStyles();
-					if (this.settings.scanSnippets) {
+					const det = this.settings.calloutDetection;
+					if (det.snippet || det.theme || det.obsidian) {
 						this.rebuildDetectedTypes();
 					}
 				}
@@ -236,11 +242,23 @@ export default class EnhancedCalloutManager extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign(
+		// loaded may contain old scanSnippets key from pre-v0.6.4 settings
+		const loaded = (await this.loadData()) as Partial<PluginSettings> & { scanSnippets?: boolean };
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded);
+
+		// Deep-merge calloutDetection so a partial or missing object
+		// doesn't lose any of the three toggle keys.
+		this.settings.calloutDetection = Object.assign(
 			{},
-			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<PluginSettings>,
+			DEFAULT_SETTINGS.calloutDetection,
+			loaded?.calloutDetection ?? {},
 		);
+
+		// Migrate: if the user had explicitly disabled the old scanSnippets
+		// toggle, honour that by disabling the new snippet toggle.
+		if (loaded?.scanSnippets === false) {
+			this.settings.calloutDetection.snippet = false;
+		}
 	}
 
 	async saveSettings() {
@@ -255,19 +273,26 @@ export default class EnhancedCalloutManager extends Plugin {
 	 * Otherwise falls back to disk-based scanning.
 	 */
 	async refreshSnippetTypes(): Promise<void> {
-		if (!this.settings.scanSnippets) {
-			this.snippetTypes = [];
-			this.snippetWarnings = [];
+		const det = this.settings.calloutDetection;
+
+		// Clear snippet data if snippet detection is off
+		if (!det.snippet) {
 			this.calloutCollection?.snippets.clear();
-			return;
+		}
+
+		// Clear theme data if theme detection is off
+		if (!det.theme) {
+			this.cssTextCache.delete('theme');
+			this.calloutCollection?.theme.delete();
 		}
 
 		if (this.stylesheetWatcher) {
 			// Watcher is active — force a full recheck.
 			// The checkComplete handler will call rebuildDetectedTypes().
 			await this.stylesheetWatcher.checkForChanges(true);
-		} else {
-			// Fallback: disk-based scan (before watcher is initialized)
+		} else if (det.snippet) {
+			// Fallback: disk-based scan (before watcher is initialized).
+			// Only needed for snippets; theme/obsidian are watcher-only.
 			const result = await parseSnippetCalloutTypes(this.app);
 			for (const st of result.types) {
 				if (!st.iconDefault && !getIcon(st.icon)) {
@@ -276,6 +301,9 @@ export default class EnhancedCalloutManager extends Plugin {
 			}
 			this.snippetTypes = result.types;
 			this.snippetWarnings = result.warnings;
+		} else {
+			this.snippetTypes = [];
+			this.snippetWarnings = [];
 		}
 	}
 
@@ -297,7 +325,13 @@ export default class EnhancedCalloutManager extends Plugin {
 		const warnings: SnippetWarning[] = [];
 		const seen = new Set<string>();
 
+		const det = this.settings.calloutDetection;
+
 		// Snippet-sourced callouts
+		if (!det.snippet) {
+			// Detection toggled off — wipe any stale snippet data
+			this.calloutCollection.snippets.clear();
+		}
 		for (const snippetId of this.calloutCollection.snippets.keys()) {
 			// Skip our own generated file to avoid circular detection
 			if (snippetId === "enhanced-callout-manager") continue;
@@ -332,7 +366,7 @@ export default class EnhancedCalloutManager extends Plugin {
 		}
 
 		// Theme-sourced callouts
-		const themeCss = this.cssTextCache.get("theme") ?? "";
+		const themeCss = det.theme ? (this.cssTextCache.get("theme") ?? "") : "";
 		if (themeCss) {
 			const themeIds = this.calloutCollection.theme.get();
 			for (const id of themeIds) {

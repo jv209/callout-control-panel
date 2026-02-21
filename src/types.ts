@@ -81,8 +81,15 @@ export interface PluginSettings {
 	autoFocusContent: boolean;
 	/** Tracks the last used callout type (when rememberLastType is enabled). */
 	lastUsedType: string;
-	/** Whether to scan CSS snippet files for custom callout types. */
-	scanSnippets: boolean;
+	/** Which CSS sources to scan for callout types. */
+	calloutDetection: {
+		/** Detect callouts from Obsidian's built-in stylesheet (app.css). */
+		obsidian: boolean;
+		/** Detect callouts from the active theme's stylesheet. */
+		theme: boolean;
+		/** Detect callouts from enabled CSS snippet files. */
+		snippet: boolean;
+	};
 	/** Installed downloadable icon packs (e.g., "octicons", "rpg"). */
 	icons: DownloadableIconPack[];
 	/** Whether Font Awesome icons are available for selection. */
@@ -100,7 +107,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	rememberLastType: false,
 	autoFocusContent: true,
 	lastUsedType: "note",
-	scanSnippets: true,
+	calloutDetection: { obsidian: true, theme: true, snippet: true },
 	icons: [],
 	useFontAwesome: true,
 	customCallouts: {},
