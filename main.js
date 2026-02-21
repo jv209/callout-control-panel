@@ -550,33 +550,33 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   }
   // ── Section 2: CSS Type Detection ───────────────────────────────────────
   buildDetectionSection(el) {
-    const det = this.plugin.settings.calloutDetection;
-    new import_obsidian4.Setting(el).setName("Obsidian").setDesc("Detect callouts defined in Obsidian's built-in stylesheet.").addToggle((t2) => {
-      t2.setValue(det.obsidian);
-      t2.onChange(async (v) => {
-        det.obsidian = v;
+    var _a;
+    const det = (_a = this.plugin.settings.calloutDetection) != null ? _a : {
+      obsidian: true,
+      theme: true,
+      snippet: true
+    };
+    const onToggle = async (key, value) => {
+      try {
+        det[key] = value;
         await this.plugin.saveSettings();
         await this.plugin.refreshSnippetTypes();
-        this.display();
-      });
+      } catch (e) {
+        console.error("Enhanced Callout Manager: detection toggle error", e);
+      }
+      this.display();
+    };
+    new import_obsidian4.Setting(el).setName("Obsidian").setDesc("Detect callouts defined in Obsidian's built-in stylesheet.").addToggle((t2) => {
+      t2.setValue(det.obsidian);
+      t2.onChange((v) => onToggle("obsidian", v));
     });
     new import_obsidian4.Setting(el).setName("Theme").setDesc("Detect callouts defined by the active theme.").addToggle((t2) => {
       t2.setValue(det.theme);
-      t2.onChange(async (v) => {
-        det.theme = v;
-        await this.plugin.saveSettings();
-        await this.plugin.refreshSnippetTypes();
-        this.display();
-      });
+      t2.onChange((v) => onToggle("theme", v));
     });
     new import_obsidian4.Setting(el).setName("Snippet").setDesc("Detect callouts defined in your enabled CSS snippet files.").addToggle((t2) => {
       t2.setValue(det.snippet);
-      t2.onChange(async (v) => {
-        det.snippet = v;
-        await this.plugin.saveSettings();
-        await this.plugin.refreshSnippetTypes();
-        this.display();
-      });
+      t2.onChange((v) => onToggle("snippet", v));
     });
     if (!det.snippet && !det.theme) return;
     const count = this.plugin.snippetTypes.length;
@@ -19452,7 +19452,8 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
       await this.refreshSnippetTypes();
       this.stylesheetWatcher = new StylesheetWatcher(this.app);
       this.stylesheetWatcher.on("add", (ss) => {
-        const det = this.settings.calloutDetection;
+        var _a;
+        const det = (_a = this.settings.calloutDetection) != null ? _a : { obsidian: true, theme: true, snippet: true };
         if (ss.type === "snippet" && det.snippet) {
           const ids = getCalloutsFromCSS(ss.styles);
           this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
@@ -19464,7 +19465,8 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
         }
       });
       this.stylesheetWatcher.on("change", (ss) => {
-        const det = this.settings.calloutDetection;
+        var _a;
+        const det = (_a = this.settings.calloutDetection) != null ? _a : { obsidian: true, theme: true, snippet: true };
         if (ss.type === "snippet" && det.snippet) {
           const ids = getCalloutsFromCSS(ss.styles);
           this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
@@ -19489,17 +19491,18 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
         }
       });
       this.stylesheetWatcher.on("checkComplete", (anyChanges) => {
+        var _a, _b;
         if (anyChanges) {
-          this.calloutResolver.reloadStyles();
-          const det = this.settings.calloutDetection;
+          (_a = this.calloutResolver) == null ? void 0 : _a.reloadStyles();
+          const det = (_b = this.settings.calloutDetection) != null ? _b : { obsidian: true, theme: true, snippet: true };
           if (det.snippet || det.theme || det.obsidian) {
             this.rebuildDetectedTypes();
           }
         }
       });
-      this.register(this.stylesheetWatcher.watch());
       this.calloutResolver = new CalloutResolver(this.app);
       this.register(() => this.calloutResolver.unload());
+      this.register(this.stylesheetWatcher.watch());
     });
   }
   async loadSettings() {
@@ -19526,14 +19529,14 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
    * Otherwise falls back to disk-based scanning.
    */
   async refreshSnippetTypes() {
-    var _a, _b;
-    const det = this.settings.calloutDetection;
+    var _a, _b, _c;
+    const det = (_a = this.settings.calloutDetection) != null ? _a : { obsidian: true, theme: true, snippet: true };
     if (!det.snippet) {
-      (_a = this.calloutCollection) == null ? void 0 : _a.snippets.clear();
+      (_b = this.calloutCollection) == null ? void 0 : _b.snippets.clear();
     }
     if (!det.theme) {
       this.cssTextCache.delete("theme");
-      (_b = this.calloutCollection) == null ? void 0 : _b.theme.delete();
+      (_c = this.calloutCollection) == null ? void 0 : _c.theme.delete();
     }
     if (this.stylesheetWatcher) {
       await this.stylesheetWatcher.checkForChanges(true);
@@ -19558,7 +19561,7 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
    * checkComplete handler.
    */
   rebuildDetectedTypes() {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     const builtinNames = /* @__PURE__ */ new Set();
     for (const bt of BUILTIN_CALLOUT_TYPES) {
       builtinNames.add(bt.type);
@@ -19567,15 +19570,15 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
     const types = [];
     const warnings = [];
     const seen = /* @__PURE__ */ new Set();
-    const det = this.settings.calloutDetection;
+    const det = (_b = this.settings.calloutDetection) != null ? _b : { obsidian: true, theme: true, snippet: true };
     if (!det.snippet) {
       this.calloutCollection.snippets.clear();
     }
     for (const snippetId of this.calloutCollection.snippets.keys()) {
       if (snippetId === "enhanced-callout-manager") continue;
-      const ids = (_b = this.calloutCollection.snippets.get(snippetId)) != null ? _b : [];
-      const css2 = (_c = this.cssTextCache.get(`snippet:${snippetId}`)) != null ? _c : "";
-      const looseCount = ((_d = css2.match(/\[data-callout/g)) != null ? _d : []).length;
+      const ids = (_c = this.calloutCollection.snippets.get(snippetId)) != null ? _c : [];
+      const css2 = (_d = this.cssTextCache.get(`snippet:${snippetId}`)) != null ? _d : "";
+      const looseCount = ((_e = css2.match(/\[data-callout/g)) != null ? _e : []).length;
       if (looseCount > ids.length) {
         warnings.push({
           file: `${snippetId}.css`,
@@ -19596,7 +19599,7 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
         });
       }
     }
-    const themeCss = det.theme ? (_e = this.cssTextCache.get("theme")) != null ? _e : "" : "";
+    const themeCss = det.theme ? (_f = this.cssTextCache.get("theme")) != null ? _f : "" : "";
     if (themeCss) {
       const themeIds = this.calloutCollection.theme.get();
       for (const id of themeIds) {

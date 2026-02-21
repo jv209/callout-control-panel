@@ -200,19 +200,32 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	// ── Section 2: CSS Type Detection ───────────────────────────────────────
 
 	private buildDetectionSection(el: HTMLElement): void {
-		const det = this.plugin.settings.calloutDetection;
+		const det = this.plugin.settings.calloutDetection ?? {
+			obsidian: true,
+			theme: true,
+			snippet: true,
+		};
+
+		const onToggle = async (
+			key: "obsidian" | "theme" | "snippet",
+			value: boolean,
+		) => {
+			try {
+				det[key] = value;
+				await this.plugin.saveSettings();
+				await this.plugin.refreshSnippetTypes();
+			} catch (e) {
+				console.error("Enhanced Callout Manager: detection toggle error", e);
+			}
+			this.display();
+		};
 
 		new Setting(el)
 			.setName("Obsidian")
 			.setDesc("Detect callouts defined in Obsidian's built-in stylesheet.")
 			.addToggle((t) => {
 				t.setValue(det.obsidian);
-				t.onChange(async (v) => {
-					det.obsidian = v;
-					await this.plugin.saveSettings();
-					await this.plugin.refreshSnippetTypes();
-					this.display();
-				});
+				t.onChange((v) => onToggle("obsidian", v));
 			});
 
 		new Setting(el)
@@ -220,12 +233,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			.setDesc("Detect callouts defined by the active theme.")
 			.addToggle((t) => {
 				t.setValue(det.theme);
-				t.onChange(async (v) => {
-					det.theme = v;
-					await this.plugin.saveSettings();
-					await this.plugin.refreshSnippetTypes();
-					this.display();
-				});
+				t.onChange((v) => onToggle("theme", v));
 			});
 
 		new Setting(el)
@@ -233,12 +241,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			.setDesc("Detect callouts defined in your enabled CSS snippet files.")
 			.addToggle((t) => {
 				t.setValue(det.snippet);
-				t.onChange(async (v) => {
-					det.snippet = v;
-					await this.plugin.saveSettings();
-					await this.plugin.refreshSnippetTypes();
-					this.display();
-				});
+				t.onChange((v) => onToggle("snippet", v));
 			});
 
 		// Only show the detected-types list when snippet or theme detection is on.

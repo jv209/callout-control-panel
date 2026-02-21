@@ -179,7 +179,7 @@ export default class EnhancedCalloutManager extends Plugin {
 			this.stylesheetWatcher = new StylesheetWatcher(this.app);
 
 			this.stylesheetWatcher.on('add', (ss) => {
-				const det = this.settings.calloutDetection;
+				const det = this.settings.calloutDetection ?? { obsidian: true, theme: true, snippet: true };
 				if (ss.type === 'snippet' && det.snippet) {
 					const ids = getCalloutsFromCSS(ss.styles);
 					this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
@@ -192,7 +192,7 @@ export default class EnhancedCalloutManager extends Plugin {
 			});
 
 			this.stylesheetWatcher.on('change', (ss) => {
-				const det = this.settings.calloutDetection;
+				const det = this.settings.calloutDetection ?? { obsidian: true, theme: true, snippet: true };
 				if (ss.type === 'snippet' && det.snippet) {
 					const ids = getCalloutsFromCSS(ss.styles);
 					this.cssTextCache.set(`snippet:${ss.snippet}`, ss.styles);
@@ -222,22 +222,22 @@ export default class EnhancedCalloutManager extends Plugin {
 			this.stylesheetWatcher.on('checkComplete', (anyChanges) => {
 				if (anyChanges) {
 					// Reload Shadow DOM styles so resolver sees current CSS
-					this.calloutResolver.reloadStyles();
-					const det = this.settings.calloutDetection;
+					this.calloutResolver?.reloadStyles();
+					const det = this.settings.calloutDetection ?? { obsidian: true, theme: true, snippet: true };
 					if (det.snippet || det.theme || det.obsidian) {
 						this.rebuildDetectedTypes();
 					}
 				}
 			});
 
-			this.register(this.stylesheetWatcher.watch());
-
 			// Shadow DOM resolver — verification fallback for cases where
 			// regex can't extract properties (CSS variable indirection,
-			// cascade/specificity conflicts). Created after watcher so
-			// its initial styles reflect the current theme and snippets.
+			// cascade/specificity conflicts). Created before watch() so
+			// it's available when the initial checkComplete fires.
 			this.calloutResolver = new CalloutResolver(this.app);
 			this.register(() => this.calloutResolver.unload());
+
+			this.register(this.stylesheetWatcher.watch());
 		});
 	}
 
@@ -273,7 +273,7 @@ export default class EnhancedCalloutManager extends Plugin {
 	 * Otherwise falls back to disk-based scanning.
 	 */
 	async refreshSnippetTypes(): Promise<void> {
-		const det = this.settings.calloutDetection;
+		const det = this.settings.calloutDetection ?? { obsidian: true, theme: true, snippet: true };
 
 		// Clear snippet data if snippet detection is off
 		if (!det.snippet) {
@@ -325,7 +325,7 @@ export default class EnhancedCalloutManager extends Plugin {
 		const warnings: SnippetWarning[] = [];
 		const seen = new Set<string>();
 
-		const det = this.settings.calloutDetection;
+		const det = this.settings.calloutDetection ?? { obsidian: true, theme: true, snippet: true };
 
 		// Snippet-sourced callouts
 		if (!det.snippet) {
