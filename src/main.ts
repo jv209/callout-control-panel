@@ -225,7 +225,16 @@ export default class EnhancedCalloutManager extends Plugin {
 					this.calloutResolver?.reloadStyles();
 					const det = this.settings.calloutDetection ?? { obsidian: true, theme: true, snippet: true };
 					if (det.snippet || det.theme || det.obsidian) {
-						this.rebuildDetectedTypes();
+						// Only rebuild if the watcher produced data, or we
+						// have no existing results. This prevents the watcher
+						// from overwriting disk-scan results with an empty
+						// array when csscache is unavailable.
+						const hasWatcherData =
+							this.calloutCollection.snippets.keys().length > 0 ||
+							this.calloutCollection.theme.get().length > 0;
+						if (hasWatcherData || this.snippetTypes.length === 0) {
+							this.rebuildDetectedTypes();
+						}
 					}
 				}
 			});
@@ -242,21 +251,37 @@ export default class EnhancedCalloutManager extends Plugin {
 	}
 
 	async loadSettings() {
-		// loaded may contain old scanSnippets key from pre-v0.6.4 settings
-		const loaded = (await this.loadData()) as Partial<PluginSettings> & { scanSnippets?: boolean };
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded);
+		// loaded may contain old scanSnippets key from pre-v0.6.4 settings,
+		// or null/corrupted values from a different plugin version.
+		const loaded = (await this.loadData()) as Record<string, unknown> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded ?? {});
+
+		// Guard array and object fields against null/undefined from
+		// corrupted data.json or different plugin versions.
+		if (!Array.isArray(this.settings.icons)) this.settings.icons = [];
+		if (!Array.isArray(this.settings.favoriteCallouts)) this.settings.favoriteCallouts = [];
+		if (
+			this.settings.customCallouts == null ||
+			typeof this.settings.customCallouts !== "object" ||
+			Array.isArray(this.settings.customCallouts)
+		) {
+			this.settings.customCallouts = {};
+		}
 
 		// Deep-merge calloutDetection so a partial or missing object
 		// doesn't lose any of the three toggle keys.
 		this.settings.calloutDetection = Object.assign(
 			{},
 			DEFAULT_SETTINGS.calloutDetection,
-			loaded?.calloutDetection ?? {},
+			(this.settings.calloutDetection != null &&
+			typeof this.settings.calloutDetection === "object")
+				? this.settings.calloutDetection
+				: {},
 		);
 
 		// Migrate: if the user had explicitly disabled the old scanSnippets
 		// toggle, honour that by disabling the new snippet toggle.
-		if (loaded?.scanSnippets === false) {
+		if ((loaded as Record<string, unknown> | null)?.scanSnippets === false) {
 			this.settings.calloutDetection.snippet = false;
 		}
 	}

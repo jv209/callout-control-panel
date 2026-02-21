@@ -715,9 +715,13 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			.addToggle((t) => {
 				t.setValue(this.plugin.settings.useFontAwesome);
 				t.onChange(async (v) => {
-					this.plugin.settings.useFontAwesome = v;
-					this.plugin.iconManager.setIconDefinitions();
-					await this.plugin.saveSettings();
+					try {
+						this.plugin.settings.useFontAwesome = v;
+						this.plugin.iconManager.setIconDefinitions();
+						await this.plugin.saveSettings();
+					} catch (e) {
+						console.error("Enhanced Callout Manager: icon toggle error", e);
+					}
 				});
 			});
 

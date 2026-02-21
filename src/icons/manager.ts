@@ -79,7 +79,8 @@ export class IconManager {
 
 	setIconDefinitions(): void {
 		const downloaded: CalloutIconDefinition[] = [];
-		for (const pack of this.plugin.settings.icons) {
+		const icons = this.plugin.settings.icons ?? [];
+		for (const pack of icons) {
 			if (!(pack in this.DOWNLOADED)) continue;
 			const icons = this.DOWNLOADED[pack];
 			if (!icons) continue;
