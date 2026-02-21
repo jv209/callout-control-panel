@@ -33,6 +33,12 @@ export interface SnippetWarning {
 export interface SnippetParseResult {
 	types: CalloutTypeInfo[];
 	warnings: SnippetWarning[];
+	/**
+	 * Per-snippet data: maps snippet name → { ids, css }.
+	 * Used to seed the callout collection and cssTextCache when the
+	 * stylesheet watcher cannot access app.customCss.csscache.
+	 */
+	snippetMap: Map<string, { ids: string[]; css: string }>;
 }
 
 /** Shape returned by the undocumented vault adapter list() method. */
@@ -57,6 +63,7 @@ interface CustomCss {
 export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseResult> {
 	const results: CalloutTypeInfo[] = [];
 	const warnings: SnippetWarning[] = [];
+	const snippetMap = new Map<string, { ids: string[]; css: string }>();
 
 	// Build a set of built-in type names (including aliases) for filtering
 	const builtinNames = new Set<string>();
@@ -83,7 +90,7 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 		listing = await adapter.list(snippetsDir);
 	} catch {
 		// Snippets directory doesn't exist or can't be read
-		return { types: results, warnings };
+		return { types: results, warnings, snippetMap };
 	}
 
 	// Skip the plugin's own generated snippet to avoid circular detection
@@ -111,6 +118,13 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 		// properties (color, icon) from the CSS blocks.
 		const discoveredIds = getCalloutsFromCSS(css);
 
+		// Store per-snippet data so the caller can seed the callout
+		// collection and cssTextCache (used when csscache is unavailable).
+		const snippetName = filePath.split("/").pop()?.replace(/\.css$/, "") ?? "";
+		if (snippetName) {
+			snippetMap.set(snippetName, { ids: discoveredIds, css });
+		}
+
 		// Count loose mentions that look like callout definitions.
 		// The robust parser handles more patterns (unquoted, complex selectors)
 		// than this heuristic, so malformed warnings only fire when something
@@ -131,7 +145,7 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 		}
 	}
 
-	return { types: results, warnings };
+	return { types: results, warnings, snippetMap };
 }
 
 /**

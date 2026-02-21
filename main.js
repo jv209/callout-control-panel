@@ -469,6 +469,7 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
     this.activeTabIndex = 0;
   }
   display() {
+    this.plugin.onTypesChanged = () => this.display();
     const { containerEl } = this;
     containerEl.empty();
     const tabBar = containerEl.createDiv({ cls: "ecm-tab-bar" });
@@ -727,7 +728,7 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
       } else {
         (0, import_obsidian4.setIcon)(iconPreviewEl, "lucide-alert-circle");
       }
-      if ((_a = callout.injectColor) != null ? _a : this.plugin.settings.injectColor) {
+      if (((_a = callout.injectColor) != null ? _a : this.plugin.settings.injectColor) && callout.color) {
         iconPreviewEl.style.setProperty("--callout-color", callout.color);
       }
       setting.nameEl.createSpan({ text: callout.type });
@@ -812,8 +813,12 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
         }
         dropdown.setValue((_a = this.plugin.settings.favoriteCallouts[i]) != null ? _a : "");
         dropdown.onChange(async (value) => {
-          this.plugin.settings.favoriteCallouts[i] = value;
-          await this.plugin.saveSettings();
+          try {
+            this.plugin.settings.favoriteCallouts[i] = value;
+            await this.plugin.saveSettings();
+          } catch (e) {
+            console.error("Enhanced Callout Manager: favorites save error", e);
+          }
         });
       });
     }
@@ -937,11 +942,17 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
     new import_obsidian4.Setting(el).setName("Use Font Awesome icons").setDesc("Font Awesome Free icons will be available in the icon picker.").addToggle((t2) => {
       t2.setValue(this.plugin.settings.useFontAwesome);
       t2.onChange(async (v) => {
-        this.plugin.settings.useFontAwesome = v;
-        this.plugin.iconManager.setIconDefinitions();
-        await this.plugin.saveSettings();
+        try {
+          this.plugin.settings.useFontAwesome = v;
+          this.plugin.iconManager.setIconDefinitions();
+          await this.plugin.saveSettings();
+        } catch (e) {
+          console.error("Enhanced Callout Manager: icon toggle error", e);
+        }
+        this.display();
       });
     });
+    if (!this.plugin.settings.useFontAwesome) return;
     const installed = this.plugin.settings.icons;
     const available = Object.entries(DownloadableIcons).filter(([pack]) => !installed.includes(pack));
     let selectedPack = (_a = available[0]) == null ? void 0 : _a[0];
@@ -1647,8 +1658,22 @@ function getThemeStyleElement(app) {
   return (_a = getCustomCss(app).styleEl) != null ? _a : null;
 }
 function getSnippetStyleElements(app) {
-  var _a;
-  return (_a = getCustomCss(app).csscache) != null ? _a : /* @__PURE__ */ new Map();
+  var _a, _b;
+  const cc = getCustomCss(app);
+  if (cc.csscache instanceof Map && cc.csscache.size > 0) {
+    return cc.csscache;
+  }
+  const result = /* @__PURE__ */ new Map();
+  const enabled = cc.enabledSnippets;
+  if (!(enabled instanceof Set) || enabled.size === 0) return result;
+  for (const el of Array.from(document.querySelectorAll("head > style"))) {
+    const styleEl = el;
+    const snippetId = (_b = (_a = styleEl.getAttribute("data-snippet-id")) != null ? _a : styleEl.getAttribute("data-snippet")) != null ? _b : styleEl.id;
+    if (snippetId && enabled.has(snippetId)) {
+      result.set(snippetId, styleEl);
+    }
+  }
+  return result;
 }
 function getCurrentColorScheme(_app) {
   return document.body.classList.contains("theme-dark") ? "dark" : "light";
@@ -2430,9 +2455,10 @@ var CalloutResolver = class {
 
 // src/snippetParser.ts
 async function parseSnippetCalloutTypes(app) {
-  var _a;
+  var _a, _b, _c;
   const results = [];
   const warnings = [];
+  const snippetMap = /* @__PURE__ */ new Map();
   const builtinNames = /* @__PURE__ */ new Set();
   for (const bt of BUILTIN_CALLOUT_TYPES) {
     builtinNames.add(bt.type);
@@ -2450,7 +2476,7 @@ async function parseSnippetCalloutTypes(app) {
     const adapter = app.vault.adapter;
     listing = await adapter.list(snippetsDir);
   } catch (e) {
-    return { types: results, warnings };
+    return { types: results, warnings, snippetMap };
   }
   const PLUGIN_SNIPPET_NAME = "enhanced-callout-manager";
   const cssFiles = listing.files.filter((f) => {
@@ -2469,6 +2495,10 @@ async function parseSnippetCalloutTypes(app) {
       continue;
     }
     const discoveredIds = getCalloutsFromCSS(css2);
+    const snippetName = (_b = (_a = filePath.split("/").pop()) == null ? void 0 : _a.replace(/\.css$/, "")) != null ? _b : "";
+    if (snippetName) {
+      snippetMap.set(snippetName, { ids: discoveredIds, css: css2 });
+    }
     const looseMatches = css2.match(/\[data-callout/g);
     const potentialCount = looseMatches ? looseMatches.length : 0;
     const parsedCount = collectCalloutTypes(
@@ -2479,11 +2509,11 @@ async function parseSnippetCalloutTypes(app) {
     );
     const malformedCount = potentialCount - parsedCount;
     if (malformedCount > 0) {
-      const fileName = (_a = filePath.split("/").pop()) != null ? _a : filePath;
+      const fileName = (_c = filePath.split("/").pop()) != null ? _c : filePath;
       warnings.push({ file: fileName, malformedCount });
     }
   }
-  return { types: results, warnings };
+  return { types: results, warnings, snippetMap };
 }
 function collectCalloutTypes(css2, discoveredIds, results, builtinNames) {
   const seenInFile = /* @__PURE__ */ new Set();
@@ -19122,13 +19152,15 @@ var IconManager = class {
     this.setIconDefinitions();
   }
   setIconDefinitions() {
+    var _a;
     const downloaded = [];
-    for (const pack of this.plugin.settings.icons) {
+    const icons4 = (_a = this.plugin.settings.icons) != null ? _a : [];
+    for (const pack of icons4) {
       if (!(pack in this.DOWNLOADED)) continue;
-      const icons4 = this.DOWNLOADED[pack];
-      if (!icons4) continue;
+      const icons5 = this.DOWNLOADED[pack];
+      if (!icons5) continue;
       downloaded.push(
-        ...Object.keys(icons4).map((name) => {
+        ...Object.keys(icons5).map((name) => {
           return { type: pack, name };
         })
       );
@@ -19491,13 +19523,10 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
         }
       });
       this.stylesheetWatcher.on("checkComplete", (anyChanges) => {
-        var _a, _b;
+        var _a;
         if (anyChanges) {
           (_a = this.calloutResolver) == null ? void 0 : _a.reloadStyles();
-          const det = (_b = this.settings.calloutDetection) != null ? _b : { obsidian: true, theme: true, snippet: true };
-          if (det.snippet || det.theme || det.obsidian) {
-            this.rebuildDetectedTypes();
-          }
+          this.rebuildDetectedTypes();
         }
       });
       this.calloutResolver = new CalloutResolver(this.app);
@@ -19506,13 +19535,20 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
     });
   }
   async loadSettings() {
-    var _a;
     const loaded2 = await this.loadData();
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded2);
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded2 != null ? loaded2 : {});
+    if (!Array.isArray(this.settings.icons)) this.settings.icons = [];
+    if (!Array.isArray(this.settings.favoriteCallouts)) this.settings.favoriteCallouts = [];
+    while (this.settings.favoriteCallouts.length < 5) {
+      this.settings.favoriteCallouts.push("");
+    }
+    if (this.settings.customCallouts == null || typeof this.settings.customCallouts !== "object" || Array.isArray(this.settings.customCallouts)) {
+      this.settings.customCallouts = {};
+    }
     this.settings.calloutDetection = Object.assign(
       {},
       DEFAULT_SETTINGS.calloutDetection,
-      (_a = loaded2 == null ? void 0 : loaded2.calloutDetection) != null ? _a : {}
+      this.settings.calloutDetection != null && typeof this.settings.calloutDetection === "object" ? this.settings.calloutDetection : {}
     );
     if ((loaded2 == null ? void 0 : loaded2.scanSnippets) === false) {
       this.settings.calloutDetection.snippet = false;
@@ -19524,34 +19560,47 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
   /**
    * Re-scan CSS snippets for custom callout types.
    *
-   * If the watcher is running, triggers a full recheck (which will
-   * update the collection and rebuild detected types via events).
-   * Otherwise falls back to disk-based scanning.
+   * If the watcher is running, seeds the collection from disk when
+   * csscache is unavailable, then triggers a watcher recheck which
+   * calls rebuildDetectedTypes() via the checkComplete event.
+   * Before the watcher starts, seeds the collection from disk directly.
    */
   async refreshSnippetTypes() {
     var _a, _b, _c;
     const det = (_a = this.settings.calloutDetection) != null ? _a : { obsidian: true, theme: true, snippet: true };
     if (!det.snippet) {
       (_b = this.calloutCollection) == null ? void 0 : _b.snippets.clear();
+      for (const key of Array.from(this.cssTextCache.keys())) {
+        if (key.startsWith("snippet:")) this.cssTextCache.delete(key);
+      }
     }
     if (!det.theme) {
       this.cssTextCache.delete("theme");
       (_c = this.calloutCollection) == null ? void 0 : _c.theme.delete();
     }
     if (this.stylesheetWatcher) {
+      if (det.snippet && this.calloutCollection.snippets.keys().length === 0) {
+        await this.seedCollectionFromDisk();
+      }
       await this.stylesheetWatcher.checkForChanges(true);
     } else if (det.snippet) {
-      const result = await parseSnippetCalloutTypes(this.app);
-      for (const st of result.types) {
-        if (!st.iconDefault && !(0, import_obsidian10.getIcon)(st.icon)) {
-          st.iconInvalid = true;
-        }
-      }
-      this.snippetTypes = result.types;
-      this.snippetWarnings = result.warnings;
+      await this.seedCollectionFromDisk();
+      this.rebuildDetectedTypes();
     } else {
       this.snippetTypes = [];
       this.snippetWarnings = [];
+    }
+  }
+  /**
+   * Seed the callout collection and cssTextCache from a disk-based
+   * snippet scan. Used when app.customCss.csscache is unavailable
+   * so the stylesheet watcher cannot find snippet stylesheets.
+   */
+  async seedCollectionFromDisk() {
+    const result = await parseSnippetCalloutTypes(this.app);
+    for (const [snippetName, { ids, css: css2 }] of result.snippetMap) {
+      this.cssTextCache.set(`snippet:${snippetName}`, css2);
+      this.calloutCollection.snippets.set(snippetName, ids);
     }
   }
   // ── Collection integration ────────────────────────────────────────────────
@@ -19561,7 +19610,7 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
    * checkComplete handler.
    */
   rebuildDetectedTypes() {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
     const builtinNames = /* @__PURE__ */ new Set();
     for (const bt of BUILTIN_CALLOUT_TYPES) {
       builtinNames.add(bt.type);
@@ -19623,6 +19672,7 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
     }
     this.snippetTypes = types;
     this.snippetWarnings = warnings;
+    (_g = this.onTypesChanged) == null ? void 0 : _g.call(this);
   }
   /**
    * Extract properties for a detected callout using regex as the fast

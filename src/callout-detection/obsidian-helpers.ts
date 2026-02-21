@@ -77,7 +77,7 @@ export function getSnippetStyleElements(app: App): Map<string, HTMLStyleElement>
 	// Obsidian gives each snippet <style> a data-* attribute or id matching
 	// the snippet name. We also try the enabledSnippets set to filter.
 	const result = new Map<string, HTMLStyleElement>();
-	const enabled = (cc as Record<string, unknown>).enabledSnippets;
+	const enabled = (cc as unknown as Record<string, unknown>).enabledSnippets;
 	if (!(enabled instanceof Set) || enabled.size === 0) return result;
 
 	for (const el of Array.from(document.querySelectorAll('head > style'))) {
