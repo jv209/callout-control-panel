@@ -92,8 +92,12 @@
 	color: var(--text-warning);
 }
 
-/* Detected snippet types list in settings (collapsible) */
-.detected-snippet-types {
+/* ─── Shared indented card container ──────────────────────────────────── */
+/* Used by detected snippet types, custom callout types, and icon packs. */
+
+.detected-snippet-types,
+.custom-callout-types,
+.ecm-icon-packs {
 	margin: 0 0 12px 5%;
 	padding: 6px 12px 6px 16px;
 	background: var(--background-secondary);
@@ -101,7 +105,8 @@
 	border-left: 3px solid var(--interactive-accent);
 }
 
-.detected-snippet-types-summary {
+.detected-snippet-types-summary,
+.custom-callout-types-summary {
 	cursor: pointer;
 	font-size: var(--font-ui-smaller);
 	opacity: 0.6;
@@ -109,11 +114,12 @@
 	user-select: none;
 }
 
-.detected-snippet-types-summary:hover {
+.detected-snippet-types-summary:hover,
+.custom-callout-types-summary:hover {
 	opacity: 0.9;
 }
 
-/* Table grid: Icon | Callout | Icon Name | Color | Status */
+/* Table grid: Icon | Callout | Icon Name | Color | Actions */
 .detected-snippet-type-row {
 	display: grid;
 	grid-template-columns: 24px 1fr 1fr 1fr 24px;
@@ -122,7 +128,17 @@
 	padding: 4px 0;
 }
 
-.detected-snippet-type-header {
+/* Custom callout rows use wider action column for edit/delete buttons */
+.custom-callout-type-row {
+	display: grid;
+	grid-template-columns: 24px 1fr 1fr 1fr 48px;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+}
+
+.detected-snippet-type-header,
+.custom-callout-type-header {
 	font-size: var(--font-ui-smaller);
 	font-weight: var(--font-semibold);
 	opacity: 0.6;
@@ -131,7 +147,8 @@
 	margin-bottom: 2px;
 }
 
-.detected-snippet-type-icon {
+.detected-snippet-type-icon,
+.custom-callout-type-icon {
 	display: flex;
 	width: 18px;
 	height: 18px;
@@ -139,17 +156,25 @@
 	flex-shrink: 0;
 }
 
-.detected-snippet-type-icon svg {
+.detected-snippet-type-icon svg,
+.custom-callout-type-icon svg {
 	width: 14px;
 	height: 14px;
 	color: rgb(var(--callout-color));
 }
 
-.detected-snippet-col-callout {
+.custom-callout-type-icon img {
+	width: 14px;
+	height: 14px;
+}
+
+.detected-snippet-col-callout,
+.custom-callout-col-callout {
 	font-size: var(--font-ui-small);
 }
 
-.detected-snippet-type-meta {
+.detected-snippet-type-meta,
+.custom-callout-type-meta {
 	font-size: var(--font-ui-smaller);
 	opacity: 0.5;
 	font-family: var(--font-monospace);
@@ -173,6 +198,30 @@
 	width: 14px;
 	height: 14px;
 	color: var(--text-warning);
+}
+
+/* Action buttons in custom callout rows */
+.custom-callout-actions {
+	display: flex;
+	gap: 2px;
+	align-items: center;
+}
+
+.custom-callout-actions .clickable-icon {
+	padding: 2px;
+	cursor: pointer;
+	opacity: 0.5;
+	border-radius: 4px;
+}
+
+.custom-callout-actions .clickable-icon:hover {
+	opacity: 1;
+	background: var(--background-modifier-hover);
+}
+
+.custom-callout-actions .clickable-icon svg {
+	width: 14px;
+	height: 14px;
 }
 
 /* Malformed snippet warnings */
@@ -217,51 +266,8 @@
 	padding: 1px 0;
 }
 
-/* Custom callout icon preview in settings list */
-.custom-callout-preview-icon {
-	display: inline-flex;
-	width: 18px;
-	height: 18px;
-	align-items: center;
-	flex-shrink: 0;
-	margin-right: 6px;
-	vertical-align: middle;
-}
-
-.custom-callout-preview-icon svg {
-	width: 14px;
-	height: 14px;
-	color: rgb(var(--callout-color));
-}
-
-.custom-callout-preview-icon img {
-	width: 14px;
-	height: 14px;
-}
-
-/* Custom callout types list in settings (collapsible) */
-.custom-callout-types {
-	margin: 0 0 12px 5%;
-	padding: 6px 12px 6px 16px;
-	background: var(--background-secondary);
-	border-radius: 6px;
-	border-left: 3px solid var(--interactive-accent);
-}
-
-.custom-callout-types-summary {
-	cursor: pointer;
-	font-size: var(--font-ui-smaller);
-	opacity: 0.6;
-	padding: 4px 0;
-	user-select: none;
-}
-
-.custom-callout-types-summary:hover {
-	opacity: 0.9;
-}
-
-/* Compact settings inside the custom types box */
-.custom-callout-types .setting-item {
+/* Compact settings inside the icon packs box */
+.ecm-icon-packs .setting-item {
 	padding: 6px 0;
 	border-top: none;
 }
@@ -294,8 +300,8 @@
 }
 
 .ecm-tab-button.ecm-tab-active {
-	color: var(--text-normal) !important;
-	background: var(--background-modifier-hover) !important;
+	color: var(--interactive-accent) !important;
+	background: var(--background-secondary) !important;
 	border-bottom-color: var(--interactive-accent) !important;
 	font-weight: var(--font-semibold) !important;
 }

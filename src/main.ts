@@ -313,14 +313,16 @@ export default class EnhancedCalloutManager extends Plugin {
 		}
 
 		if (this.stylesheetWatcher) {
-			// Watcher is active — if snippet detection is on but the
-			// collection is empty (csscache unavailable), seed from disk
-			// so rebuildDetectedTypes() has data to work with.
-			if (det.snippet && this.calloutCollection.snippets.keys().length === 0) {
+			// Always re-seed from disk — the DOM-based watcher may not
+			// see newly enabled/disabled snippets if csscache hasn't
+			// updated yet.
+			if (det.snippet) {
 				await this.seedCollectionFromDisk();
 			}
-			// Force a full recheck; checkComplete calls rebuildDetectedTypes().
+			// Force a full recheck, then always rebuild so disk-seeded
+			// data is reflected even if the watcher detects no DOM changes.
 			await this.stylesheetWatcher.checkForChanges(true);
+			this.rebuildDetectedTypes();
 		} else if (det.snippet) {
 			// Watcher not yet started — seed collection from disk and rebuild.
 			await this.seedCollectionFromDisk();
@@ -377,7 +379,7 @@ export default class EnhancedCalloutManager extends Plugin {
 			const css = this.cssTextCache.get(`snippet:${snippetId}`) ?? "";
 
 			// Malformed warning: compare loose mentions vs parsed IDs
-			const looseCount = (css.match(/\[data-callout/g) ?? []).length;
+			const looseCount = (css.match(/\[data-callout[\^]?=/g) ?? []).length;
 			if (looseCount > ids.length) {
 				warnings.push({
 					file: `${snippetId}.css`,

@@ -433,65 +433,96 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			return;
 		}
 
-		const listEl = el.createDiv({ cls: "custom-callout-types" });
+		const detailsEl = el.createEl("details", {
+			cls: "custom-callout-types",
+		});
+		detailsEl.createEl("summary", {
+			text: `Show callouts (${customCallouts.length})`,
+			cls: "custom-callout-types-summary",
+		});
+
+		// Table header
+		const headerEl = detailsEl.createDiv({
+			cls: "custom-callout-type-row custom-callout-type-header",
+		});
+		headerEl.createSpan({ text: "Icon", cls: "detected-snippet-col-icon" });
+		headerEl.createSpan({ text: "Callout", cls: "custom-callout-col-callout" });
+		headerEl.createSpan({ text: "Icon Name", cls: "detected-snippet-col-iconname" });
+		headerEl.createSpan({ text: "Color", cls: "detected-snippet-col-color" });
+		headerEl.createSpan({ text: "", cls: "custom-callout-col-actions" });
 
 		for (const callout of customCallouts) {
-			const setting = new Setting(listEl);
+			const rowEl = detailsEl.createDiv({ cls: "custom-callout-type-row" });
 
-			// Icon preview in name area
-			const iconPreviewEl = setting.nameEl.createDiv({
-				cls: "custom-callout-preview-icon",
+			// Icon column — always show color regardless of injectColor setting
+			const iconEl = rowEl.createDiv({
+				cls: "detected-snippet-col-icon custom-callout-type-icon",
 			});
 			const iconNode = this.plugin.iconManager.getIconNode(callout.icon);
 			if (iconNode) {
-				iconPreviewEl.appendChild(iconNode);
+				iconEl.appendChild(iconNode);
 			} else {
-				setIcon(iconPreviewEl, "lucide-alert-circle");
+				setIcon(iconEl, "lucide-alert-circle");
 			}
-			if ((callout.injectColor ?? this.plugin.settings.injectColor) && callout.color) {
-				iconPreviewEl.style.setProperty("--callout-color", callout.color);
+			if (callout.color) {
+				iconEl.style.setProperty("--callout-color", callout.color);
 			}
-			setting.nameEl.createSpan({ text: callout.type });
 
-			setting
-				.addExtraButton((btn) => {
-					btn
-						.setIcon("pencil")
-						.setTooltip("Edit")
-						.onClick(() => {
-							const modal = new CalloutEditModal(
-								this.app,
-								this.plugin,
-								callout,
-							);
-							modal.onClose = async () => {
-								if (!modal.saved) return;
-								await this.plugin.editCustomCallout(callout.type, {
-									type: modal.type,
-									icon: modal.icon,
-									color: modal.color,
-									injectColor: modal.injectColor,
-								});
-								this.display();
-							};
-							modal.open();
-						});
-				})
-				.addExtraButton((btn) => {
-					btn
-						.setIcon("trash")
-						.setTooltip("Delete")
-						.onClick(async () => {
-							const confirmed = await confirmWithModal(
-								this.app,
-								`Delete custom type "${callout.type}"?`,
-							);
-							if (confirmed) {
-								await this.plugin.removeCustomCallout(callout);
-								this.display();
-							}
-						});
-				});
+			// Callout name column
+			rowEl.createSpan({ text: callout.type, cls: "custom-callout-col-callout" });
+
+			// Icon name column
+			const iconName = callout.icon?.name ?? "—";
+			rowEl.createSpan({
+				text: iconName,
+				cls: "detected-snippet-col-iconname custom-callout-type-meta",
+			});
+
+			// Color column
+			const colorText = callout.color ? `rgb(${callout.color})` : "—";
+			rowEl.createSpan({
+				text: colorText,
+				cls: "detected-snippet-col-color custom-callout-type-meta",
+			});
+
+			// Action buttons column
+			const actionsEl = rowEl.createDiv({ cls: "custom-callout-actions" });
+
+			const editBtn = actionsEl.createDiv({ cls: "clickable-icon" });
+			setIcon(editBtn, "pencil");
+			editBtn.setAttribute("aria-label", "Edit");
+			editBtn.addEventListener("click", () => {
+				const modal = new CalloutEditModal(
+					this.app,
+					this.plugin,
+					callout,
+				);
+				modal.onClose = async () => {
+					if (!modal.saved) return;
+					await this.plugin.editCustomCallout(callout.type, {
+						type: modal.type,
+						icon: modal.icon,
+						color: modal.color,
+						injectColor: modal.injectColor,
+					});
+					this.display();
+				};
+				modal.open();
+			});
+
+			const deleteBtn = actionsEl.createDiv({ cls: "clickable-icon" });
+			setIcon(deleteBtn, "trash");
+			deleteBtn.setAttribute("aria-label", "Delete");
+			deleteBtn.addEventListener("click", async () => {
+				const confirmed = await confirmWithModal(
+					this.app,
+					`Delete custom type "${callout.type}"?`,
+				);
+				if (confirmed) {
+					await this.plugin.removeCustomCallout(callout);
+					this.display();
+				}
+			});
 		}
 	}
 
@@ -660,11 +691,14 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 							}
 						}
 
+						new Notice(`Importing ${data.length} callout type${data.length === 1 ? "" : "s"}…`);
+
 						const validatorRef = {
 							customCallouts: this.plugin.settings.customCallouts,
 							iconManager: this.plugin.iconManager,
 						};
 
+						let imported = 0;
 						for (const item of data) {
 							if (typeof item !== "object") continue;
 							const result = CalloutValidator.validateImport(
@@ -683,7 +717,9 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 								}
 							}
 							await this.plugin.addCustomCallout(item);
+							imported++;
 						}
+						new Notice(`Import complete — ${imported} type${imported === 1 ? "" : "s"} added.`);
 						this.display();
 					} catch (e) {
 						new Notice("There was an error importing the file(s).");
@@ -775,46 +811,49 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 					});
 			});
 
-		for (const pack of installed) {
-			new Setting(el)
-				.setName(DownloadableIcons[pack] ?? pack)
-				.addExtraButton((b) => {
-					b.setIcon("reset")
-						.setTooltip("Redownload")
-						.onClick(async () => {
-							try {
-								await this.plugin.iconManager.removeIcon(pack);
-								await this.plugin.iconManager.downloadIcon(pack);
-							} catch (e) {
-								console.error("Enhanced Callout Manager: redownload failed", e);
-								new Notice("Could not redownload icon pack.");
-							}
-							this.display();
-						});
-				})
-				.addExtraButton((b) => {
-					b.setIcon("trash")
-						.setTooltip("Remove")
-						.onClick(async () => {
-							const usingThisPack = Object.values(
-								this.plugin.settings.customCallouts,
-							).some((cc) => cc.icon.type === pack);
-							if (usingThisPack) {
-								const ok = await confirmWithModal(
-									this.app,
-									"Some custom types use icons from this pack. Remove it anyway?",
-								);
-								if (!ok) return;
-							}
-							try {
-								await this.plugin.iconManager.removeIcon(pack);
-							} catch (e) {
-								console.error("Enhanced Callout Manager: remove failed", e);
-								new Notice("Could not remove icon pack.");
-							}
-							this.display();
-						});
-				});
+		if (installed.length > 0) {
+			const packsEl = el.createDiv({ cls: "ecm-icon-packs" });
+			for (const pack of installed) {
+				new Setting(packsEl)
+					.setName(DownloadableIcons[pack] ?? pack)
+					.addExtraButton((b) => {
+						b.setIcon("reset")
+							.setTooltip("Redownload")
+							.onClick(async () => {
+								try {
+									await this.plugin.iconManager.removeIcon(pack);
+									await this.plugin.iconManager.downloadIcon(pack);
+								} catch (e) {
+									console.error("Enhanced Callout Manager: redownload failed", e);
+									new Notice("Could not redownload icon pack.");
+								}
+								this.display();
+							});
+					})
+					.addExtraButton((b) => {
+						b.setIcon("trash")
+							.setTooltip("Remove")
+							.onClick(async () => {
+								const usingThisPack = Object.values(
+									this.plugin.settings.customCallouts,
+								).some((cc) => cc.icon.type === pack);
+								if (usingThisPack) {
+									const ok = await confirmWithModal(
+										this.app,
+										"Some custom types use icons from this pack. Remove it anyway?",
+									);
+									if (!ok) return;
+								}
+								try {
+									await this.plugin.iconManager.removeIcon(pack);
+								} catch (e) {
+									console.error("Enhanced Callout Manager: remove failed", e);
+									new Notice("Could not remove icon pack.");
+								}
+								this.display();
+							});
+					});
+			}
 		}
 	}
 
