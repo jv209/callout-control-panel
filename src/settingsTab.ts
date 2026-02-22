@@ -149,15 +149,11 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	// ── Section 1: Default Settings ─────────────────────────────────────────
 
 	private buildInsertionSection(el: HTMLElement): void {
-		const allTypes = this.allAvailableTypes();
-
 		new Setting(el)
 			.setName("Default callout type")
 			.setDesc("The callout type pre-selected when the modal opens.")
 			.addDropdown((dropdown) => {
-				for (const ct of allTypes) {
-					dropdown.addOption(ct.type, ct.label);
-				}
+				this.buildGroupedDropdown(dropdown.selectEl);
 				dropdown.setValue(this.plugin.settings.defaultCalloutType);
 				dropdown.onChange(async (value) => {
 					this.plugin.settings.defaultCalloutType = value;
@@ -421,6 +417,19 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 						};
 						modal.open();
 					});
+			})
+			.addExtraButton((btn) => {
+				btn
+					.setIcon("folder-open")
+					.setTooltip("Open snippets folder")
+					.onClick(() => {
+						const snippetsPath = `${this.app.vault.configDir}/snippets`;
+						(
+							this.app as unknown as {
+								openWithDefaultApp(path: string): void;
+							}
+						).openWithDefaultApp(snippetsPath);
+					});
 			});
 
 		const customCallouts = Object.values(this.plugin.settings.customCallouts);
@@ -433,16 +442,10 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			return;
 		}
 
-		const detailsEl = el.createEl("details", {
-			cls: "custom-callout-types",
-		});
-		detailsEl.createEl("summary", {
-			text: `Show callouts (${customCallouts.length})`,
-			cls: "custom-callout-types-summary",
-		});
+		const listEl = el.createDiv({ cls: "custom-callout-types" });
 
 		// Table header
-		const headerEl = detailsEl.createDiv({
+		const headerEl = listEl.createDiv({
 			cls: "custom-callout-type-row custom-callout-type-header",
 		});
 		headerEl.createSpan({ text: "Icon", cls: "detected-snippet-col-icon" });
@@ -452,7 +455,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		headerEl.createSpan({ text: "", cls: "custom-callout-col-actions" });
 
 		for (const callout of customCallouts) {
-			const rowEl = detailsEl.createDiv({ cls: "custom-callout-type-row" });
+			const rowEl = listEl.createDiv({ cls: "custom-callout-type-row" });
 
 			// Icon column — always show color regardless of injectColor setting
 			const iconEl = rowEl.createDiv({
@@ -533,56 +536,9 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			"Select your 5 most used callout types. You can then assign hotkeys to them.",
 		);
 
-		const customTypes = Object.values(this.plugin.settings.customCallouts).map(
-			(cc) => customCalloutToTypeInfo(cc, this.plugin.settings.injectColor),
-		);
-		const snippetTypes = this.plugin.snippetTypes;
-		const builtinTypes = BUILTIN_CALLOUT_TYPES;
-
 		for (let i = 0; i < 5; i++) {
 			new Setting(el).setName(`Favorite ${i + 1}`).addDropdown((dropdown) => {
-				const selectEl = dropdown.selectEl;
-
-				// "none" option outside any group
-				selectEl.createEl("option", { value: "", text: "— (none)" });
-
-				// Custom group
-				if (customTypes.length > 0) {
-					const customGroup = selectEl.createEl("optgroup", {
-						attr: { label: "Custom" },
-					});
-					for (const ct of customTypes) {
-						customGroup.createEl("option", {
-							value: ct.type,
-							text: ct.label,
-						});
-					}
-				}
-
-				// Snippet group
-				if (snippetTypes.length > 0) {
-					const snippetGroup = selectEl.createEl("optgroup", {
-						attr: { label: "Snippet" },
-					});
-					for (const ct of snippetTypes) {
-						snippetGroup.createEl("option", {
-							value: ct.type,
-							text: ct.label,
-						});
-					}
-				}
-
-				// Default (built-in) group
-				const builtinGroup = selectEl.createEl("optgroup", {
-					attr: { label: "Default" },
-				});
-				for (const ct of builtinTypes) {
-					builtinGroup.createEl("option", {
-						value: ct.type,
-						text: ct.label,
-					});
-				}
-
+				this.buildGroupedDropdown(dropdown.selectEl, true);
 				dropdown.setValue(this.plugin.settings.favoriteCallouts[i] ?? "");
 				dropdown.onChange(async (value) => {
 					try {
@@ -859,15 +815,48 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 
 	// ── Helpers ──────────────────────────────────────────────────────────────
 
-	/** All available types in display order: custom → snippet → built-in. */
-	private allAvailableTypes(): CalloutTypeInfo[] {
-		return [
-			...Object.values(this.plugin.settings.customCallouts).map((cc) =>
-				customCalloutToTypeInfo(cc, this.plugin.settings.injectColor),
-			),
-			...this.plugin.snippetTypes,
-			...BUILTIN_CALLOUT_TYPES,
-		];
+	/**
+	 * Populate a native <select> element with Custom / Snippet / Default
+	 * optgroups. Used by the default type dropdown and favorites.
+	 */
+	private buildGroupedDropdown(
+		selectEl: HTMLSelectElement,
+		includeNone = false,
+	): void {
+		if (includeNone) {
+			selectEl.createEl("option", { value: "", text: "— (none)" });
+		}
+
+		const customTypes = Object.values(this.plugin.settings.customCallouts).map(
+			(cc) => customCalloutToTypeInfo(cc, this.plugin.settings.injectColor),
+		);
+		const snippetTypes = this.plugin.snippetTypes;
+		const builtinTypes = BUILTIN_CALLOUT_TYPES;
+
+		if (customTypes.length > 0) {
+			const group = selectEl.createEl("optgroup", {
+				attr: { label: "Custom" },
+			});
+			for (const ct of customTypes) {
+				group.createEl("option", { value: ct.type, text: ct.label });
+			}
+		}
+
+		if (snippetTypes.length > 0) {
+			const group = selectEl.createEl("optgroup", {
+				attr: { label: "Snippet" },
+			});
+			for (const ct of snippetTypes) {
+				group.createEl("option", { value: ct.type, text: ct.label });
+			}
+		}
+
+		const defaultGroup = selectEl.createEl("optgroup", {
+			attr: { label: "Default" },
+		});
+		for (const ct of builtinTypes) {
+			defaultGroup.createEl("option", { value: ct.type, text: ct.label });
+		}
 	}
 }
 

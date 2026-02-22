@@ -514,11 +514,8 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
   }
   // ── Section 1: Default Settings ─────────────────────────────────────────
   buildInsertionSection(el) {
-    const allTypes = this.allAvailableTypes();
     new import_obsidian4.Setting(el).setName("Default callout type").setDesc("The callout type pre-selected when the modal opens.").addDropdown((dropdown) => {
-      for (const ct of allTypes) {
-        dropdown.addOption(ct.type, ct.label);
-      }
+      this.buildGroupedDropdown(dropdown.selectEl);
       dropdown.setValue(this.plugin.settings.defaultCalloutType);
       dropdown.onChange(async (value) => {
         this.plugin.settings.defaultCalloutType = value;
@@ -707,6 +704,11 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
         };
         modal.open();
       });
+    }).addExtraButton((btn) => {
+      btn.setIcon("folder-open").setTooltip("Open snippets folder").onClick(() => {
+        const snippetsPath = `${this.app.vault.configDir}/snippets`;
+        this.app.openWithDefaultApp(snippetsPath);
+      });
     });
     const customCallouts = Object.values(this.plugin.settings.customCallouts);
     if (customCallouts.length === 0) {
@@ -716,14 +718,8 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
       });
       return;
     }
-    const detailsEl = el.createEl("details", {
-      cls: "custom-callout-types"
-    });
-    detailsEl.createEl("summary", {
-      text: `Show callouts (${customCallouts.length})`,
-      cls: "custom-callout-types-summary"
-    });
-    const headerEl = detailsEl.createDiv({
+    const listEl = el.createDiv({ cls: "custom-callout-types" });
+    const headerEl = listEl.createDiv({
       cls: "custom-callout-type-row custom-callout-type-header"
     });
     headerEl.createSpan({ text: "Icon", cls: "detected-snippet-col-icon" });
@@ -732,7 +728,7 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
     headerEl.createSpan({ text: "Color", cls: "detected-snippet-col-color" });
     headerEl.createSpan({ text: "", cls: "custom-callout-col-actions" });
     for (const callout of customCallouts) {
-      const rowEl = detailsEl.createDiv({ cls: "custom-callout-type-row" });
+      const rowEl = listEl.createDiv({ cls: "custom-callout-type-row" });
       const iconEl = rowEl.createDiv({
         cls: "detected-snippet-col-icon custom-callout-type-icon"
       });
@@ -798,47 +794,10 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
     new import_obsidian4.Setting(el).setDesc(
       "Select your 5 most used callout types. You can then assign hotkeys to them."
     );
-    const customTypes = Object.values(this.plugin.settings.customCallouts).map(
-      (cc) => customCalloutToTypeInfo(cc, this.plugin.settings.injectColor)
-    );
-    const snippetTypes = this.plugin.snippetTypes;
-    const builtinTypes = BUILTIN_CALLOUT_TYPES;
     for (let i = 0; i < 5; i++) {
       new import_obsidian4.Setting(el).setName(`Favorite ${i + 1}`).addDropdown((dropdown) => {
         var _a;
-        const selectEl = dropdown.selectEl;
-        selectEl.createEl("option", { value: "", text: "\u2014 (none)" });
-        if (customTypes.length > 0) {
-          const customGroup = selectEl.createEl("optgroup", {
-            attr: { label: "Custom" }
-          });
-          for (const ct of customTypes) {
-            customGroup.createEl("option", {
-              value: ct.type,
-              text: ct.label
-            });
-          }
-        }
-        if (snippetTypes.length > 0) {
-          const snippetGroup = selectEl.createEl("optgroup", {
-            attr: { label: "Snippet" }
-          });
-          for (const ct of snippetTypes) {
-            snippetGroup.createEl("option", {
-              value: ct.type,
-              text: ct.label
-            });
-          }
-        }
-        const builtinGroup = selectEl.createEl("optgroup", {
-          attr: { label: "Default" }
-        });
-        for (const ct of builtinTypes) {
-          builtinGroup.createEl("option", {
-            value: ct.type,
-            text: ct.label
-          });
-        }
+        this.buildGroupedDropdown(dropdown.selectEl, true);
         dropdown.setValue((_a = this.plugin.settings.favoriteCallouts[i]) != null ? _a : "");
         dropdown.onChange(async (value) => {
           try {
@@ -1050,15 +1009,41 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
     }
   }
   // ── Helpers ──────────────────────────────────────────────────────────────
-  /** All available types in display order: custom → snippet → built-in. */
-  allAvailableTypes() {
-    return [
-      ...Object.values(this.plugin.settings.customCallouts).map(
-        (cc) => customCalloutToTypeInfo(cc, this.plugin.settings.injectColor)
-      ),
-      ...this.plugin.snippetTypes,
-      ...BUILTIN_CALLOUT_TYPES
-    ];
+  /**
+   * Populate a native <select> element with Custom / Snippet / Default
+   * optgroups. Used by the default type dropdown and favorites.
+   */
+  buildGroupedDropdown(selectEl, includeNone = false) {
+    if (includeNone) {
+      selectEl.createEl("option", { value: "", text: "\u2014 (none)" });
+    }
+    const customTypes = Object.values(this.plugin.settings.customCallouts).map(
+      (cc) => customCalloutToTypeInfo(cc, this.plugin.settings.injectColor)
+    );
+    const snippetTypes = this.plugin.snippetTypes;
+    const builtinTypes = BUILTIN_CALLOUT_TYPES;
+    if (customTypes.length > 0) {
+      const group = selectEl.createEl("optgroup", {
+        attr: { label: "Custom" }
+      });
+      for (const ct of customTypes) {
+        group.createEl("option", { value: ct.type, text: ct.label });
+      }
+    }
+    if (snippetTypes.length > 0) {
+      const group = selectEl.createEl("optgroup", {
+        attr: { label: "Snippet" }
+      });
+      for (const ct of snippetTypes) {
+        group.createEl("option", { value: ct.type, text: ct.label });
+      }
+    }
+    const defaultGroup = selectEl.createEl("optgroup", {
+      attr: { label: "Default" }
+    });
+    for (const ct of builtinTypes) {
+      defaultGroup.createEl("option", { value: ct.type, text: ct.label });
+    }
   }
 };
 var CalloutEditModal = class _CalloutEditModal extends import_obsidian4.Modal {
@@ -19675,11 +19660,12 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
       if (snippetId === "enhanced-callout-manager") continue;
       const ids = (_c = this.calloutCollection.snippets.get(snippetId)) != null ? _c : [];
       const css2 = (_d = this.cssTextCache.get(`snippet:${snippetId}`)) != null ? _d : "";
+      const rawParsedCount = getCalloutsFromCSS(css2).length;
       const looseCount = ((_e = css2.match(/\[data-callout[\^]?=/g)) != null ? _e : []).length;
-      if (looseCount > ids.length) {
+      if (looseCount > rawParsedCount) {
         warnings.push({
           file: `${snippetId}.css`,
-          malformedCount: looseCount - ids.length
+          malformedCount: looseCount - rawParsedCount
         });
       }
       for (const id of ids) {

@@ -378,12 +378,15 @@ export default class EnhancedCalloutManager extends Plugin {
 			const ids = this.calloutCollection.snippets.get(snippetId) ?? [];
 			const css = this.cssTextCache.get(`snippet:${snippetId}`) ?? "";
 
-			// Malformed warning: compare loose mentions vs parsed IDs
+			// Malformed warning: compare loose mentions vs raw parser output.
+			// Use getCalloutsFromCSS (raw, with duplicates) instead of the
+			// collection's ids (which are stored in a Set and deduplicated).
+			const rawParsedCount = getCalloutsFromCSS(css).length;
 			const looseCount = (css.match(/\[data-callout[\^]?=/g) ?? []).length;
-			if (looseCount > ids.length) {
+			if (looseCount > rawParsedCount) {
 				warnings.push({
 					file: `${snippetId}.css`,
-					malformedCount: looseCount - ids.length,
+					malformedCount: looseCount - rawParsedCount,
 				});
 			}
 
