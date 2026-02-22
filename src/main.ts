@@ -201,6 +201,24 @@ export default class EnhancedCalloutManager extends Plugin {
 				if (this.settings.enableDropShadow) {
 					callout.addClass("ecm-drop-shadow");
 				}
+
+				// 5.4 — Custom title injection
+				const overrides = this.settings.titleOverrides;
+				if (overrides && Object.keys(overrides).length > 0) {
+					const type = callout.getAttribute("data-callout")?.toLowerCase();
+					if (type && overrides[type]) {
+						const titleInner = callout.querySelector<HTMLElement>(".callout-title-inner");
+						if (titleInner) {
+							// Only override default titles (auto-generated from the type name),
+							// not titles the user explicitly wrote in markdown.
+							const current = (titleInner.textContent ?? "").trim().toLowerCase().replace(/[\s\-_]/g, "");
+							const typeNorm = type.replace(/[\s\-_]/g, "");
+							if (current === typeNorm) {
+								titleInner.textContent = overrides[type];
+							}
+						}
+					}
+				}
 			}
 		});
 
@@ -300,6 +318,13 @@ export default class EnhancedCalloutManager extends Plugin {
 			Array.isArray(this.settings.customCallouts)
 		) {
 			this.settings.customCallouts = {};
+		}
+		if (
+			this.settings.titleOverrides == null ||
+			typeof this.settings.titleOverrides !== "object" ||
+			Array.isArray(this.settings.titleOverrides)
+		) {
+			this.settings.titleOverrides = {};
 		}
 
 		// Deep-merge calloutDetection so a partial or missing object
