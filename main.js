@@ -144,7 +144,10 @@ var DEFAULT_SETTINGS = {
   useFontAwesome: true,
   customCallouts: {},
   injectColor: true,
-  favoriteCallouts: []
+  favoriteCallouts: [],
+  smoothTransitions: true,
+  showCopyButton: false,
+  enableDropShadow: false
 };
 var BUILTIN_CALLOUT_TYPES = [
   { type: "note", label: "Note", icon: "lucide-pencil", color: "var(--callout-default)", source: "builtin", aliases: [] },
@@ -542,6 +545,33 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
       t2.setValue(this.plugin.settings.injectColor);
       t2.onChange(async (v) => {
         this.plugin.settings.injectColor = v;
+        await this.plugin.saveSettings();
+      });
+    });
+    new import_obsidian4.Setting(el).setName("Smooth collapse transitions").setDesc(
+      "Animate the expand and collapse of foldable callouts with a smooth transition."
+    ).addToggle((t2) => {
+      t2.setValue(this.plugin.settings.smoothTransitions);
+      t2.onChange(async (v) => {
+        this.plugin.settings.smoothTransitions = v;
+        await this.plugin.saveSettings();
+      });
+    });
+    new import_obsidian4.Setting(el).setName("Copy button").setDesc(
+      "Show a copy-to-clipboard button in each callout's title bar."
+    ).addToggle((t2) => {
+      t2.setValue(this.plugin.settings.showCopyButton);
+      t2.onChange(async (v) => {
+        this.plugin.settings.showCopyButton = v;
+        await this.plugin.saveSettings();
+      });
+    });
+    new import_obsidian4.Setting(el).setName("Drop shadow").setDesc(
+      "Apply a subtle shadow to rendered callouts for added depth."
+    ).addToggle((t2) => {
+      t2.setValue(this.plugin.settings.enableDropShadow);
+      t2.onChange(async (v) => {
+        this.plugin.settings.enableDropShadow = v;
         await this.plugin.saveSettings();
       });
     });
@@ -19510,6 +19540,36 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
       });
     }
     this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
+    this.registerMarkdownPostProcessor((el) => {
+      const callouts = el.querySelectorAll(".callout");
+      if (callouts.length === 0) return;
+      for (const callout of Array.from(callouts)) {
+        if (this.settings.smoothTransitions) {
+          callout.addClass("ecm-smooth-transition");
+        }
+        if (this.settings.showCopyButton) {
+          const titleEl = callout.querySelector(".callout-title");
+          if (titleEl && !titleEl.querySelector(".ecm-copy-button")) {
+            const btn = titleEl.createDiv({ cls: "ecm-copy-button" });
+            (0, import_obsidian10.setIcon)(btn, "copy");
+            btn.setAttribute("aria-label", "Copy callout text");
+            btn.addEventListener("click", (e) => {
+              var _a;
+              e.stopPropagation();
+              const contentEl = callout.querySelector(".callout-content");
+              const text2 = (_a = contentEl == null ? void 0 : contentEl.innerText) != null ? _a : "";
+              navigator.clipboard.writeText(text2).then(
+                () => new import_obsidian10.Notice("Copied to clipboard."),
+                () => new import_obsidian10.Notice("Could not copy to clipboard.")
+              );
+            });
+          }
+        }
+        if (this.settings.enableDropShadow) {
+          callout.addClass("ecm-drop-shadow");
+        }
+      }
+    });
     this.app.workspace.onLayoutReady(async () => {
       await this.iconManager.load();
       await this.calloutManager.loadCallouts(this.settings.customCallouts);

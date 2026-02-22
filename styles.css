@@ -309,3 +309,61 @@
 .ecm-tab-pane {
 	padding-top: 4px;
 }
+
+/* ─── 5.1 Smooth collapse/expand transitions ──────────────────────────── */
+
+.ecm-smooth-transition > .callout-content {
+	transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+	overflow: hidden;
+}
+
+.ecm-smooth-transition.is-collapsed > .callout-content {
+	max-height: 0 !important;
+	opacity: 0;
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+.ecm-smooth-transition:not(.is-collapsed) > .callout-content {
+	max-height: 2000px;
+	opacity: 1;
+}
+
+/* ─── 5.2 Copy-to-clipboard button ────────────────────────────────────── */
+
+.ecm-copy-button {
+	display: flex;
+	align-items: center;
+	margin-left: auto;
+	padding: 2px;
+	cursor: pointer;
+	opacity: 0;
+	border-radius: 4px;
+	transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+/* Show on callout hover */
+.callout:hover .ecm-copy-button {
+	opacity: 0.5;
+}
+
+.ecm-copy-button:hover {
+	opacity: 1 !important;
+	background: var(--background-modifier-hover);
+}
+
+.ecm-copy-button svg {
+	width: 14px;
+	height: 14px;
+	color: var(--text-muted);
+}
+
+/* ─── 5.3 Drop shadow ─────────────────────────────────────────────────── */
+
+.ecm-drop-shadow {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.theme-dark .ecm-drop-shadow {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.15);
+}

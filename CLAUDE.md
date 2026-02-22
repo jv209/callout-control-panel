@@ -55,8 +55,9 @@ After every completed task, provide the following four items:
 | v0.6.7 | Settings UI polish and snippet lifecycle | 2026-02-21 |
 | v0.6.8 | Detection fix and settings refinements | 2026-02-22 |
 | v0.6.9 | Stale snippet data on refresh | 2026-02-22 |
+| v0.7.0 | Post-processing enhancements | 2026-02-22 |
 
-**Next version: v0.6.10**
+**Next version: v0.7.1**
 
 ## Post-Phase 3 compliance review
 
