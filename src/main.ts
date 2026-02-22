@@ -335,11 +335,19 @@ export default class EnhancedCalloutManager extends Plugin {
 
 	/**
 	 * Seed the callout collection and cssTextCache from a disk-based
-	 * snippet scan. Used when app.customCss.csscache is unavailable
-	 * so the stylesheet watcher cannot find snippet stylesheets.
+	 * snippet scan. Clears stale snippet data first so that snippets
+	 * disabled in Obsidian's Appearance settings are removed.
 	 */
 	private async seedCollectionFromDisk(): Promise<void> {
 		const result = await parseSnippetCalloutTypes(this.app);
+
+		// Clear all existing snippet data — only currently-enabled
+		// snippets should remain after a refresh.
+		this.calloutCollection.snippets.clear();
+		for (const key of Array.from(this.cssTextCache.keys())) {
+			if (key.startsWith("snippet:")) this.cssTextCache.delete(key);
+		}
+
 		for (const [snippetName, { ids, css }] of result.snippetMap) {
 			this.cssTextCache.set(`snippet:${snippetName}`, css);
 			this.calloutCollection.snippets.set(snippetName, ids);
