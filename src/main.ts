@@ -1,4 +1,4 @@
-import { Plugin, getIcon } from "obsidian";
+import { Plugin, Notice, getIcon, setIcon } from "obsidian";
 import {
 	type CalloutTypeInfo,
 	type CustomCallout,
@@ -166,6 +166,43 @@ export default class EnhancedCalloutManager extends Plugin {
 		}
 
 		this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
+
+		// ── Post-processor: callout enhancements ────────────────────
+		this.registerMarkdownPostProcessor((el) => {
+			const callouts = el.querySelectorAll<HTMLElement>(".callout");
+			if (callouts.length === 0) return;
+
+			for (const callout of Array.from(callouts)) {
+				// 5.1 — Smooth collapse/expand transitions
+				if (this.settings.smoothTransitions) {
+					callout.addClass("ecm-smooth-transition");
+				}
+
+				// 5.2 — Copy-to-clipboard button
+				if (this.settings.showCopyButton) {
+					const titleEl = callout.querySelector<HTMLElement>(".callout-title");
+					if (titleEl && !titleEl.querySelector(".ecm-copy-button")) {
+						const btn = titleEl.createDiv({ cls: "ecm-copy-button" });
+						setIcon(btn, "copy");
+						btn.setAttribute("aria-label", "Copy callout text");
+						btn.addEventListener("click", (e) => {
+							e.stopPropagation();
+							const contentEl = callout.querySelector<HTMLElement>(".callout-content");
+							const text = contentEl?.innerText ?? "";
+							navigator.clipboard.writeText(text).then(
+								() => new Notice("Copied to clipboard."),
+								() => new Notice("Could not copy to clipboard."),
+							);
+						});
+					}
+				}
+
+				// 5.3 — Drop shadow
+				if (this.settings.enableDropShadow) {
+					callout.addClass("ecm-drop-shadow");
+				}
+			}
+		});
 
 		// Load icon packs, inject custom callout CSS, run initial scan,
 		// and start live CSS monitoring once the workspace is ready.
