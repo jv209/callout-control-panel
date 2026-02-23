@@ -1,4 +1,4 @@
-# Enhanced Callout Manager
+# Callout Control Panel
 
 An Obsidian plugin that unifies callout insertion, detection, and management into a single tool.
 
@@ -6,7 +6,7 @@ An Obsidian plugin that unifies callout insertion, detection, and management int
 
 ## What it does
 
-Enhanced Callout Manager gives you one hotkey to insert any callout — built-in, theme-defined, snippet-defined, or custom types you've created yourself — through a single modal dialog.
+Callout Control Panel gives you one hotkey to insert any callout — built-in, theme-defined, snippet-defined, or custom types you've created yourself — through a single modal dialog.
 
 ### Features
 
@@ -36,7 +36,7 @@ Enhanced Callout Manager gives you one hotkey to insert any callout — built-in
 ### Manual installation
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release
-2. Create a folder called `enhanced-callout-manager` in your vault's `.obsidian/plugins/` directory
+2. Create a folder called `callout-control-panel` in your vault's `.obsidian/plugins/` directory
 3. Copy the downloaded files into that folder
 4. Reload Obsidian
 5. Enable the plugin in **Settings > Community plugins**
@@ -44,7 +44,7 @@ Enhanced Callout Manager gives you one hotkey to insert any callout — built-in
 <!-- ### From the community plugin directory
 
 1. Open **Settings > Community plugins**
-2. Select **Browse** and search for "Enhanced Callout Manager"
+2. Select **Browse** and search for "Callout Control Panel"
 3. Select **Install**, then **Enable** -->
 
 ## Usage
@@ -71,7 +71,7 @@ The plugin inserts standard Obsidian callout syntax:
 
 ### Creating a custom callout type
 
-1. Open **Settings > Enhanced Callout Manager**
+1. Open **Settings > Callout Control Panel**
 2. Under **Custom types**, select **Add new**
 3. Enter a type name, choose an icon and color
 4. Select **Save**
@@ -124,6 +124,18 @@ The plugin couldn't find a `--callout-icon` declaration in your CSS block, or th
 
 The plugin couldn't parse a `--callout-color` value from your CSS block. A warning triangle will appear next to the callout in the settings panel. The color must be an RGB tuple of three numbers — for example, `--callout-color: 68, 138, 255;`. Hex values (`#44a8ff`), `rgb()` wrappers, and CSS color names (`red`) are not supported by Obsidian's callout color system.
 
+## Network connections
+
+This plugin makes outbound network requests in one scenario only:
+
+**Downloading optional icon packs** (Icon Packs tab in settings)
+
+When you choose to download an additional icon pack (e.g. Octicons, RPG Awesome), the plugin fetches a JSON file from `raw.githubusercontent.com`. No request is made until you explicitly click the download button. Icon pack data is saved to your vault and used locally afterward — no further network access occurs.
+
+Font Awesome icons are bundled with the plugin and require no network access.
+
+No analytics, telemetry, or other data is ever collected or transmitted.
+
 ## Attribution
 
 This plugin incorporates code from three open-source Obsidian plugins, all licensed under MIT:
@@ -170,7 +182,7 @@ npm run lint
 Copy `main.js`, `manifest.json`, and `styles.css` to your vault:
 
 ```
-<Vault>/.obsidian/plugins/enhanced-callout-manager/
+<Vault>/.obsidian/plugins/callout-control-panel/
 ```
 
 Reload Obsidian and enable the plugin in **Settings > Community plugins**.

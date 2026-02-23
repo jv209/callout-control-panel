@@ -5,11 +5,11 @@
  * Attribution: Adapted from the Editing Toolbar plugin by Cuman
  * (https://github.com/cumany/obsidian-editing-toolbar), licensed under MIT.
  *
- * Looks for patterns like:
- *   .callout[data-callout="typename"] {
- *       --callout-color: R, G, B;
- *       --callout-icon: lucide-icon-name;
- *   }
+ * Uses the robust CSS parser from obsidian-callout-manager (eth-p, MIT)
+ * for callout ID extraction. Supports all attribute selector forms:
+ *   [data-callout="typename"]  — exact match (quoted or unquoted)
+ *   [data-callout^="typename"] — starts-with match
+ *   Complex selectors like div:is([data-callout=foo])
  *
  * When a callout type appears multiple times (e.g. light/dark theme
  * variants), only the first occurrence is kept. Accurate theme-aware
@@ -19,6 +19,7 @@
 import type { App } from "obsidian";
 import type { CalloutTypeInfo } from "./types";
 import { BUILTIN_CALLOUT_TYPES } from "./types";
+import { getCalloutsFromCSS } from "./callout-detection";
 
 /** Warning about a snippet file that contains malformed callout definitions. */
 export interface SnippetWarning {
@@ -32,6 +33,12 @@ export interface SnippetWarning {
 export interface SnippetParseResult {
 	types: CalloutTypeInfo[];
 	warnings: SnippetWarning[];
+	/**
+	 * Per-snippet data: maps snippet name → { ids, css }.
+	 * Used to seed the callout collection and cssTextCache when the
+	 * stylesheet watcher cannot access app.customCss.csscache.
+	 */
+	snippetMap: Map<string, { ids: string[]; css: string }>;
 }
 
 /** Shape returned by the undocumented vault adapter list() method. */
@@ -56,6 +63,7 @@ interface CustomCss {
 export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseResult> {
 	const results: CalloutTypeInfo[] = [];
 	const warnings: SnippetWarning[] = [];
+	const snippetMap = new Map<string, { ids: string[]; css: string }>();
 
 	// Build a set of built-in type names (including aliases) for filtering
 	const builtinNames = new Set<string>();
@@ -68,9 +76,18 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 		}
 	}
 
-	// Get enabled snippets from Obsidian's undocumented API
-	const customCss = (app as unknown as { customCss: CustomCss }).customCss;
-	const enabledSnippets = customCss.enabledSnippets;
+	// Get enabled snippets from Obsidian's undocumented API.
+	// Guarded: if the API shape changes, we return empty results gracefully.
+	let enabledSnippets: Set<string>;
+	try {
+		const customCss = (app as unknown as { customCss: CustomCss }).customCss;
+		enabledSnippets = customCss.enabledSnippets;
+		if (!(enabledSnippets instanceof Set)) {
+			return { types: results, warnings, snippetMap };
+		}
+	} catch {
+		return { types: results, warnings, snippetMap };
+	}
 
 	const snippetsDir = `${app.vault.configDir}/snippets`;
 
@@ -82,14 +99,19 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 		listing = await adapter.list(snippetsDir);
 	} catch {
 		// Snippets directory doesn't exist or can't be read
-		return { types: results, warnings };
+		return { types: results, warnings, snippetMap };
 	}
+
+	// Skip the plugin's own generated snippet to avoid circular detection
+	// (custom types written to this file would otherwise appear as snippet types).
+	const PLUGIN_SNIPPET_NAME = "callout-control-panel";
 
 	const cssFiles = listing.files.filter((f) => {
 		if (!f.endsWith(".css")) return false;
 		// Extract snippet name (filename without .css extension)
 		const fileName = f.split("/").pop() ?? "";
 		const snippetName = fileName.replace(/\.css$/, "");
+		if (snippetName === PLUGIN_SNIPPET_NAME) return false;
 		return enabledSnippets.has(snippetName);
 	});
 
@@ -101,72 +123,71 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 			continue;
 		}
 
-		// Count loose mentions of callout definitions (may include malformed ones)
-		const looseMatches = css.match(/\.callout\[data-callout/g);
+		// Use the robust parser to discover callout IDs, then extract
+		// properties (color, icon) from the CSS blocks.
+		const discoveredIds = getCalloutsFromCSS(css);
+
+		// Store per-snippet data so the caller can seed the callout
+		// collection and cssTextCache (used when csscache is unavailable).
+		const snippetName = filePath.split("/").pop()?.replace(/\.css$/, "") ?? "";
+		if (snippetName) {
+			snippetMap.set(snippetName, { ids: discoveredIds, css });
+		}
+
+		// Count loose mentions that look like callout definitions.
+		// The robust parser handles more patterns (unquoted, complex selectors)
+		// than this heuristic, so malformed warnings only fire when something
+		// looks clearly intended as a callout def but wasn't parseable.
+		const looseMatches = css.match(/\[data-callout[\^]?=/g);
 		const potentialCount = looseMatches ? looseMatches.length : 0;
 
-		// Count how many the strict regex actually parses
-		const strictParsed = extractCalloutTypes(css, results, builtinNames);
+		const parsedCount = collectCalloutTypes(
+			css, discoveredIds, results, builtinNames,
+		);
 
-		// If strict parsed fewer than potential, some entries are malformed
-		const malformedCount = potentialCount - strictParsed;
+		// If the loose heuristic found more data-callout mentions than the
+		// robust parser extracted, some entries may be malformed.
+		const malformedCount = potentialCount - parsedCount;
 		if (malformedCount > 0) {
 			const fileName = filePath.split("/").pop() ?? filePath;
 			warnings.push({ file: fileName, malformedCount });
 		}
 	}
 
-	return { types: results, warnings };
+	return { types: results, warnings, snippetMap };
 }
 
 /**
- * Extract callout type definitions from a CSS string.
+ * For each callout ID discovered by the robust parser, extract CSS
+ * properties (color, icon) from the stylesheet and add to results.
  *
- * Matches: .callout[data-callout="typename"] (with optional ancestor
- * selectors like .theme-light or .theme-dark before it).
- *
- * Then looks for --callout-color and --callout-icon within the block.
  * Deduplicates by type name — when a type has both light and dark
  * variants, only the first encountered definition is kept.
+ *
+ * @returns The total number of selector occurrences found (before dedup),
+ *          used for the malformed-count comparison.
  */
-function extractCalloutTypes(
+function collectCalloutTypes(
 	css: string,
+	discoveredIds: string[],
 	results: CalloutTypeInfo[],
 	builtinNames: Set<string>,
 ): number {
-	// Match .callout[data-callout="..."] followed by its { ... } block.
-	// The regex doesn't anchor to line start, so it handles ancestor
-	// selectors like ".theme-light .callout[...]" naturally.
-	const blockRegex = /\.callout\[data-callout=["']([^"']+)["']\]\s*\{([^}]*)}/g;
-	let match: RegExpExecArray | null;
-	let strictCount = 0;
+	const seenInFile = new Set<string>();
 
-	while ((match = blockRegex.exec(css)) !== null) {
-		strictCount++;
-		const typeName = match[1];
-		const block = match[2];
-
-		// Skip if not captured
-		if (!typeName || !block) continue;
+	for (const typeName of discoveredIds) {
+		// Skip duplicates within this file (light/dark variants)
+		if (seenInFile.has(typeName)) continue;
+		seenInFile.add(typeName);
 
 		// Skip built-in types and aliases
 		if (builtinNames.has(typeName)) continue;
 
-		// Skip if we already have this type (dedup light/dark variants)
+		// Skip if already collected from a previous file
 		if (results.some((r) => r.type === typeName)) continue;
 
-		// Extract --callout-color: R, G, B
-		// Store as raw RGB tuple (e.g. "68, 138, 255") without rgb() wrapper,
-		// matching how built-in colors work with the CSS pattern rgb(var(--callout-color)).
-		const colorMatch = block.match(/--callout-color:\s*([\d\s,]+)/);
-		const color = colorMatch && colorMatch[1]
-			? colorMatch[1].trim()
-			: "var(--callout-default)";
-
-		// Extract --callout-icon: icon-name
-		const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
-		const icon = iconMatch && iconMatch[1] ? iconMatch[1] : "lucide-box";
-		const iconDefault = !(iconMatch && iconMatch[1]);
+		// Extract color and icon from the first rule block referencing this ID
+		const props = extractCalloutProperties(css, typeName);
 
 		// Title-case the type name for the display label
 		const label = typeName
@@ -176,12 +197,56 @@ function extractCalloutTypes(
 		results.push({
 			type: typeName,
 			label,
-			icon,
-			color,
+			icon: props.icon,
+			color: props.color,
 			source: "snippet",
-			iconDefault,
+			iconDefault: props.iconDefault,
 		});
 	}
 
-	return strictCount;
+	return discoveredIds.length;
+}
+
+/**
+ * Extract --callout-color and --callout-icon from the first CSS rule
+ * block that references the given callout ID.
+ *
+ * Searches for any `[data-callout="id"]` (or unquoted / starts-with)
+ * followed by a `{ ... }` block, then pulls the custom properties.
+ */
+export function extractCalloutProperties(
+	css: string,
+	calloutId: string,
+): { color: string; icon: string; iconDefault: boolean } {
+	// Escape the callout ID for regex use
+	const escaped = calloutId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+	// Match any rule block whose selector references this callout ID.
+	// Handles quoted, unquoted, and starts-with selectors.
+	const blockRegex = new RegExp(
+		`\\[data-callout(?:\\^)?=["']?${escaped}["']?\\][^{]*\\{([^}]*)\\}`,
+		"gi",
+	);
+
+	const match = blockRegex.exec(css);
+	if (!match?.[1]) {
+		return { color: "var(--callout-default)", icon: "lucide-box", iconDefault: true };
+	}
+
+	const block = match[1];
+
+	// Extract --callout-color: R, G, B
+	// Store as raw RGB tuple (e.g. "68, 138, 255") without rgb() wrapper,
+	// matching how built-in colors work with the CSS pattern rgb(var(--callout-color)).
+	const colorMatch = block.match(/--callout-color:\s*([\d\s,]+)/);
+	const color = colorMatch?.[1]
+		? colorMatch[1].trim()
+		: "var(--callout-default)";
+
+	// Extract --callout-icon: icon-name
+	const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
+	const icon = iconMatch?.[1] ? iconMatch[1] : "lucide-box";
+	const iconDefault = !iconMatch?.[1];
+
+	return { color, icon, iconDefault };
 }
