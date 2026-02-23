@@ -28,7 +28,7 @@ export class ExportModal extends Modal {
 	}
 
 	onOpen() {
-		this.titleEl.setText("Export Callout Types");
+		this.titleEl.setText("Export callout types");
 		this.containerEl.addClasses([
 			"callout-export-modal",
 		]);
