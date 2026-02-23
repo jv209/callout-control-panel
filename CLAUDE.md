@@ -59,15 +59,56 @@ After every completed task, provide the following four items:
 | v0.7.1 | Custom title injection | 2026-02-22 |
 | v0.7.2 | Settings overhaul and collapse defaults | 2026-02-23 |
 | v0.7.3 | Remove smooth transitions | 2026-02-23 |
+| v0.7.4 | Compliance fixes and modular settings | 2026-02-23 |
 
-**Next version: v0.7.4**
+**Next version: v0.7.5**
 
 ## Post-Phase 3 compliance review
 
 Audit against official Obsidian developer guidelines (docs.obsidian.md/Plugins/Releasing/Plugin+guidelines, Submission+requirements, Developer+policies). Address these before community submission:
 
-1. **`outerHTML` read** (medium) — `callout/manager.ts:100` uses `.outerHTML` as a getter to serialize SVG into CSS. Reviewers flag any use of `innerHTML`/`outerHTML`/`insertAdjacentHTML`. Inherited from obsidian-admonition; defensible but will draw a comment.
+1. ~~**`outerHTML` read**~~ **FIXED v0.7.4** — replaced with `new XMLSerializer().serializeToString(node)` with explanatory comment.
 2. **Inline `style.setProperty`** (low) — 3 files set `--callout-color` via inline style. This is how Obsidian's own callout coloring works, so it's idiomatically correct, but guideline 25 says prefer CSS classes/variables.
-3. **Title case in modals** (low) — `export.ts:31` uses "Export Callout Types"; should be "Export callout types" per sentence case guideline. Check all modal titles.
-4. **`manifest.json` version mismatch** (high) — manifest says v0.4.4, but latest tracked version is v0.5.7. Must be synced before release.
-5. **Network access disclosure** (medium) — `IconManager` downloads icon packs from `raw.githubusercontent.com` via `requestUrl()`. Developer policy requires README to disclose all network connections with justification.
+3. ~~**Title case in modals**~~ **FIXED v0.7.4** — `export.ts` now says "Export callout types". All other `titleEl.setText` calls already used sentence case.
+4. **`manifest.json` version mismatch** (high) — manifest version must be synced to the latest released version before community submission.
+5. ~~**Network access disclosure**~~ **FIXED v0.7.4** — README now has a "Network connections" section disclosing `raw.githubusercontent.com` access, trigger conditions, and data handling.
+
+## Monetization decision
+
+**Verdict: Release free via the community plugin directory. Use voluntary sponsorship, not feature gating.**
+
+Obsidian's community plugin policy requires all listed plugins to be free and open-source. A "Basic vs Pro" split would require distributing outside the community store (e.g. Gumroad, custom BRAT), which cuts off the primary discovery channel and undermines the reputation built by a first plugin.
+
+The three core workflows (insert, detect, manage) should always be free. Revenue options that are compatible with community listing:
+
+- **GitHub Sponsors** — added to README and repository profile
+- **Ko-fi / Buy Me a Coffee** — mentioned in README and release notes
+- **Open Collective** — if the project grows to warrant a team
+
+Do not gate features. Build reputation first, monetize second.
+
+## Marketing plan (pre and post community release)
+
+### Before submitting to the community directory
+
+- [ ] Record a short demo video (2–3 min): show insert modal, quick pick, custom type creation, title overrides
+- [ ] Write a release announcement post for r/ObsidianMD
+- [ ] Write a post for the Obsidian community forum (forum.obsidian.md) in the "Share & Showcase" category
+- [ ] Prepare a short written tutorial: "How to manage callouts in Obsidian with Enhanced Callout Manager" — suitable for a blog post or the forum
+
+### At release
+
+- [ ] Publish the GitHub repository publicly
+- [ ] Submit to the Obsidian community plugin directory (PR to obsidianmd/obsidian-releases)
+- [ ] Post the forum announcement
+- [ ] Post to r/ObsidianMD
+- [ ] Tweet / post on social media with a link to the forum post and demo video
+- [ ] Add GitHub Sponsors / Ko-fi link to README
+
+### After acceptance
+
+- [ ] Post in the Obsidian Discord #share-showcase channel
+- [ ] Reach out to 1–2 Obsidian-focused YouTube creators (e.g. Nicole van der Hoeven, Linking Your Thinking) about coverage
+- [ ] Write the full written tutorial and publish it (personal blog, Medium, or Substack)
+- [ ] Record the video tutorial once the UI is stable — link from README and forum post
+- [ ] Monitor the GitHub issues and the forum thread; respond to all bug reports within 48h to build credibility

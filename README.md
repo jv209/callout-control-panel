@@ -124,6 +124,18 @@ The plugin couldn't find a `--callout-icon` declaration in your CSS block, or th
 
 The plugin couldn't parse a `--callout-color` value from your CSS block. A warning triangle will appear next to the callout in the settings panel. The color must be an RGB tuple of three numbers — for example, `--callout-color: 68, 138, 255;`. Hex values (`#44a8ff`), `rgb()` wrappers, and CSS color names (`red`) are not supported by Obsidian's callout color system.
 
+## Network connections
+
+This plugin makes outbound network requests in one scenario only:
+
+**Downloading optional icon packs** (Icon Packs tab in settings)
+
+When you choose to download an additional icon pack (e.g. Octicons, RPG Awesome), the plugin fetches a JSON file from `raw.githubusercontent.com`. No request is made until you explicitly click the download button. Icon pack data is saved to your vault and used locally afterward — no further network access occurs.
+
+Font Awesome icons are bundled with the plugin and require no network access.
+
+No analytics, telemetry, or other data is ever collected or transmitted.
+
 ## Attribution
 
 This plugin incorporates code from three open-source Obsidian plugins, all licensed under MIT:

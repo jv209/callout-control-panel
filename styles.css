@@ -385,16 +385,14 @@
 	padding-bottom: 14px;
 }
 
-/* ─── 5.2 Copy-to-clipboard button (bottom-right of content) ─────────── */
-
-.ecm-copy-content {
-	position: relative;
-}
+/* ─── 5.2 Copy-to-clipboard button (bottom-right of callout) ─────────── */
+/* Button is appended directly to .callout, which already carries
+   position:relative in Obsidian's own stylesheet. No wrapper needed. */
 
 .ecm-copy-button {
 	position: absolute;
-	right: 4px;
-	bottom: 4px;
+	right: 8px;
+	bottom: 8px;
 	display: flex;
 	align-items: center;
 	padding: 4px;

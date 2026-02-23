@@ -174,17 +174,20 @@ export default class EnhancedCalloutManager extends Plugin {
 			if (callouts.length === 0) return;
 
 			for (const callout of Array.from(callouts)) {
-				// 5.2 — Copy-to-clipboard button (bottom-right of callout body)
+				// 5.2 — Copy-to-clipboard button (bottom-right of callout)
+				// The button is appended to .callout (not .callout-content) so that
+				// Obsidian's own `position: relative` on .callout acts as the
+				// containing block. This avoids theme conflicts that arise when we
+				// add position:relative to .callout-content ourselves.
 				if (this.settings.showCopyButton) {
-					const contentEl = callout.querySelector<HTMLElement>(".callout-content");
-					if (contentEl && !contentEl.querySelector(".ecm-copy-button")) {
-						contentEl.addClass("ecm-copy-content");
-						const btn = contentEl.createDiv({ cls: "ecm-copy-button" });
+					if (!callout.querySelector(".ecm-copy-button")) {
+						const contentEl = callout.querySelector<HTMLElement>(".callout-content");
+						const btn = callout.createDiv({ cls: "ecm-copy-button" });
 						setIcon(btn, "copy");
 						btn.setAttribute("aria-label", "Copy callout text");
 						btn.addEventListener("click", (e) => {
 							e.stopPropagation();
-							const text = contentEl.innerText ?? "";
+							const text = contentEl?.innerText ?? "";
 							navigator.clipboard.writeText(text).then(
 								() => new Notice("Copied to clipboard."),
 								() => new Notice("Could not copy to clipboard."),

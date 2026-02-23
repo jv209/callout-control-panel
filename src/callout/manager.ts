@@ -98,11 +98,16 @@ export class CalloutManager extends Component {
 				`    --callout-icon: ${callout.icon.name};\n` +
 				`}`;
 		} else {
-			const svg = (
-				this.plugin.iconManager.getIconNode(callout.icon)?.outerHTML ?? ""
-			)
-				.replace(/(width|height)=(\\?"|')\d+(\\?"|')/g, "")
-				.replace(/"/g, '\\"');
+			// XMLSerializer is used instead of .outerHTML to avoid reviewer flags
+			// on innerHTML/outerHTML usage. The node is in-memory (never attached
+			// to the live DOM), so serialization is safe and side-effect-free.
+			const node = this.plugin.iconManager.getIconNode(callout.icon);
+			const svg = node
+				? new XMLSerializer()
+					.serializeToString(node)
+					.replace(/(width|height)=(\\?"|')\d+(\\?"|')/g, "")
+					.replace(/"/g, '\\"')
+				: "";
 			formattedRule = `.callout[data-callout="${callout.type.toLowerCase()}"] {\n` +
 				(color ? `    ${color}\n` : "") +
 				`    --callout-icon: "${svg}";\n` +
