@@ -1,5 +1,5 @@
 /*
- * Enhanced Callout Manager — Modal Styles
+ * Callout Control Panel — Modal Styles
  *
  * Attribution: Derived from the Editing Toolbar plugin by Cuman
  * (https://github.com/cumany/obsidian-editing-toolbar), licensed under MIT.
@@ -98,8 +98,8 @@
 
 .detected-snippet-types,
 .custom-callout-types,
-.ecm-icon-packs,
-.ecm-title-overrides {
+.ccp-icon-packs,
+.ccp-title-overrides {
 	margin: 0 0 12px 5%;
 	padding: 6px 12px 6px 16px;
 	background: var(--background-secondary);
@@ -141,7 +141,7 @@
 
 .detected-snippet-type-header,
 .custom-callout-type-header,
-.ecm-title-override-header {
+.ccp-title-override-header {
 	font-size: var(--font-ui-smaller);
 	font-weight: var(--font-semibold);
 	opacity: 0.6;
@@ -270,14 +270,14 @@
 }
 
 /* Compact settings inside the icon packs box */
-.ecm-icon-packs .setting-item {
+.ccp-icon-packs .setting-item {
 	padding: 6px 0;
 	border-top: none;
 }
 
 /* ─── Title override grid ─────────────────────────────────────────────── */
 
-.ecm-title-override-row {
+.ccp-title-override-row {
 	display: grid;
 	grid-template-columns: 1fr 1fr 24px;
 	align-items: center;
@@ -285,11 +285,11 @@
 	padding: 4px 0;
 }
 
-.ecm-title-override-col-type {
+.ccp-title-override-col-type {
 	font-size: var(--font-ui-small);
 }
 
-.ecm-title-override-input {
+.ccp-title-override-input {
 	width: 100%;
 	background: transparent;
 	border: none;
@@ -301,8 +301,8 @@
 	opacity: 0.7;
 }
 
-.ecm-title-override-input:hover,
-.ecm-title-override-input:focus {
+.ccp-title-override-input:hover,
+.ccp-title-override-input:focus {
 	border-bottom-color: var(--interactive-accent);
 	opacity: 1;
 	outline: none;
@@ -310,7 +310,7 @@
 
 /* ─── Settings tab bar ─────────────────────────────────────────────────── */
 
-.ecm-tab-bar {
+.ccp-tab-bar {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px;
@@ -319,7 +319,7 @@
 	padding-bottom: 0;
 }
 
-.ecm-tab-button {
+.ccp-tab-button {
 	display: flex;
 	align-items: center;
 	padding: 8px 12px;
@@ -332,31 +332,31 @@
 	transition: color 0.15s ease, background 0.15s ease;
 }
 
-.ecm-tab-button:hover {
+.ccp-tab-button:hover {
 	color: var(--text-normal);
 	background: var(--background-modifier-hover);
 }
 
-.ecm-tab-button.ecm-tab-active {
+.ccp-tab-button.ccp-tab-active {
 	color: var(--interactive-accent);
 	background: var(--background-secondary);
 	font-weight: var(--font-semibold);
 }
 
 /* Tab icon — always visible */
-.ecm-tab-icon {
+.ccp-tab-icon {
 	display: flex;
 	align-items: center;
 	flex-shrink: 0;
 }
 
-.ecm-tab-icon svg {
+.ccp-tab-icon svg {
 	width: 16px;
 	height: 16px;
 }
 
 /* Tab label — hidden by default, shown when active or hovered */
-.ecm-tab-label {
+.ccp-tab-label {
 	display: inline-block;
 	max-width: 0;
 	overflow: hidden;
@@ -366,8 +366,8 @@
 	transition: max-width 0.25s ease, opacity 0.2s ease, margin-left 0.25s ease;
 }
 
-.ecm-tab-button.ecm-tab-active .ecm-tab-label,
-.ecm-tab-button:hover .ecm-tab-label {
+.ccp-tab-button.ccp-tab-active .ccp-tab-label,
+.ccp-tab-button:hover .ccp-tab-label {
 	max-width: 200px;
 	opacity: 1;
 	margin-left: 6px;
@@ -375,12 +375,12 @@
 
 /* ─── Settings content area ───────────────────────────────────────────── */
 
-.ecm-tab-pane {
+.ccp-tab-pane {
 	padding-top: 8px;
 }
 
 /* Extra vertical spacing between individual setting items */
-.ecm-tab-pane > .setting-item {
+.ccp-tab-pane > .setting-item {
 	padding-top: 14px;
 	padding-bottom: 14px;
 }
@@ -389,7 +389,7 @@
 /* Button is appended directly to .callout, which already carries
    position:relative in Obsidian's own stylesheet. No wrapper needed. */
 
-.ecm-copy-button {
+.ccp-copy-button {
 	position: absolute;
 	right: 8px;
 	bottom: 8px;
@@ -403,16 +403,16 @@
 }
 
 /* Show on callout hover */
-.callout:hover .ecm-copy-button {
+.callout:hover .ccp-copy-button {
 	opacity: 0.4;
 }
 
-.ecm-copy-button:hover {
+.ccp-copy-button:hover {
 	opacity: 1 !important;
 	background: var(--background-modifier-hover);
 }
 
-.ecm-copy-button svg {
+.ccp-copy-button svg {
 	width: 14px;
 	height: 14px;
 	color: var(--text-muted);

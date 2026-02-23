@@ -1,6 +1,6 @@
 # Obsidian Plugin Development — Claude Code Skill File
 
-Lessons learned from building Enhanced Callout Manager. Use this file to bootstrap faster on future Obsidian plugin projects.
+Lessons learned from building Callout Control Panel. Use this file to bootstrap faster on future Obsidian plugin projects.
 
 ---
 
@@ -218,15 +218,15 @@ element.style.setProperty("--callout-color", "68, 138, 255");
 ### Tab bar (icon-only inactive, icon+label active/hover)
 
 ```css
-.ecm-tab-label {
+.ccp-tab-label {
   max-width: 0;
   opacity: 0;
   overflow: hidden;
   white-space: nowrap;
   transition: max-width 0.25s ease, opacity 0.2s ease, margin-left 0.25s ease;
 }
-.ecm-tab-btn.ecm-tab-active .ecm-tab-label,
-.ecm-tab-btn:hover .ecm-tab-label {
+.ccp-tab-btn.ccp-tab-active .ccp-tab-label,
+.ccp-tab-btn:hover .ccp-tab-label {
   max-width: 200px;
   opacity: 1;
   margin-left: 6px;

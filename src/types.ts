@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for the Enhanced Callout Manager plugin.
+ * Shared type definitions for the Callout Control Panel plugin.
  *
  * Attribution: Built-in callout type definitions are derived from
  * the Editing Toolbar plugin by Cuman

@@ -139,7 +139,7 @@ export class IconManager {
 				await this.plugin.app.vault.adapter.remove(path);
 			}
 		} catch (e) {
-			console.error("Enhanced Callout Manager: could not remove icon file", e);
+			console.error("Callout Control Panel: could not remove icon file", e);
 		}
 		delete this.DOWNLOADED[pack];
 		this.plugin.settings.icons.remove(pack);

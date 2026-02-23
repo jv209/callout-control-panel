@@ -60,8 +60,9 @@ After every completed task, provide the following four items:
 | v0.7.2 | Settings overhaul and collapse defaults | 2026-02-23 |
 | v0.7.3 | Remove smooth transitions | 2026-02-23 |
 | v0.7.4 | Compliance fixes and modular settings | 2026-02-23 |
+| v0.7.5 | Plugin rename and version sync | 2026-02-23 |
 
-**Next version: v0.7.5**
+**Next version: v0.7.6**
 
 ## Post-Phase 3 compliance review
 
@@ -70,7 +71,7 @@ Audit against official Obsidian developer guidelines (docs.obsidian.md/Plugins/R
 1. ~~**`outerHTML` read**~~ **FIXED v0.7.4** — replaced with `new XMLSerializer().serializeToString(node)` with explanatory comment.
 2. **Inline `style.setProperty`** (low) — 3 files set `--callout-color` via inline style. This is how Obsidian's own callout coloring works, so it's idiomatically correct, but guideline 25 says prefer CSS classes/variables.
 3. ~~**Title case in modals**~~ **FIXED v0.7.4** — `export.ts` now says "Export callout types". All other `titleEl.setText` calls already used sentence case.
-4. **`manifest.json` version mismatch** (high) — manifest version must be synced to the latest released version before community submission.
+4. ~~**`manifest.json` version mismatch**~~ **FIXED v0.7.5** — manifest.json, package.json, and versions.json all synced to v0.7.5.
 5. ~~**Network access disclosure**~~ **FIXED v0.7.4** — README now has a "Network connections" section disclosing `raw.githubusercontent.com` access, trigger conditions, and data handling.
 
 ## Monetization decision
@@ -94,7 +95,7 @@ Do not gate features. Build reputation first, monetize second.
 - [ ] Record a short demo video (2–3 min): show insert modal, quick pick, custom type creation, title overrides
 - [ ] Write a release announcement post for r/ObsidianMD
 - [ ] Write a post for the Obsidian community forum (forum.obsidian.md) in the "Share & Showcase" category
-- [ ] Prepare a short written tutorial: "How to manage callouts in Obsidian with Enhanced Callout Manager" — suitable for a blog post or the forum
+- [ ] Prepare a short written tutorial: "How to manage callouts in Obsidian with Callout Control Panel" — suitable for a blog post or the forum
 
 ### At release
 

@@ -1,4 +1,4 @@
-# Enhanced Callout Manager — Extracted Functionality Overview
+# Callout Control Panel — Extracted Functionality Overview
 
 ## Purpose
 

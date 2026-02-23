@@ -6,12 +6,12 @@
 
 ## Possible name change
 
-The plugin is currently called **Enhanced Callout Manager**. Before submitting to the community, confirm whether this name:
+The plugin is currently called **Callout Control Panel**. Before submitting to the community, confirm whether this name:
 - Is descriptive enough for discovery in the community plugin browser
 - Conflicts with any existing plugins
 - Should be shortened (e.g. "Callout Studio", "Callout Suite") given the full scope of features
 
-Whatever name is chosen, update `manifest.json` (`name`), `package.json` (`name`), and the README header consistently. The plugin ID (`enhanced-callout-manager`) is separate and harder to change post-release, so only rename the display name.
+Whatever name is chosen, update `manifest.json` (`name`), `package.json` (`name`), and the README header consistently. The plugin ID (`callout-control-panel`) is separate and harder to change post-release, so only rename the display name.
 
 ---
 

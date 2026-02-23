@@ -1,4 +1,4 @@
-# Enhanced Callout Manager — Todo List
+# Callout Control Panel — Todo List
 
 ## How to read this document
 
@@ -22,11 +22,11 @@ Each step has:
 
 ## Phase 0: Housekeeping — Prepare the repo for real development
 
-These steps transform the sample plugin template into the skeleton of the Enhanced Callout Manager. Nothing functional yet — just renaming, configuring, and cleaning.
+These steps transform the sample plugin template into the skeleton of the Callout Control Panel. Nothing functional yet — just renaming, configuring, and cleaning.
 
 ### 0.1 Update `manifest.json`
-- [x] Change `id` from `sample-plugin` to `enhanced-callout-manager`
-- [x] Change `name` to `Enhanced Callout Manager`
+- [x] Change `id` from `sample-plugin` to `callout-control-panel`
+- [x] Change `name` to `Callout Control Panel`
 - [x] Update `description` to something like: "Insert, detect, and manage custom callout types with a unified modal and full icon support."
 - [x] Change `author` and `authorUrl` to your info
 - [x] Set `isDesktopOnly` to `false` (for now — will revisit if we use desktop-only APIs)
@@ -35,7 +35,7 @@ These steps transform the sample plugin template into the skeleton of the Enhanc
 **Deliverable:** `manifest.json` reflects the real plugin identity.
 
 ### 0.2 Update `package.json`
-- [x] Change `name` to `enhanced-callout-manager`
+- [x] Change `name` to `callout-control-panel`
 - [x] Update `description`
 - [x] Change `license` from `0-BSD` to `MIT` (since we're incorporating MIT-licensed code)
 - [x] Add the npm dependencies that Plugin C needs:
@@ -159,7 +159,7 @@ The goal of Phase 1 is to get a working plugin that does one thing well: **open 
 
 **Why:** Gives users a fast way to access plugin settings from the command palette without navigating through menus.
 
-**Deliverable:** "Enhanced Callout Manager: Open settings" appears in the command palette.
+**Deliverable:** "Callout Control Panel: Open settings" appears in the command palette.
 
 ### 1.8 Manual testing
 - [x] Build the plugin (`npm run build`)
@@ -261,7 +261,7 @@ This phase brings in Plugin C's callout management system. Users can define enti
 - [x] Fix the known "double CSS call" bug (documented in Plugin C's audit)
 - [x] Use **dual output** as the default mode:
   - In-memory `<style>` element for instant rendering
-  - Vault snippet file (`.obsidian/snippets/enhanced-callout-manager.css`) for persistence and user editability
+  - Vault snippet file (`.obsidian/snippets/callout-control-panel.css`) for persistence and user editability
 - [x] Keep both in sync — any change to in-memory styles also writes the snippet file
 - [x] Call `app.customCss.readSnippets()` after writing the snippet file so Obsidian picks up changes
 
@@ -325,7 +325,7 @@ This phase brings in Plugin C's callout management system. Users can define enti
 **Deliverable:** Up to 5 assignable hotkey slots for instant callout insertion; fully functional plugin without any configured.
 
 ### 3.10 Add circular detection guard
-- [x] When the snippet parser scans `.obsidian/snippets/`, skip the plugin's own generated file (`enhanced-callout-manager.css`)
+- [x] When the snippet parser scans `.obsidian/snippets/`, skip the plugin's own generated file (`callout-control-panel.css`)
 - [x] Use the filename as the identifier — if the user renames the file, it will be detected as a regular snippet (acceptable)
 
 **Why:** Without this guard, the plugin writes a custom callout to its snippet file, then the snippet parser detects it as a "snippet callout," creating a duplicate entry.
@@ -486,7 +486,7 @@ These are components that need to be **written new** during integration. They do
 This is the target structure once all phases are complete:
 
 ```
-enhanced-callout-manager/
+callout-control-panel/
 ├── manifest.json                    # Plugin identity and version
 ├── package.json                     # Dependencies and build scripts
 ├── tsconfig.json                    # TypeScript configuration
