@@ -234,6 +234,70 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
+
+		// ── Title overrides ────────────────────────────────────────────
+		this.buildTitleOverridesSection(el);
+	}
+
+	private buildTitleOverridesSection(el: HTMLElement): void {
+		const overrides = this.plugin.settings.titleOverrides ?? {};
+
+		let selectedType = "";
+		let titleText = "";
+
+		new Setting(el)
+			.setName("Title overrides")
+			.setDesc(
+				"Replace the default title for specific callout types in reading view. Only affects callouts without an explicit title in markdown.",
+			)
+			.addDropdown((d) => {
+				const existing = new Set(Object.keys(overrides));
+				this.buildGroupedDropdown(d.selectEl);
+				// Remove options that already have overrides
+				for (const opt of Array.from(d.selectEl.querySelectorAll("option"))) {
+					if (existing.has(opt.value)) opt.remove();
+				}
+				selectedType = d.getValue();
+				d.onChange((v) => { selectedType = v; });
+			})
+			.addText((t) => {
+				t.setPlaceholder("Custom title");
+				t.onChange((v) => { titleText = v; });
+			})
+			.addButton((btn) => {
+				btn.setButtonText("+")
+					.setTooltip("Add title override")
+					.onClick(async () => {
+						if (!selectedType || !titleText.trim()) {
+							new Notice("Select a type and enter a title.");
+							return;
+						}
+						this.plugin.settings.titleOverrides[selectedType] = titleText.trim();
+						await this.plugin.saveSettings();
+						this.display();
+					});
+			});
+
+		for (const [type, title] of Object.entries(overrides)) {
+			const label = type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+			new Setting(el)
+				.setName(label)
+				.addText((t) => {
+					t.setValue(title).onChange(async (v) => {
+						this.plugin.settings.titleOverrides[type] = v;
+						await this.plugin.saveSettings();
+					});
+				})
+				.addExtraButton((b) => {
+					b.setIcon("trash")
+						.setTooltip("Remove override")
+						.onClick(async () => {
+							delete this.plugin.settings.titleOverrides[type];
+							await this.plugin.saveSettings();
+							this.display();
+						});
+				});
+		}
 	}
 
 	// ── Section 2: CSS Type Detection ───────────────────────────────────────

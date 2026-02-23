@@ -147,7 +147,8 @@ var DEFAULT_SETTINGS = {
   favoriteCallouts: [],
   smoothTransitions: true,
   showCopyButton: false,
-  enableDropShadow: false
+  enableDropShadow: false,
+  titleOverrides: {}
 };
 var BUILTIN_CALLOUT_TYPES = [
   { type: "note", label: "Note", icon: "lucide-pencil", color: "var(--callout-default)", source: "builtin", aliases: [] },
@@ -575,6 +576,56 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
         await this.plugin.saveSettings();
       });
     });
+    this.buildTitleOverridesSection(el);
+  }
+  buildTitleOverridesSection(el) {
+    var _a;
+    const overrides = (_a = this.plugin.settings.titleOverrides) != null ? _a : {};
+    let selectedType = "";
+    let titleText = "";
+    new import_obsidian4.Setting(el).setName("Title overrides").setDesc(
+      "Replace the default title for specific callout types in reading view. Only affects callouts without an explicit title in markdown."
+    ).addDropdown((d) => {
+      const existing = new Set(Object.keys(overrides));
+      this.buildGroupedDropdown(d.selectEl);
+      for (const opt of Array.from(d.selectEl.querySelectorAll("option"))) {
+        if (existing.has(opt.value)) opt.remove();
+      }
+      selectedType = d.getValue();
+      d.onChange((v) => {
+        selectedType = v;
+      });
+    }).addText((t2) => {
+      t2.setPlaceholder("Custom title");
+      t2.onChange((v) => {
+        titleText = v;
+      });
+    }).addButton((btn) => {
+      btn.setButtonText("+").setTooltip("Add title override").onClick(async () => {
+        if (!selectedType || !titleText.trim()) {
+          new import_obsidian4.Notice("Select a type and enter a title.");
+          return;
+        }
+        this.plugin.settings.titleOverrides[selectedType] = titleText.trim();
+        await this.plugin.saveSettings();
+        this.display();
+      });
+    });
+    for (const [type, title] of Object.entries(overrides)) {
+      const label = type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      new import_obsidian4.Setting(el).setName(label).addText((t2) => {
+        t2.setValue(title).onChange(async (v) => {
+          this.plugin.settings.titleOverrides[type] = v;
+          await this.plugin.saveSettings();
+        });
+      }).addExtraButton((b) => {
+        b.setIcon("trash").setTooltip("Remove override").onClick(async () => {
+          delete this.plugin.settings.titleOverrides[type];
+          await this.plugin.saveSettings();
+          this.display();
+        });
+      });
+    }
   }
   // ── Section 2: CSS Type Detection ───────────────────────────────────────
   buildDetectionSection(el) {
@@ -19541,6 +19592,7 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
     }
     this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
     this.registerMarkdownPostProcessor((el) => {
+      var _a, _b;
       const callouts = el.querySelectorAll(".callout");
       if (callouts.length === 0) return;
       for (const callout of Array.from(callouts)) {
@@ -19554,10 +19606,10 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
             (0, import_obsidian10.setIcon)(btn, "copy");
             btn.setAttribute("aria-label", "Copy callout text");
             btn.addEventListener("click", (e) => {
-              var _a;
+              var _a2;
               e.stopPropagation();
               const contentEl = callout.querySelector(".callout-content");
-              const text2 = (_a = contentEl == null ? void 0 : contentEl.innerText) != null ? _a : "";
+              const text2 = (_a2 = contentEl == null ? void 0 : contentEl.innerText) != null ? _a2 : "";
               navigator.clipboard.writeText(text2).then(
                 () => new import_obsidian10.Notice("Copied to clipboard."),
                 () => new import_obsidian10.Notice("Could not copy to clipboard.")
@@ -19567,6 +19619,20 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
         }
         if (this.settings.enableDropShadow) {
           callout.addClass("ecm-drop-shadow");
+        }
+        const overrides = this.settings.titleOverrides;
+        if (overrides && Object.keys(overrides).length > 0) {
+          const type = (_a = callout.getAttribute("data-callout")) == null ? void 0 : _a.toLowerCase();
+          if (type && overrides[type]) {
+            const titleInner = callout.querySelector(".callout-title-inner");
+            if (titleInner) {
+              const current = ((_b = titleInner.textContent) != null ? _b : "").trim().toLowerCase().replace(/[\s\-_]/g, "");
+              const typeNorm = type.replace(/[\s\-_]/g, "");
+              if (current === typeNorm) {
+                titleInner.textContent = overrides[type];
+              }
+            }
+          }
         }
       }
     });
@@ -19636,6 +19702,9 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
     }
     if (this.settings.customCallouts == null || typeof this.settings.customCallouts !== "object" || Array.isArray(this.settings.customCallouts)) {
       this.settings.customCallouts = {};
+    }
+    if (this.settings.titleOverrides == null || typeof this.settings.titleOverrides !== "object" || Array.isArray(this.settings.titleOverrides)) {
+      this.settings.titleOverrides = {};
     }
     this.settings.calloutDetection = Object.assign(
       {},

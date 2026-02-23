@@ -106,6 +106,8 @@ export interface PluginSettings {
 	showCopyButton: boolean;
 	/** Apply a subtle drop shadow to rendered callouts. */
 	enableDropShadow: boolean;
+	/** Per-type title overrides: callout type ID → custom display title. */
+	titleOverrides: Record<string, string>;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -122,6 +124,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	smoothTransitions: true,
 	showCopyButton: false,
 	enableDropShadow: false,
+	titleOverrides: {},
 };
 
 /**
