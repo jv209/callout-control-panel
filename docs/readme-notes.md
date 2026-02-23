@@ -6,7 +6,7 @@
 
 ## Possible name change
 
-The plugin currently uses the ID `enhanced-callout-manager` and display name **Enhanced Callout Manager**.
+The plugin currently uses the ID `callout-control-panel` and display name **Callout Control Panel**.
 Before the community PR, decide whether to keep this or rename the display name to something shorter/more discoverable (e.g. "Callout Studio", "Callout Suite", "Callout Toolkit").
 
 **Important:** The plugin *ID* in `manifest.json` is hard to change post-release (users would lose their settings). Only the display `name` field is safe to rename. If you rename:
@@ -14,7 +14,7 @@ Before the community PR, decide whether to keep this or rename the display name 
 - `package.json` → `name` (optional, cosmetic)
 - README header and any references in documentation
 
-The ID `enhanced-callout-manager` stays as-is regardless.
+The ID `callout-control-panel` stays as-is regardless.
 
 ---
 
@@ -31,7 +31,7 @@ Write a *workflows* README, not a feature-list README. Three primary workflows d
 ### Workflow 2: Managing custom callout types
 - Create types with a custom name, icon (Lucide / Font Awesome / image), and color
 - Live preview in the edit modal
-- CSS is written both in-memory (instant rendering) and to `.obsidian/snippets/enhanced-callout-manager.css` (persists after plugin uninstall, readable by Obsidian Publish)
+- CSS is written both in-memory (instant rendering) and to `.obsidian/snippets/callout-control-panel.css` (persists after plugin uninstall, readable by Obsidian Publish)
 - Types can be exported as JSON or CSS and shared with others
 - JSON import lets you load a set of community-shared types
 
@@ -50,7 +50,7 @@ Write a *workflows* README, not a feature-list README. Three primary workflows d
 - **Font Awesome**: FA Free icons are bundled; downloadable packs (RPG Awesome, Octicons) fetch from GitHub. **Must disclose network access** per Obsidian developer policy — note that downloads only happen on explicit user action (the Download button in Icon Packs tab).
 - **Mobile**: `isDesktopOnly: false`. Insertion commands, quick-pick, and custom type management all work on mobile. Settings tab is functional but dense on narrow screens.
 - **Detection fallback**: The watcher reads from `app.customCss.csscache` (undocumented Obsidian internal). If that's unavailable (some Obsidian builds), the plugin falls back to disk-scanning `.obsidian/snippets/` directly. Detection works in both cases.
-- **Snippet file safety**: The plugin skips its own generated snippet (`enhanced-callout-manager.css`) during detection to prevent circular detection of custom types.
+- **Snippet file safety**: The plugin skips its own generated snippet (`callout-control-panel.css`) during detection to prevent circular detection of custom types.
 - **BRAT installation**: Until the community PR is accepted, users install via BRAT. Include a one-liner pointing to this repo.
 
 ---

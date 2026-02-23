@@ -180,9 +180,9 @@ export default class EnhancedCalloutManager extends Plugin {
 				// containing block. This avoids theme conflicts that arise when we
 				// add position:relative to .callout-content ourselves.
 				if (this.settings.showCopyButton) {
-					if (!callout.querySelector(".ecm-copy-button")) {
+					if (!callout.querySelector(".ccp-copy-button")) {
 						const contentEl = callout.querySelector<HTMLElement>(".callout-content");
-						const btn = callout.createDiv({ cls: "ecm-copy-button" });
+						const btn = callout.createDiv({ cls: "ccp-copy-button" });
 						setIcon(btn, "copy");
 						btn.setAttribute("aria-label", "Copy callout text");
 						btn.addEventListener("click", (e) => {
@@ -437,7 +437,7 @@ export default class EnhancedCalloutManager extends Plugin {
 		}
 		for (const snippetId of this.calloutCollection.snippets.keys()) {
 			// Skip our own generated file to avoid circular detection
-			if (snippetId === "enhanced-callout-manager") continue;
+			if (snippetId === "callout-control-panel") continue;
 
 			const ids = this.calloutCollection.snippets.get(snippetId) ?? [];
 			const css = this.cssTextCache.get(`snippet:${snippetId}`) ?? "";

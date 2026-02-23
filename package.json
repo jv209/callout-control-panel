@@ -1,6 +1,6 @@
 {
-	"name": "enhanced-callout-manager",
-	"version": "0.7.3",
+	"name": "callout-control-panel",
+	"version": "0.7.5",
 	"description": "Insert, detect, and manage custom callout types with a unified modal and full icon support.",
 	"main": "main.js",
 	"type": "module",

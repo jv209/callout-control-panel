@@ -21,7 +21,7 @@ export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): voi
 			await ctx.plugin.saveSettings();
 			await ctx.plugin.refreshSnippetTypes();
 		} catch (e) {
-			console.error("Enhanced Callout Manager: detection toggle error", e);
+			console.error("Callout Control Panel: detection toggle error", e);
 		}
 		ctx.refresh();
 	};

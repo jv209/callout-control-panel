@@ -19,7 +19,7 @@ export function buildFavoritesTab(el: HTMLElement, ctx: SettingsTabContext): voi
 					ctx.plugin.settings.favoriteCallouts[i] = value;
 					await ctx.plugin.saveSettings();
 				} catch (e) {
-					console.error("Enhanced Callout Manager: favorites save error", e);
+					console.error("Callout Control Panel: favorites save error", e);
 				}
 			});
 		});

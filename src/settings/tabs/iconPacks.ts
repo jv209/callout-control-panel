@@ -19,7 +19,7 @@ export function buildIconPacksTab(el: HTMLElement, ctx: SettingsTabContext): voi
 					ctx.plugin.iconManager.setIconDefinitions();
 					await ctx.plugin.saveSettings();
 				} catch (e) {
-					console.error("Enhanced Callout Manager: icon toggle error", e);
+					console.error("Callout Control Panel: icon toggle error", e);
 				}
 				ctx.refresh();
 			});
@@ -59,7 +59,7 @@ export function buildIconPacksTab(el: HTMLElement, ctx: SettingsTabContext): voi
 					try {
 						await ctx.plugin.iconManager.downloadIcon(selectedPack);
 					} catch (e) {
-						console.error("Enhanced Callout Manager: download failed", e);
+						console.error("Callout Control Panel: download failed", e);
 						new Notice("Could not download icon pack.");
 					}
 					ctx.refresh();
@@ -67,7 +67,7 @@ export function buildIconPacksTab(el: HTMLElement, ctx: SettingsTabContext): voi
 		});
 
 	if (installed.length > 0) {
-		const packsEl = el.createDiv({ cls: "ecm-icon-packs" });
+		const packsEl = el.createDiv({ cls: "ccp-icon-packs" });
 		for (const pack of installed) {
 			new Setting(packsEl)
 				.setName(DownloadableIcons[pack] ?? pack)
@@ -79,7 +79,7 @@ export function buildIconPacksTab(el: HTMLElement, ctx: SettingsTabContext): voi
 								await ctx.plugin.iconManager.removeIcon(pack);
 								await ctx.plugin.iconManager.downloadIcon(pack);
 							} catch (e) {
-								console.error("Enhanced Callout Manager: redownload failed", e);
+								console.error("Callout Control Panel: redownload failed", e);
 								new Notice("Could not redownload icon pack.");
 							}
 							ctx.refresh();
@@ -102,7 +102,7 @@ export function buildIconPacksTab(el: HTMLElement, ctx: SettingsTabContext): voi
 							try {
 								await ctx.plugin.iconManager.removeIcon(pack);
 							} catch (e) {
-								console.error("Enhanced Callout Manager: remove failed", e);
+								console.error("Callout Control Panel: remove failed", e);
 								new Notice("Could not remove icon pack.");
 							}
 							ctx.refresh();

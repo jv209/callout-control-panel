@@ -246,7 +246,7 @@ function buildDetectionTab(el, ctx) {
       await ctx.plugin.saveSettings();
       await ctx.plugin.refreshSnippetTypes();
     } catch (e) {
-      console.error("Enhanced Callout Manager: detection toggle error", e);
+      console.error("Callout Control Panel: detection toggle error", e);
     }
     ctx.refresh();
   };
@@ -963,7 +963,7 @@ function buildFavoritesTab(el, ctx) {
           ctx.plugin.settings.favoriteCallouts[i] = value;
           await ctx.plugin.saveSettings();
         } catch (e) {
-          console.error("Enhanced Callout Manager: favorites save error", e);
+          console.error("Callout Control Panel: favorites save error", e);
         }
       });
     });
@@ -1013,23 +1013,23 @@ function buildTitleOverridesTab(el, ctx) {
     });
     return;
   }
-  const listEl = el.createDiv({ cls: "ecm-title-overrides" });
+  const listEl = el.createDiv({ cls: "ccp-title-overrides" });
   const headerEl = listEl.createDiv({
-    cls: "ecm-title-override-row ecm-title-override-header"
+    cls: "ccp-title-override-row ccp-title-override-header"
   });
-  headerEl.createSpan({ text: "Callout Type", cls: "ecm-title-override-col-type" });
-  headerEl.createSpan({ text: "Custom Title", cls: "ecm-title-override-col-title" });
-  headerEl.createSpan({ text: "", cls: "ecm-title-override-col-actions" });
+  headerEl.createSpan({ text: "Callout Type", cls: "ccp-title-override-col-type" });
+  headerEl.createSpan({ text: "Custom Title", cls: "ccp-title-override-col-title" });
+  headerEl.createSpan({ text: "", cls: "ccp-title-override-col-actions" });
   for (const [type, title] of entries) {
-    const rowEl = listEl.createDiv({ cls: "ecm-title-override-row" });
+    const rowEl = listEl.createDiv({ cls: "ccp-title-override-row" });
     const label = type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     rowEl.createSpan({
       text: label,
-      cls: "ecm-title-override-col-type"
+      cls: "ccp-title-override-col-type"
     });
-    const titleCell = rowEl.createDiv({ cls: "ecm-title-override-col-title" });
+    const titleCell = rowEl.createDiv({ cls: "ccp-title-override-col-title" });
     const titleInput = titleCell.createEl("input", {
-      cls: "ecm-title-override-input",
+      cls: "ccp-title-override-input",
       attr: { type: "text", value: title }
     });
     titleInput.addEventListener("change", async () => {
@@ -1041,7 +1041,7 @@ function buildTitleOverridesTab(el, ctx) {
       }
       await ctx.plugin.saveSettings();
     });
-    const actionsEl = rowEl.createDiv({ cls: "ecm-title-override-col-actions custom-callout-actions" });
+    const actionsEl = rowEl.createDiv({ cls: "ccp-title-override-col-actions custom-callout-actions" });
     const deleteBtn = actionsEl.createDiv({ cls: "clickable-icon" });
     (0, import_obsidian8.setIcon)(deleteBtn, "trash");
     deleteBtn.setAttribute("aria-label", "Remove override");
@@ -1246,7 +1246,7 @@ function buildIconPacksTab(el, ctx) {
         ctx.plugin.iconManager.setIconDefinitions();
         await ctx.plugin.saveSettings();
       } catch (e) {
-        console.error("Enhanced Callout Manager: icon toggle error", e);
+        console.error("Callout Control Panel: icon toggle error", e);
       }
       ctx.refresh();
     });
@@ -1272,14 +1272,14 @@ function buildIconPacksTab(el, ctx) {
       try {
         await ctx.plugin.iconManager.downloadIcon(selectedPack);
       } catch (e) {
-        console.error("Enhanced Callout Manager: download failed", e);
+        console.error("Callout Control Panel: download failed", e);
         new import_obsidian11.Notice("Could not download icon pack.");
       }
       ctx.refresh();
     });
   });
   if (installed.length > 0) {
-    const packsEl = el.createDiv({ cls: "ecm-icon-packs" });
+    const packsEl = el.createDiv({ cls: "ccp-icon-packs" });
     for (const pack of installed) {
       new import_obsidian11.Setting(packsEl).setName((_b = DownloadableIcons[pack]) != null ? _b : pack).addExtraButton((b) => {
         b.setIcon("reset").setTooltip("Redownload").onClick(async () => {
@@ -1287,7 +1287,7 @@ function buildIconPacksTab(el, ctx) {
             await ctx.plugin.iconManager.removeIcon(pack);
             await ctx.plugin.iconManager.downloadIcon(pack);
           } catch (e) {
-            console.error("Enhanced Callout Manager: redownload failed", e);
+            console.error("Callout Control Panel: redownload failed", e);
             new import_obsidian11.Notice("Could not redownload icon pack.");
           }
           ctx.refresh();
@@ -1307,7 +1307,7 @@ function buildIconPacksTab(el, ctx) {
           try {
             await ctx.plugin.iconManager.removeIcon(pack);
           } catch (e) {
-            console.error("Enhanced Callout Manager: remove failed", e);
+            console.error("Callout Control Panel: remove failed", e);
             new import_obsidian11.Notice("Could not remove icon pack.");
           }
           ctx.refresh();
@@ -1346,8 +1346,8 @@ var EnhancedCalloutSettingTab = class extends import_obsidian12.PluginSettingTab
       refresh: () => this.display(),
       buildGroupedDropdown: (selectEl, includeNone) => this.buildGroupedDropdown(selectEl, includeNone)
     };
-    const tabBar = containerEl.createDiv({ cls: "ecm-tab-bar" });
-    const tabContent = containerEl.createDiv({ cls: "ecm-tab-content" });
+    const tabBar = containerEl.createDiv({ cls: "ccp-tab-bar" });
+    const tabContent = containerEl.createDiv({ cls: "ccp-tab-content" });
     const tabs = [
       { label: "Default Settings", icon: "lucide-cog", builder: (el) => buildInsertionTab(el, ctx) },
       { label: "CSS Type Detection", icon: "lucide-telescope", builder: (el) => buildDetectionTab(el, ctx) },
@@ -1361,30 +1361,30 @@ var EnhancedCalloutSettingTab = class extends import_obsidian12.PluginSettingTab
     const panes = [];
     for (let idx2 = 0; idx2 < tabs.length; idx2++) {
       const tab = tabs[idx2];
-      const btn = tabBar.createEl("button", { cls: "ecm-tab-button" });
-      const iconSpan = btn.createSpan({ cls: "ecm-tab-icon" });
+      const btn = tabBar.createEl("button", { cls: "ccp-tab-button" });
+      const iconSpan = btn.createSpan({ cls: "ccp-tab-icon" });
       (0, import_obsidian12.setIcon)(iconSpan, tab.icon);
-      btn.createSpan({ cls: "ecm-tab-label", text: tab.label });
-      const pane = tabContent.createDiv({ cls: "ecm-tab-pane" });
+      btn.createSpan({ cls: "ccp-tab-label", text: tab.label });
+      const pane = tabContent.createDiv({ cls: "ccp-tab-pane" });
       pane.style.display = "none";
       try {
         tab.builder(pane);
       } catch (e) {
-        console.error("Enhanced Callout Manager: settings section error", e);
+        console.error("Callout Control Panel: settings section error", e);
       }
       buttons.push(btn);
       panes.push(pane);
       const tabIdx = idx2;
       btn.addEventListener("click", () => {
-        for (const b of buttons) b.removeClass("ecm-tab-active");
+        for (const b of buttons) b.removeClass("ccp-tab-active");
         for (const p2 of panes) p2.style.display = "none";
-        btn.addClass("ecm-tab-active");
+        btn.addClass("ccp-tab-active");
         pane.style.display = "";
         this.activeTabIndex = tabIdx;
       });
     }
     const idx = this.activeTabIndex < tabs.length ? this.activeTabIndex : 0;
-    if (buttons[idx]) buttons[idx].addClass("ecm-tab-active");
+    if (buttons[idx]) buttons[idx].addClass("ccp-tab-active");
     if (panes[idx]) panes[idx].style.display = "";
   }
   /**
@@ -2629,8 +2629,16 @@ async function parseSnippetCalloutTypes(app) {
       }
     }
   }
-  const customCss = app.customCss;
-  const enabledSnippets = customCss.enabledSnippets;
+  let enabledSnippets;
+  try {
+    const customCss = app.customCss;
+    enabledSnippets = customCss.enabledSnippets;
+    if (!(enabledSnippets instanceof Set)) {
+      return { types: results, warnings, snippetMap };
+    }
+  } catch (e) {
+    return { types: results, warnings, snippetMap };
+  }
   const snippetsDir = `${app.vault.configDir}/snippets`;
   let listing;
   try {
@@ -2639,7 +2647,7 @@ async function parseSnippetCalloutTypes(app) {
   } catch (e) {
     return { types: results, warnings, snippetMap };
   }
-  const PLUGIN_SNIPPET_NAME = "enhanced-callout-manager";
+  const PLUGIN_SNIPPET_NAME = "callout-control-panel";
   const cssFiles = listing.files.filter((f) => {
     var _a2;
     if (!f.endsWith(".css")) return false;
@@ -19368,7 +19376,7 @@ var IconManager = class {
         await this.plugin.app.vault.adapter.remove(path);
       }
     } catch (e) {
-      console.error("Enhanced Callout Manager: could not remove icon file", e);
+      console.error("Callout Control Panel: could not remove icon file", e);
     }
     delete this.DOWNLOADED[pack];
     this.plugin.settings.icons.remove(pack);
@@ -19433,7 +19441,7 @@ var IconManager = class {
 
 // src/callout/manager.ts
 var import_obsidian17 = require("obsidian");
-var SNIPPET_NAME = "enhanced-callout-manager";
+var SNIPPET_NAME = "callout-control-panel";
 var CalloutManager = class extends import_obsidian17.Component {
   constructor(plugin) {
     super();
@@ -19442,7 +19450,7 @@ var CalloutManager = class extends import_obsidian17.Component {
     /** Formatted rule strings parallel to indexing — used for snippet file output. */
     this.formattedRules = [];
     this.style = document.createElement("style");
-    this.style.id = "ENHANCED_CALLOUT_MANAGER_STYLES";
+    this.style.id = "CALLOUT_CONTROL_PANEL_STYLES";
   }
   get sheet() {
     return this.style.sheet;
@@ -19515,7 +19523,7 @@ var CalloutManager = class extends import_obsidian17.Component {
   /** Generate the full CSS string from the stored formatted rules. */
   generateCssString() {
     const lines = [
-      `/* This snippet was auto-generated by Enhanced Callout Manager */
+      `/* This snippet was auto-generated by Callout Control Panel */
 `
     ];
     for (const rule of this.formattedRules) {
@@ -19544,7 +19552,7 @@ var CalloutManager = class extends import_obsidian17.Component {
       customCss.setCssEnabledStatus(SNIPPET_NAME, true);
       customCss.readSnippets();
     } catch (e) {
-      console.error("Enhanced Callout Manager: failed to write snippet", e);
+      console.error("Callout Control Panel: failed to write snippet", e);
     }
   }
 };
@@ -19659,9 +19667,9 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
       if (callouts.length === 0) return;
       for (const callout of Array.from(callouts)) {
         if (this.settings.showCopyButton) {
-          if (!callout.querySelector(".ecm-copy-button")) {
+          if (!callout.querySelector(".ccp-copy-button")) {
             const contentEl = callout.querySelector(".callout-content");
-            const btn = callout.createDiv({ cls: "ecm-copy-button" });
+            const btn = callout.createDiv({ cls: "ccp-copy-button" });
             (0, import_obsidian18.setIcon)(btn, "copy");
             btn.setAttribute("aria-label", "Copy callout text");
             btn.addEventListener("click", (e) => {
@@ -19845,7 +19853,7 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
       this.calloutCollection.snippets.clear();
     }
     for (const snippetId of this.calloutCollection.snippets.keys()) {
-      if (snippetId === "enhanced-callout-manager") continue;
+      if (snippetId === "callout-control-panel") continue;
       const ids = (_c = this.calloutCollection.snippets.get(snippetId)) != null ? _c : [];
       const css2 = (_d = this.cssTextCache.get(`snippet:${snippetId}`)) != null ? _d : "";
       const rawParsedCount = getCalloutsFromCSS(css2).length;

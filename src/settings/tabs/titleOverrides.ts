@@ -52,29 +52,29 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 		return;
 	}
 
-	const listEl = el.createDiv({ cls: "ecm-title-overrides" });
+	const listEl = el.createDiv({ cls: "ccp-title-overrides" });
 
 	// Table header
 	const headerEl = listEl.createDiv({
-		cls: "ecm-title-override-row ecm-title-override-header",
+		cls: "ccp-title-override-row ccp-title-override-header",
 	});
-	headerEl.createSpan({ text: "Callout Type", cls: "ecm-title-override-col-type" });
-	headerEl.createSpan({ text: "Custom Title", cls: "ecm-title-override-col-title" });
-	headerEl.createSpan({ text: "", cls: "ecm-title-override-col-actions" });
+	headerEl.createSpan({ text: "Callout Type", cls: "ccp-title-override-col-type" });
+	headerEl.createSpan({ text: "Custom Title", cls: "ccp-title-override-col-title" });
+	headerEl.createSpan({ text: "", cls: "ccp-title-override-col-actions" });
 
 	for (const [type, title] of entries) {
-		const rowEl = listEl.createDiv({ cls: "ecm-title-override-row" });
+		const rowEl = listEl.createDiv({ cls: "ccp-title-override-row" });
 		const label = type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 		rowEl.createSpan({
 			text: label,
-			cls: "ecm-title-override-col-type",
+			cls: "ccp-title-override-col-type",
 		});
 
 		// Inline-editable title input
-		const titleCell = rowEl.createDiv({ cls: "ecm-title-override-col-title" });
+		const titleCell = rowEl.createDiv({ cls: "ccp-title-override-col-title" });
 		const titleInput = titleCell.createEl("input", {
-			cls: "ecm-title-override-input",
+			cls: "ccp-title-override-input",
 			attr: { type: "text", value: title },
 		});
 		titleInput.addEventListener("change", async () => {
@@ -88,7 +88,7 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 		});
 
 		// Delete button
-		const actionsEl = rowEl.createDiv({ cls: "ecm-title-override-col-actions custom-callout-actions" });
+		const actionsEl = rowEl.createDiv({ cls: "ccp-title-override-col-actions custom-callout-actions" });
 		const deleteBtn = actionsEl.createDiv({ cls: "clickable-icon" });
 		setIcon(deleteBtn, "trash");
 		deleteBtn.setAttribute("aria-label", "Remove override");

@@ -76,9 +76,18 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 		}
 	}
 
-	// Get enabled snippets from Obsidian's undocumented API
-	const customCss = (app as unknown as { customCss: CustomCss }).customCss;
-	const enabledSnippets = customCss.enabledSnippets;
+	// Get enabled snippets from Obsidian's undocumented API.
+	// Guarded: if the API shape changes, we return empty results gracefully.
+	let enabledSnippets: Set<string>;
+	try {
+		const customCss = (app as unknown as { customCss: CustomCss }).customCss;
+		enabledSnippets = customCss.enabledSnippets;
+		if (!(enabledSnippets instanceof Set)) {
+			return { types: results, warnings, snippetMap };
+		}
+	} catch {
+		return { types: results, warnings, snippetMap };
+	}
 
 	const snippetsDir = `${app.vault.configDir}/snippets`;
 
@@ -95,7 +104,7 @@ export async function parseSnippetCalloutTypes(app: App): Promise<SnippetParseRe
 
 	// Skip the plugin's own generated snippet to avoid circular detection
 	// (custom types written to this file would otherwise appear as snippet types).
-	const PLUGIN_SNIPPET_NAME = "enhanced-callout-manager";
+	const PLUGIN_SNIPPET_NAME = "callout-control-panel";
 
 	const cssFiles = listing.files.filter((f) => {
 		if (!f.endsWith(".css")) return false;
