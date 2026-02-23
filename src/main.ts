@@ -88,6 +88,7 @@ export default class EnhancedCalloutManager extends Plugin {
 				const modal = new InsertCalloutModal(this.app, {
 					defaultType,
 					autoFocusContent: this.settings.autoFocusContent,
+					defaultCollapse: this.settings.defaultCollapseModal,
 					snippetTypes: this.snippetTypes,
 					customTypes,
 					iconManager: this.iconManager,
@@ -116,7 +117,7 @@ export default class EnhancedCalloutManager extends Plugin {
 					customTypes,
 					this.snippetTypes,
 					(type) => {
-						QuickPickCalloutModal.insertQuickCallout(this.app, type);
+						QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
 						if (this.settings.rememberLastType) {
 							this.settings.lastUsedType = type;
 							void this.saveSettings();
@@ -156,7 +157,7 @@ export default class EnhancedCalloutManager extends Plugin {
 				editorCallback: () => {
 					const type = this.settings.favoriteCallouts[i];
 					if (!type) return; // slot unassigned — no-op
-					QuickPickCalloutModal.insertQuickCallout(this.app, type);
+					QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
 					if (this.settings.rememberLastType) {
 						this.settings.lastUsedType = type;
 						void this.saveSettings();
@@ -178,28 +179,23 @@ export default class EnhancedCalloutManager extends Plugin {
 					callout.addClass("ecm-smooth-transition");
 				}
 
-				// 5.2 — Copy-to-clipboard button
+				// 5.2 — Copy-to-clipboard button (bottom-right of callout body)
 				if (this.settings.showCopyButton) {
-					const titleEl = callout.querySelector<HTMLElement>(".callout-title");
-					if (titleEl && !titleEl.querySelector(".ecm-copy-button")) {
-						const btn = titleEl.createDiv({ cls: "ecm-copy-button" });
+					const contentEl = callout.querySelector<HTMLElement>(".callout-content");
+					if (contentEl && !contentEl.querySelector(".ecm-copy-button")) {
+						contentEl.addClass("ecm-copy-content");
+						const btn = contentEl.createDiv({ cls: "ecm-copy-button" });
 						setIcon(btn, "copy");
 						btn.setAttribute("aria-label", "Copy callout text");
 						btn.addEventListener("click", (e) => {
 							e.stopPropagation();
-							const contentEl = callout.querySelector<HTMLElement>(".callout-content");
-							const text = contentEl?.innerText ?? "";
+							const text = contentEl.innerText ?? "";
 							navigator.clipboard.writeText(text).then(
 								() => new Notice("Copied to clipboard."),
 								() => new Notice("Could not copy to clipboard."),
 							);
 						});
 					}
-				}
-
-				// 5.3 — Drop shadow
-				if (this.settings.enableDropShadow) {
-					callout.addClass("ecm-drop-shadow");
 				}
 
 				// 5.4 — Custom title injection

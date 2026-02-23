@@ -1,5 +1,5 @@
 import { App, SuggestModal, MarkdownView, setIcon } from "obsidian";
-import { type CalloutTypeInfo, BUILTIN_CALLOUT_TYPES } from "./types";
+import { type CalloutTypeInfo, type CollapseState, BUILTIN_CALLOUT_TYPES } from "./types";
 import type { IconManager } from "./icons/manager";
 
 /** A fast callout picker that inserts a callout block at the cursor. */
@@ -97,12 +97,13 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 	}
 
 	/** Insert a bare callout block into the active editor. */
-	static insertQuickCallout(app: App, type: string) {
+	static insertQuickCallout(app: App, type: string, collapse: CollapseState = "none") {
 		const editor =
 			app.workspace.getActiveViewOfType(MarkdownView)?.editor ?? null;
 		if (!editor) return;
 
-		let calloutText = `> [!${type}]\n> `;
+		const foldMarker = collapse === "open" ? "+" : collapse === "closed" ? "-" : "";
+		let calloutText = `> [!${type}]${foldMarker}\n> `;
 
 		const cursor = editor.getCursor();
 		const line = editor.getLine(cursor.line);
@@ -110,7 +111,7 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 
 		if (editor.getSelection()) {
 			const selected = editor.getSelection();
-			calloutText = `> [!${type}]\n> ${selected.replace(/\n/g, "\n> ")}`;
+			calloutText = `> [!${type}]${foldMarker}\n> ${selected.replace(/\n/g, "\n> ")}`;
 			if (!isLineStart && line.trim().length > 0) {
 				calloutText = "\n" + calloutText;
 			}
