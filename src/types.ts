@@ -1,15 +1,38 @@
 /**
- * Shared type definitions for the Enhanced Callout Manager plugin.
+ * Shared type definitions for the Callout Control Panel plugin.
  *
  * Attribution: Built-in callout type definitions are derived from
  * the Editing Toolbar plugin by Cuman
  * (https://github.com/cumany/obsidian-editing-toolbar), licensed under MIT.
+ *
+ * Icon types derived from obsidian-admonition v10.3.2
+ * (MIT, Jeremy Valentine).
  */
+
+import type { DownloadableIconPack } from "./icons/packs";
 
 /**
  * Where a callout type originates from.
  */
 export type CalloutSource = "builtin" | "snippet" | "custom" | "theme";
+
+/**
+ * Collapse state for callout insertion.
+ */
+export type CollapseState = "none" | "open" | "closed";
+
+/**
+ * Which icon pack an icon belongs to.
+ */
+export type IconType = "font-awesome" | "obsidian" | "image" | DownloadableIconPack;
+
+/**
+ * An icon reference: pack type + icon name (or image URL for type "image").
+ */
+export interface CalloutIconDefinition {
+	type?: IconType;
+	name?: string;
+}
 
 /**
  * Universal callout type information used by the modal dropdown
@@ -20,8 +43,10 @@ export interface CalloutTypeInfo {
 	type: string;
 	/** Display label for the UI (e.g., "Note", "Warning"). */
 	label: string;
-	/** Icon name (e.g., "lucide-pencil"). */
+	/** Icon name (e.g., "lucide-pencil"). Used as fallback when iconDef is absent. */
 	icon: string;
+	/** Full icon definition for non-Lucide icons (Font Awesome, downloaded packs, images). */
+	iconDef?: CalloutIconDefinition;
 	/** CSS color value (e.g., "var(--callout-default)" or "rgb(r,g,b)"). */
 	color: string;
 	/** Where this callout type was defined. */
@@ -32,6 +57,21 @@ export interface CalloutTypeInfo {
 	iconInvalid?: boolean;
 	/** Alternate names that resolve to this type (e.g., "summary" → "abstract"). */
 	aliases?: string[];
+}
+
+/**
+ * A user-defined custom callout type, persisted to settings and rendered
+ * to CSS by CalloutManager.
+ */
+export interface CustomCallout {
+	/** The callout type ID used in markdown (e.g., "my-callout"). */
+	type: string;
+	/** Icon definition (Obsidian, Font Awesome, downloaded pack, or image). */
+	icon: CalloutIconDefinition;
+	/** Color in RGB format: "r, g, b". */
+	color: string;
+	/** Per-type override for color injection. Falls back to global setting when undefined. */
+	injectColor?: boolean;
 }
 
 /**
@@ -46,8 +86,33 @@ export interface PluginSettings {
 	autoFocusContent: boolean;
 	/** Tracks the last used callout type (when rememberLastType is enabled). */
 	lastUsedType: string;
-	/** Whether to scan CSS snippet files for custom callout types. */
-	scanSnippets: boolean;
+	/** Which CSS sources to scan for callout types. */
+	calloutDetection: {
+		/** Detect callouts from Obsidian's built-in stylesheet (app.css). */
+		obsidian: boolean;
+		/** Detect callouts from the active theme's stylesheet. */
+		theme: boolean;
+		/** Detect callouts from enabled CSS snippet files. */
+		snippet: boolean;
+	};
+	/** Installed downloadable icon packs (e.g., "octicons", "rpg"). */
+	icons: DownloadableIconPack[];
+	/** Whether Font Awesome icons are available for selection. */
+	useFontAwesome: boolean;
+	/** User-created custom callout type definitions. */
+	customCallouts: Record<string, CustomCallout>;
+	/** Whether to inject the configured color into custom callout CSS. */
+	injectColor: boolean;
+	/** Up to 5 pinned callout type IDs for quick access. Empty string = unused slot. */
+	favoriteCallouts: string[];
+	/** Show a copy-to-clipboard button in each callout's title bar. */
+	showCopyButton: boolean;
+	/** Per-type title overrides: callout type ID → custom display title. */
+	titleOverrides: Record<string, string>;
+	/** Default collapse state for the insertion modal. */
+	defaultCollapseModal: CollapseState;
+	/** Default collapse state for the quick-pick modal. */
+	defaultCollapseQuickPick: CollapseState;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -55,7 +120,16 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	rememberLastType: false,
 	autoFocusContent: true,
 	lastUsedType: "note",
-	scanSnippets: true,
+	calloutDetection: { obsidian: true, theme: true, snippet: true },
+	icons: [],
+	useFontAwesome: true,
+	customCallouts: {},
+	injectColor: true,
+	favoriteCallouts: [],
+	showCopyButton: false,
+	titleOverrides: {},
+	defaultCollapseModal: "none",
+	defaultCollapseQuickPick: "none",
 };
 
 /**

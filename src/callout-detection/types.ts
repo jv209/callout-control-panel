@@ -1,0 +1,74 @@
+/**
+ * Callout detection type definitions.
+ *
+ * Extracted from: obsidian-callout-manager/api/callout.ts
+ * Original author: eth-p (https://github.com/eth-p)
+ * License: MIT
+ */
+
+/**
+ * A type representing the ID of a callout.
+ */
+export type CalloutID = string;
+
+/**
+ * A description of a markdown callout with its known sources.
+ */
+export type Callout = CalloutProperties & {
+	/**
+	 * The list of known sources for the callout.
+	 * A source is a stylesheet that provides styles for a callout with this ID.
+	 */
+	sources: CalloutSource[];
+};
+
+export interface CalloutProperties {
+	/** The ID of the callout (the part in the callout header). */
+	id: CalloutID;
+	/** The current color of the callout. */
+	color: string;
+	/** The icon associated with the callout. */
+	icon: string;
+}
+
+/**
+ * The source of a callout.
+ * This is what declares the style information for the callout with the given ID.
+ */
+export type CalloutSource =
+	| CalloutSourceObsidian
+	| CalloutSourceSnippet
+	| CalloutSourceTheme
+	| CalloutSourceCustom;
+
+/** The callout is a built-in Obsidian callout. */
+export interface CalloutSourceObsidian {
+	type: 'builtin';
+}
+
+/** The callout is from a CSS snippet. */
+export interface CalloutSourceSnippet {
+	type: 'snippet';
+	snippet: string;
+}
+
+/** The callout is from a theme. */
+export interface CalloutSourceTheme {
+	type: 'theme';
+	theme: string;
+}
+
+/** The callout was added by the user. */
+export interface CalloutSourceCustom {
+	type: 'custom';
+}
+
+/**
+ * A color in 8-bit RGB color space.
+ * Each component is between 0 and 255.
+ */
+export interface RGB {
+	r: number;
+	g: number;
+	b: number;
+}

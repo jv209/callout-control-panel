@@ -1,5 +1,5 @@
 /*
- * Enhanced Callout Manager — Modal Styles
+ * Callout Control Panel — Modal Styles
  *
  * Attribution: Derived from the Editing Toolbar plugin by Cuman
  * (https://github.com/cumany/obsidian-editing-toolbar), licensed under MIT.
@@ -92,8 +92,14 @@
 	color: var(--text-warning);
 }
 
-/* Detected snippet types list in settings (collapsible) */
-.detected-snippet-types {
+/* ─── Shared indented card container ──────────────────────────────────── */
+/* Used by detected snippet types, custom callout types, icon packs,
+   and title overrides. */
+
+.detected-snippet-types,
+.custom-callout-types,
+.ccp-icon-packs,
+.ccp-title-overrides {
 	margin: 0 0 12px 5%;
 	padding: 6px 12px 6px 16px;
 	background: var(--background-secondary);
@@ -101,7 +107,8 @@
 	border-left: 3px solid var(--interactive-accent);
 }
 
-.detected-snippet-types-summary {
+.detected-snippet-types-summary,
+.custom-callout-types-summary {
 	cursor: pointer;
 	font-size: var(--font-ui-smaller);
 	opacity: 0.6;
@@ -109,11 +116,12 @@
 	user-select: none;
 }
 
-.detected-snippet-types-summary:hover {
+.detected-snippet-types-summary:hover,
+.custom-callout-types-summary:hover {
 	opacity: 0.9;
 }
 
-/* Table grid: Icon | Callout | Icon Name | Color | Status */
+/* Table grid: Icon | Callout | Icon Name | Color | Actions */
 .detected-snippet-type-row {
 	display: grid;
 	grid-template-columns: 24px 1fr 1fr 1fr 24px;
@@ -122,7 +130,18 @@
 	padding: 4px 0;
 }
 
-.detected-snippet-type-header {
+/* Custom callout rows use wider action column for edit/delete buttons */
+.custom-callout-type-row {
+	display: grid;
+	grid-template-columns: 24px 1fr 1fr 1fr 48px;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+}
+
+.detected-snippet-type-header,
+.custom-callout-type-header,
+.ccp-title-override-header {
 	font-size: var(--font-ui-smaller);
 	font-weight: var(--font-semibold);
 	opacity: 0.6;
@@ -131,7 +150,8 @@
 	margin-bottom: 2px;
 }
 
-.detected-snippet-type-icon {
+.detected-snippet-type-icon,
+.custom-callout-type-icon {
 	display: flex;
 	width: 18px;
 	height: 18px;
@@ -139,17 +159,25 @@
 	flex-shrink: 0;
 }
 
-.detected-snippet-type-icon svg {
+.detected-snippet-type-icon svg,
+.custom-callout-type-icon svg {
 	width: 14px;
 	height: 14px;
 	color: rgb(var(--callout-color));
 }
 
-.detected-snippet-col-callout {
+.custom-callout-type-icon img {
+	width: 14px;
+	height: 14px;
+}
+
+.detected-snippet-col-callout,
+.custom-callout-col-callout {
 	font-size: var(--font-ui-small);
 }
 
-.detected-snippet-type-meta {
+.detected-snippet-type-meta,
+.custom-callout-type-meta {
 	font-size: var(--font-ui-smaller);
 	opacity: 0.5;
 	font-family: var(--font-monospace);
@@ -173,6 +201,30 @@
 	width: 14px;
 	height: 14px;
 	color: var(--text-warning);
+}
+
+/* Action buttons in custom callout and title override rows */
+.custom-callout-actions {
+	display: flex;
+	gap: 2px;
+	align-items: center;
+}
+
+.custom-callout-actions .clickable-icon {
+	padding: 2px;
+	cursor: pointer;
+	opacity: 0.5;
+	border-radius: 4px;
+}
+
+.custom-callout-actions .clickable-icon:hover {
+	opacity: 1;
+	background: var(--background-modifier-hover);
+}
+
+.custom-callout-actions .clickable-icon svg {
+	width: 14px;
+	height: 14px;
 }
 
 /* Malformed snippet warnings */
@@ -215,4 +267,153 @@
 	font-family: var(--font-monospace);
 	font-size: var(--font-ui-smaller);
 	padding: 1px 0;
+}
+
+/* Compact settings inside the icon packs box */
+.ccp-icon-packs .setting-item {
+	padding: 6px 0;
+	border-top: none;
+}
+
+/* ─── Title override grid ─────────────────────────────────────────────── */
+
+.ccp-title-override-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr 24px;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+}
+
+.ccp-title-override-col-type {
+	font-size: var(--font-ui-small);
+}
+
+.ccp-title-override-input {
+	width: 100%;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid transparent;
+	font-size: var(--font-ui-smaller);
+	font-family: var(--font-monospace);
+	color: var(--text-normal);
+	padding: 2px 0;
+	opacity: 0.7;
+}
+
+.ccp-title-override-input:hover,
+.ccp-title-override-input:focus {
+	border-bottom-color: var(--interactive-accent);
+	opacity: 1;
+	outline: none;
+}
+
+/* ─── Settings tab bar ─────────────────────────────────────────────────── */
+
+.ccp-tab-bar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	border-bottom: 3px solid var(--interactive-accent);
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.ccp-tab-button {
+	display: flex;
+	align-items: center;
+	padding: 8px 12px;
+	background: none;
+	border: none;
+	border-radius: 6px 6px 0 0;
+	cursor: pointer;
+	color: var(--text-faint);
+	font-size: var(--font-ui-small);
+	transition: color 0.15s ease, background 0.15s ease;
+}
+
+.ccp-tab-button:hover {
+	color: var(--text-normal);
+	background: var(--background-modifier-hover);
+}
+
+.ccp-tab-button.ccp-tab-active {
+	color: var(--interactive-accent);
+	background: var(--background-secondary);
+	font-weight: var(--font-semibold);
+}
+
+/* Tab icon — always visible */
+.ccp-tab-icon {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.ccp-tab-icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+/* Tab label — hidden by default, shown when active or hovered */
+.ccp-tab-label {
+	display: inline-block;
+	max-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	opacity: 0;
+	margin-left: 0;
+	transition: max-width 0.25s ease, opacity 0.2s ease, margin-left 0.25s ease;
+}
+
+.ccp-tab-button.ccp-tab-active .ccp-tab-label,
+.ccp-tab-button:hover .ccp-tab-label {
+	max-width: 200px;
+	opacity: 1;
+	margin-left: 6px;
+}
+
+/* ─── Settings content area ───────────────────────────────────────────── */
+
+.ccp-tab-pane {
+	padding-top: 8px;
+}
+
+/* Extra vertical spacing between individual setting items */
+.ccp-tab-pane > .setting-item {
+	padding-top: 14px;
+	padding-bottom: 14px;
+}
+
+/* ─── 5.2 Copy-to-clipboard button (bottom-right of callout) ─────────── */
+/* Button is appended directly to .callout, which already carries
+   position:relative in Obsidian's own stylesheet. No wrapper needed. */
+
+.ccp-copy-button {
+	position: absolute;
+	right: 8px;
+	bottom: 8px;
+	display: flex;
+	align-items: center;
+	padding: 4px;
+	cursor: pointer;
+	opacity: 0;
+	border-radius: 4px;
+	transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+/* Show on callout hover */
+.callout:hover .ccp-copy-button {
+	opacity: 0.4;
+}
+
+.ccp-copy-button:hover {
+	opacity: 1 !important;
+	background: var(--background-modifier-hover);
+}
+
+.ccp-copy-button svg {
+	width: 14px;
+	height: 14px;
+	color: var(--text-muted);
 }

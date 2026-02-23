@@ -1,25 +1,42 @@
 import { App, SuggestModal, MarkdownView, setIcon } from "obsidian";
-import { type CalloutTypeInfo, BUILTIN_CALLOUT_TYPES } from "./types";
+import { type CalloutTypeInfo, type CollapseState, BUILTIN_CALLOUT_TYPES } from "./types";
+import type { IconManager } from "./icons/manager";
 
 /** A fast callout picker that inserts a callout block at the cursor. */
 export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 	private allCalloutOptions: CalloutTypeInfo[] = [];
 	private onChoose: (type: string) => void;
+	private iconManager: IconManager | undefined;
 
-	constructor(app: App, snippetTypes: CalloutTypeInfo[], onChoose: (type: string) => void) {
+	constructor(
+		app: App,
+		customTypes: CalloutTypeInfo[],
+		snippetTypes: CalloutTypeInfo[],
+		onChoose: (type: string) => void,
+		iconManager?: IconManager,
+	) {
 		super(app);
 		this.onChoose = onChoose;
+		this.iconManager = iconManager;
 		this.setPlaceholder("Choose a callout type...");
-		this.prepareCalloutOptions(snippetTypes);
+		this.prepareCalloutOptions(customTypes, snippetTypes);
 	}
 
-	private prepareCalloutOptions(snippetTypes: CalloutTypeInfo[]) {
-		// Snippet types first
+	private prepareCalloutOptions(
+		customTypes: CalloutTypeInfo[],
+		snippetTypes: CalloutTypeInfo[],
+	) {
+		// Custom types (user-defined) first
+		for (const ct of customTypes) {
+			this.allCalloutOptions.push(ct);
+		}
+
+		// Snippet types (CSS-detected) second
 		for (const st of snippetTypes) {
 			this.allCalloutOptions.push(st);
 		}
 
-		// Then built-in types with aliases
+		// Built-in types with aliases last
 		for (const bt of BUILTIN_CALLOUT_TYPES) {
 			this.allCalloutOptions.push(bt);
 			if (bt.aliases) {
@@ -49,7 +66,20 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 	renderSuggestion(item: CalloutTypeInfo, el: HTMLElement) {
 		const container = el.createDiv({ cls: "quick-pick-callout-item" });
 		const iconEl = container.createDiv({ cls: "quick-pick-callout-icon" });
-		setIcon(iconEl, item.icon);
+
+		// Use the full icon definition for non-Lucide icons when available.
+		let rendered = false;
+		if (item.iconDef && this.iconManager) {
+			const node = this.iconManager.getIconNode(item.iconDef);
+			if (node) {
+				iconEl.appendChild(node);
+				rendered = true;
+			}
+		}
+		if (!rendered) {
+			setIcon(iconEl, item.icon);
+		}
+
 		iconEl.style.setProperty("--callout-color", item.color);
 		container.createDiv({ cls: "quick-pick-callout-label", text: item.label });
 
@@ -67,12 +97,13 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 	}
 
 	/** Insert a bare callout block into the active editor. */
-	static insertQuickCallout(app: App, type: string) {
+	static insertQuickCallout(app: App, type: string, collapse: CollapseState = "none") {
 		const editor =
 			app.workspace.getActiveViewOfType(MarkdownView)?.editor ?? null;
 		if (!editor) return;
 
-		let calloutText = `> [!${type}]\n> `;
+		const foldMarker = collapse === "open" ? "+" : collapse === "closed" ? "-" : "";
+		let calloutText = `> [!${type}]${foldMarker}\n> `;
 
 		const cursor = editor.getCursor();
 		const line = editor.getLine(cursor.line);
@@ -80,7 +111,7 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 
 		if (editor.getSelection()) {
 			const selected = editor.getSelection();
-			calloutText = `> [!${type}]\n> ${selected.replace(/\n/g, "\n> ")}`;
+			calloutText = `> [!${type}]${foldMarker}\n> ${selected.replace(/\n/g, "\n> ")}`;
 			if (!isLineStart && line.trim().length > 0) {
 				calloutText = "\n" + calloutText;
 			}
