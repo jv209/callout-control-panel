@@ -145,7 +145,6 @@ var DEFAULT_SETTINGS = {
   customCallouts: {},
   injectColor: true,
   favoriteCallouts: [],
-  smoothTransitions: true,
   showCopyButton: false,
   titleOverrides: {},
   defaultCollapseModal: "none",
@@ -548,15 +547,6 @@ var EnhancedCalloutSettingTab = class extends import_obsidian4.PluginSettingTab 
       t2.setValue(this.plugin.settings.injectColor);
       t2.onChange(async (v) => {
         this.plugin.settings.injectColor = v;
-        await this.plugin.saveSettings();
-      });
-    });
-    new import_obsidian4.Setting(el).setName("Smooth collapse transitions").setDesc(
-      "Animate the expand and collapse of foldable callouts with a smooth transition."
-    ).addToggle((t2) => {
-      t2.setValue(this.plugin.settings.smoothTransitions);
-      t2.onChange(async (v) => {
-        this.plugin.settings.smoothTransitions = v;
         await this.plugin.saveSettings();
       });
     });
@@ -19639,9 +19629,6 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
       const callouts = el.querySelectorAll(".callout");
       if (callouts.length === 0) return;
       for (const callout of Array.from(callouts)) {
-        if (this.settings.smoothTransitions) {
-          callout.addClass("ecm-smooth-transition");
-        }
         if (this.settings.showCopyButton) {
           const contentEl = callout.querySelector(".callout-content");
           if (contentEl && !contentEl.querySelector(".ecm-copy-button")) {

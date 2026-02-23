@@ -201,19 +201,6 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(el)
-			.setName("Smooth collapse transitions")
-			.setDesc(
-				"Animate the expand and collapse of foldable callouts with a smooth transition.",
-			)
-			.addToggle((t) => {
-				t.setValue(this.plugin.settings.smoothTransitions);
-				t.onChange(async (v) => {
-					this.plugin.settings.smoothTransitions = v;
-					await this.plugin.saveSettings();
-				});
-			});
-
-		new Setting(el)
 			.setName("Copy button")
 			.setDesc(
 				"Show a copy-to-clipboard button in each callout's title bar.",
