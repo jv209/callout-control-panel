@@ -105,8 +105,6 @@ export interface PluginSettings {
 	injectColor: boolean;
 	/** Up to 5 pinned callout type IDs for quick access. Empty string = unused slot. */
 	favoriteCallouts: string[];
-	/** Smooth CSS transition animation for collapsible callouts. */
-	smoothTransitions: boolean;
 	/** Show a copy-to-clipboard button in each callout's title bar. */
 	showCopyButton: boolean;
 	/** Per-type title overrides: callout type ID → custom display title. */
@@ -128,7 +126,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	customCallouts: {},
 	injectColor: true,
 	favoriteCallouts: [],
-	smoothTransitions: true,
 	showCopyButton: false,
 	titleOverrides: {},
 	defaultCollapseModal: "none",

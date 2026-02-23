@@ -385,26 +385,6 @@
 	padding-bottom: 14px;
 }
 
-/* ─── 5.1 Smooth collapse/expand transitions ──────────────────────────── */
-
-.ecm-smooth-transition > .callout-content {
-	/* Override Obsidian's display:none so CSS transitions can animate */
-	display: block !important;
-	transition: max-height 0.35s ease-in-out, opacity 0.25s ease, padding 0.35s ease-in-out;
-	overflow: hidden;
-	max-height: 2000px;
-	opacity: 1;
-}
-
-.ecm-smooth-transition.is-collapsed > .callout-content {
-	max-height: 0 !important;
-	opacity: 0;
-	padding-top: 0 !important;
-	padding-bottom: 0 !important;
-	margin-top: 0 !important;
-	margin-bottom: 0 !important;
-}
-
 /* ─── 5.2 Copy-to-clipboard button (bottom-right of content) ─────────── */
 
 .ecm-copy-content {

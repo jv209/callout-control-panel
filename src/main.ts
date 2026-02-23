@@ -174,11 +174,6 @@ export default class EnhancedCalloutManager extends Plugin {
 			if (callouts.length === 0) return;
 
 			for (const callout of Array.from(callouts)) {
-				// 5.1 — Smooth collapse/expand transitions
-				if (this.settings.smoothTransitions) {
-					callout.addClass("ecm-smooth-transition");
-				}
-
 				// 5.2 — Copy-to-clipboard button (bottom-right of callout body)
 				if (this.settings.showCopyButton) {
 					const contentEl = callout.querySelector<HTMLElement>(".callout-content");
