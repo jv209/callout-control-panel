@@ -1,0 +1,141 @@
+# Callout Plugin Landscape: Competitive Comparison
+**Enhanced Callout Manager vs. the ecosystem — February 2026**
+
+---
+
+## 1. All Plugins at a Glance
+
+Most plugins in this list are narrow-purpose tools that use callout syntax as output, not as their primary domain.
+
+| Plugin | Focus | Insert | Manage / Create | CSS Detection | Hotkeys | Icon Control | Notable / Unique Feature |
+|--------|-------|--------|-----------------|---------------|---------|--------------|--------------------------|
+| **Enhanced Callout Manager (yours)** | All-in-one | ✅ | ✅ | ✅ | 5 favorites + 8 cmds | ✅ | Import/export JSON+CSS, 4 icon packs, quick-pick mode |
+| Callout Manager (eth-p) | Manage & style | ❌ | ✅ | ✅ | ❌ | ✅ | Plugin API for other plugins |
+| Callout Toggles | Insert/switch via commands | ✅ | ❌ | ❌ | Per-type commands | ❌ | Retain custom titles when unwrapping |
+| Callout Suggestions | Autocomplete | Autocomplete | ❌ | ❌ | ❌ | ❌ | Requires Callout Manager; `>!` trigger |
+| Callout Menu | Context menu switching | ❌ | Type switcher | ❌ | ❌ | ❌ | Collapse +/- toggle, metadata via right-click |
+| CalloutX | CSS icon explorer | ❌ | CSS-only | ✅ | ❌ | ❌ | Edit/delete CSS-defined callouts visually |
+| Inline Admonitions | Inline code styling | ❌ | ✅ | ❌ | ❌ | ❌ | Triggered by prefix/suffix/regex in inline code |
+| Inline Callouts (badges v2) | Inline badges | ❌ | ✅ | ❌ | ❌ | ✅ | Modal UI, icon autocomplete, Style Settings compat |
+| Callout Integrator | Text → callout | ✅ | ❌ | ❌ | ✅ | ❌ | Adds/removes `>` prefixes on selected text |
+| Callout Copy Buttons | Copy content | ❌ | ❌ | ❌ | ❌ | ❌ | Adds copy (MD + plain text) buttons to callouts |
+| List Callouts | List-item callouts | ❌ | ✅ | ❌ | ❌ | ❌ | Character-triggered callouts within list items |
+| Citation Callouts | Citation formatting | Paste-based | ❌ | ❌ | ❌ | ❌ | Pastes clipboard citations as formatted callouts |
+| Math in Callout | Math rendering fix | ❌ | ❌ | ❌ | ❌ | ❌ | Fixes MathJax rendering inside callouts (Live Preview) |
+| File Tree Generator | File tree display | ❌ | ❌ | ❌ | ❌ | ❌ | Generates file trees using callout syntax |
+| Get Stock Information | Stock data callout | Auto-insert | ❌ | ❌ | ❌ | ❌ | Fetches stock info from Yahoo Finance into callout |
+| Keyboard Shortcuts | Keyboard nav + snippets | Default type only | ❌ | ❌ | ✅ | ❌ | Heading nav, code block copy, callout insert shortcut |
+| Badges | Inline key-value badges | ❌ | ✅ | ❌ | ❌ | ❌ | Dataview-queryable inline badges (predecessor to Inline Callouts) |
+| Personal Assistant | Vault automation | List callouts | ❌ | ❌ | ❌ | ❌ | Multi-feature plugin; callout listing is one small feature |
+
+---
+
+## 2. True Competitors (Callout-Focused Plugins)
+
+Only six plugins meaningfully overlap with Enhanced Callout Manager's core domain. The rest are tangential (stock data, math fixes, file trees, etc.).
+
+| Feature | Enhanced CM (yours) | Callout Manager | Callout Toggles | Callout Menu | CalloutX | Callout Suggestions |
+|---------|---------------------|-----------------|-----------------|--------------|----------|---------------------|
+| Insert callout via modal | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Insert via command palette | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Quick-pick / autocomplete | ✅ | ❌ | ❌ | ❌ | ❌ | Trigger: `>!` |
+| Right-click context menu | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Set title at insert time | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Set collapse state at insert | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Pre-fill content from selection | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Per-type hotkeys / favorites | 5 slots | ❌ | All types | ❌ | ❌ | ❌ |
+| Recognize built-in types | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Scan CSS snippets | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Detect theme callouts | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Warn on bad CSS definitions | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Create custom types (GUI) | ✅ | ❌ | ❌ | ❌ | GUI (CSS-backed) | ❌ |
+| Edit/delete custom types | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Live preview while creating | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Color picker for custom types | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Color injection (no CSS needed) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Lucide icon picker | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Font Awesome icons | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Octicons (downloadable) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| RPG Awesome (downloadable) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Upload custom image icons | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Export types as CSS snippet | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Export / import as JSON | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Plugin API for other plugins | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Mobile support | Unknown | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Requires Callout Manager | ❌ | ❌ | Optional | ❌ | ❌ | ✅ |
+
+---
+
+## 3. Plugin Notes & Observations
+
+### Callout Manager (eth-p) — Closest Relative
+
+The clearest overlap. Callout Manager does CSS detection and custom type creation well, and has a plugin API that other plugins depend on (Callout Suggestions, Callout Toggles optionally). It does **not** insert callouts — it is a management and discovery layer only. ECM subsumes its management features while adding a full insertion workflow, icon packs, import/export, and color injection. ECM does not expose a plugin API, which means it cannot replace Callout Manager for users who rely on dependent plugins.
+
+### Callout Toggles — Keyboard-First Power User Tool
+
+Generates one command per callout type, enabling direct hotkey assignment for every type. This is a different UX model than ECM's 5-slot favorites — Callout Toggles is better for users who want 10+ individual hotkeys. It also has a unique feature: retaining custom titles when removing callouts, and promoting headings to callout titles. No management or creation capability.
+
+### Callout Menu — Right-Click Switcher
+
+Adds callout type switching and collapse toggling to the right-click context menu. Minimal overlap with ECM — it solves the "I already have a callout and want to change its type" workflow, not insertion or creation. Available via BRAT only (not in the community plugin store).
+
+### CalloutX — CSS-Backed Visual Editor
+
+Reads and writes a dedicated `custom-callouts.css` file. Users can create, edit, delete, and search callouts visually, but everything is backed by CSS file edits. Desktop only. No insertion capability. ECM's approach (color injection + JSON storage) avoids requiring a separate CSS file, but CalloutX's explicit CSS-file model may appeal to users who prefer direct CSS control.
+
+### Callout Suggestions — Autocomplete Trigger
+
+Very narrow scope: type `>!` in the editor to trigger an autocomplete modal. Requires Callout Manager to function. ECM's quick-pick mode covers a similar use case without requiring a dependency. Minimal overlap otherwise.
+
+### Tangential / Non-Competing Plugins
+
+The following plugins use callout syntax as a vehicle for an unrelated feature, not as their primary purpose. They are not meaningful competitors:
+
+- **Callout Integrator** — converts plain text to callout format by adding `>` prefixes
+- **Callout Copy Buttons** — adds copy buttons (MD + plain text) to existing callout blocks
+- **List Callouts** — character-triggered callout-style styling within list items
+- **Citation Callouts** — pastes clipboard citations as formatted callout blocks
+- **Inline Admonitions** — styles inline code blocks, not standard callouts
+- **Inline Callouts (Badges v2)** — inline key-value badges with icon support; separate concept from block callouts
+- **Math in Callout** — fixes MathJax rendering inside callouts in Live Preview
+- **File Tree Generator** — generates directory trees using callout syntax
+- **Get Stock Information** — inserts Yahoo Finance data into a callout block
+- **Keyboard Shortcuts** — general nav plugin with a single configurable callout insert command
+- **Badges** — predecessor to Inline Callouts; inline key-value store badges
+- **Personal Assistant** — multi-purpose vault automation plugin; callout listing is a minor feature
+
+---
+
+## 4. Where Enhanced Callout Manager Stands Out
+
+Unique capabilities not found in any competing plugin:
+
+| Unique Feature | Why It Matters |
+|----------------|----------------|
+| Full insertion + management in one plugin | No other plugin does both; users currently need Callout Manager + Callout Toggles/Suggestions to approximate this |
+| 4 icon sources (Lucide, FA, Octicons, RPG Awesome) | No other callout plugin supports icon packs beyond Lucide |
+| Upload custom image as icon | Completely unique — no other plugin allows this |
+| Import/export types as JSON | Enables sharing and backing up callout type libraries |
+| Export types as a CSS snippet | Useful for theme/snippet authors; no other plugin does this |
+| CSS snippet warning system | Actively diagnoses malformed CSS; Callout Manager detects but doesn't warn |
+| Color injection (no CSS required) | Custom types work without writing any CSS; closest competitor (Callout Manager) still requires CSS for display |
+| Quick-pick mode | Rapid insertion without filling out the full modal — faster than any competing workflow |
+
+---
+
+## 5. Gaps & Honest Weaknesses
+
+| Gap | Notes |
+|-----|-------|
+| No plugin API | Callout Manager's API is used by Callout Suggestions and Callout Toggles. ECM cannot replace CM for users of those plugins. |
+| No per-type hotkeys (unlimited) | Callout Toggles generates one command per type; ECM's 5-slot model won't satisfy power users who want 10+ hotkeys |
+| No right-click context menu | Callout Menu's UX (switch type without leaving context) is unmatched by ECM |
+| No title/type retain on unwrap | Callout Toggles preserves custom titles when removing callouts — ECM has no remove/unwrap feature |
+| No theme callout detection | Callout Manager detects types from themes, not just snippets. ECM only scans snippets. |
+| Mobile support unclear | README does not state mobile compatibility; Callout Manager explicitly supports it |
+
+---
+
+*Generated February 2026 — based on README documentation. Feature parity may differ from actual implementation.*
+gg
