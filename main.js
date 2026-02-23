@@ -19643,16 +19643,16 @@ var EnhancedCalloutManager = class extends import_obsidian10.Plugin {
           callout.addClass("ecm-smooth-transition");
         }
         if (this.settings.showCopyButton) {
-          const titleEl = callout.querySelector(".callout-title");
-          if (titleEl && !titleEl.querySelector(".ecm-copy-button")) {
-            const btn = titleEl.createDiv({ cls: "ecm-copy-button" });
+          const contentEl = callout.querySelector(".callout-content");
+          if (contentEl && !contentEl.querySelector(".ecm-copy-button")) {
+            contentEl.addClass("ecm-copy-content");
+            const btn = contentEl.createDiv({ cls: "ecm-copy-button" });
             (0, import_obsidian10.setIcon)(btn, "copy");
             btn.setAttribute("aria-label", "Copy callout text");
             btn.addEventListener("click", (e) => {
               var _a2;
               e.stopPropagation();
-              const contentEl = callout.querySelector(".callout-content");
-              const text2 = (_a2 = contentEl == null ? void 0 : contentEl.innerText) != null ? _a2 : "";
+              const text2 = (_a2 = contentEl.innerText) != null ? _a2 : "";
               navigator.clipboard.writeText(text2).then(
                 () => new import_obsidian10.Notice("Copied to clipboard."),
                 () => new import_obsidian10.Notice("Could not copy to clipboard.")

@@ -405,13 +405,19 @@
 	margin-bottom: 0 !important;
 }
 
-/* ─── 5.2 Copy-to-clipboard button ────────────────────────────────────── */
+/* ─── 5.2 Copy-to-clipboard button (bottom-right of content) ─────────── */
+
+.ecm-copy-content {
+	position: relative;
+}
 
 .ecm-copy-button {
+	position: absolute;
+	right: 4px;
+	bottom: 4px;
 	display: flex;
 	align-items: center;
-	margin-left: auto;
-	padding: 2px;
+	padding: 4px;
 	cursor: pointer;
 	opacity: 0;
 	border-radius: 4px;
@@ -420,7 +426,7 @@
 
 /* Show on callout hover */
 .callout:hover .ecm-copy-button {
-	opacity: 0.5;
+	opacity: 0.4;
 }
 
 .ecm-copy-button:hover {
