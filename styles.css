@@ -93,11 +93,13 @@
 }
 
 /* ─── Shared indented card container ──────────────────────────────────── */
-/* Used by detected snippet types, custom callout types, and icon packs. */
+/* Used by detected snippet types, custom callout types, icon packs,
+   and title overrides. */
 
 .detected-snippet-types,
 .custom-callout-types,
-.ecm-icon-packs {
+.ecm-icon-packs,
+.ecm-title-overrides {
 	margin: 0 0 12px 5%;
 	padding: 6px 12px 6px 16px;
 	background: var(--background-secondary);
@@ -138,7 +140,8 @@
 }
 
 .detected-snippet-type-header,
-.custom-callout-type-header {
+.custom-callout-type-header,
+.ecm-title-override-header {
 	font-size: var(--font-ui-smaller);
 	font-weight: var(--font-semibold);
 	opacity: 0.6;
@@ -200,7 +203,7 @@
 	color: var(--text-warning);
 }
 
-/* Action buttons in custom callout rows */
+/* Action buttons in custom callout and title override rows */
 .custom-callout-actions {
 	display: flex;
 	gap: 2px;
@@ -272,26 +275,61 @@
 	border-top: none;
 }
 
+/* ─── Title override grid ─────────────────────────────────────────────── */
+
+.ecm-title-override-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr 24px;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+}
+
+.ecm-title-override-col-type {
+	font-size: var(--font-ui-small);
+}
+
+.ecm-title-override-input {
+	width: 100%;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid transparent;
+	font-size: var(--font-ui-smaller);
+	font-family: var(--font-monospace);
+	color: var(--text-normal);
+	padding: 2px 0;
+	opacity: 0.7;
+}
+
+.ecm-title-override-input:hover,
+.ecm-title-override-input:focus {
+	border-bottom-color: var(--interactive-accent);
+	opacity: 1;
+	outline: none;
+}
+
 /* ─── Settings tab bar ─────────────────────────────────────────────────── */
 
 .ecm-tab-bar {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0;
-	border-bottom: 1px solid var(--background-modifier-border);
+	gap: 4px;
+	border-bottom: 3px solid var(--interactive-accent);
 	margin-bottom: 0;
+	padding-bottom: 0;
 }
 
 .ecm-tab-button {
-	padding: 8px 16px;
+	display: flex;
+	align-items: center;
+	padding: 8px 12px;
 	background: none;
 	border: none;
-	border-bottom: 2px solid transparent;
-	border-radius: 4px 4px 0 0;
+	border-radius: 6px 6px 0 0;
 	cursor: pointer;
 	color: var(--text-faint);
 	font-size: var(--font-ui-small);
-	transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+	transition: color 0.15s ease, background 0.15s ease;
 }
 
 .ecm-tab-button:hover {
@@ -300,21 +338,62 @@
 }
 
 .ecm-tab-button.ecm-tab-active {
-	color: var(--interactive-accent) !important;
-	background: var(--background-secondary) !important;
-	border-bottom-color: var(--interactive-accent) !important;
-	font-weight: var(--font-semibold) !important;
+	color: var(--interactive-accent);
+	background: var(--background-secondary);
+	font-weight: var(--font-semibold);
 }
 
+/* Tab icon — always visible */
+.ecm-tab-icon {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.ecm-tab-icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+/* Tab label — hidden by default, shown when active or hovered */
+.ecm-tab-label {
+	display: inline-block;
+	max-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	opacity: 0;
+	margin-left: 0;
+	transition: max-width 0.25s ease, opacity 0.2s ease, margin-left 0.25s ease;
+}
+
+.ecm-tab-button.ecm-tab-active .ecm-tab-label,
+.ecm-tab-button:hover .ecm-tab-label {
+	max-width: 200px;
+	opacity: 1;
+	margin-left: 6px;
+}
+
+/* ─── Settings content area ───────────────────────────────────────────── */
+
 .ecm-tab-pane {
-	padding-top: 4px;
+	padding-top: 8px;
+}
+
+/* Extra vertical spacing between individual setting items */
+.ecm-tab-pane > .setting-item {
+	padding-top: 14px;
+	padding-bottom: 14px;
 }
 
 /* ─── 5.1 Smooth collapse/expand transitions ──────────────────────────── */
 
 .ecm-smooth-transition > .callout-content {
-	transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+	/* Override Obsidian's display:none so CSS transitions can animate */
+	display: block !important;
+	transition: max-height 0.35s ease-in-out, opacity 0.25s ease, padding 0.35s ease-in-out;
 	overflow: hidden;
+	max-height: 2000px;
+	opacity: 1;
 }
 
 .ecm-smooth-transition.is-collapsed > .callout-content {
@@ -322,11 +401,8 @@
 	opacity: 0;
 	padding-top: 0 !important;
 	padding-bottom: 0 !important;
-}
-
-.ecm-smooth-transition:not(.is-collapsed) > .callout-content {
-	max-height: 2000px;
-	opacity: 1;
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
 }
 
 /* ─── 5.2 Copy-to-clipboard button ────────────────────────────────────── */
@@ -356,14 +432,4 @@
 	width: 14px;
 	height: 14px;
 	color: var(--text-muted);
-}
-
-/* ─── 5.3 Drop shadow ─────────────────────────────────────────────────── */
-
-.ecm-drop-shadow {
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-.theme-dark .ecm-drop-shadow {
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.15);
 }

@@ -1,13 +1,14 @@
 /**
  * Unified settings tab for Enhanced Callout Manager.
  *
- * Tabs:
- *   1. Default Settings    — default type, remember last, auto-focus, color injection
+ * Tabs (in order):
+ *   1. Default Settings    — default type, remember last, auto-focus, color injection, collapse
  *   2. CSS Type Detection  — snippet scanning + detected types table
  *   3. Custom Callouts     — add / edit / delete user-defined callouts
  *   4. Most Used Callouts  — up to 5 pinned type slots
- *   5. Import / Export     — JSON and CSS export, JSON import
- *   6. Icon Packs          — Font Awesome toggle, downloadable pack management
+ *   5. Title Overrides     — per-type title replacements
+ *   6. Import / Export     — JSON and CSS export, JSON import
+ *   7. Icon Packs          — Font Awesome toggle, downloadable pack management
  *
  * Also contains CalloutEditModal (create / edit a single custom type).
  *
@@ -27,6 +28,7 @@ import {
 import {
 	type CalloutIconDefinition,
 	type CalloutTypeInfo,
+	type CollapseState,
 	type CustomCallout,
 	type PluginSettings,
 	BUILTIN_CALLOUT_TYPES,
@@ -100,13 +102,14 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		const tabBar = containerEl.createDiv({ cls: "ecm-tab-bar" });
 		const tabContent = containerEl.createDiv({ cls: "ecm-tab-content" });
 
-		const tabs: { label: string; builder: (el: HTMLElement) => void }[] = [
-			{ label: "Default Settings", builder: (el) => this.buildInsertionSection(el) },
-			{ label: "CSS Type Detection", builder: (el) => this.buildDetectionSection(el) },
-			{ label: "Custom Callouts", builder: (el) => this.buildCustomTypesSection(el) },
-			{ label: "Most Used Callouts", builder: (el) => this.buildFavoritesSection(el) },
-			{ label: "Import / Export", builder: (el) => this.buildImportExportSection(el) },
-			{ label: "Icon Packs", builder: (el) => this.buildIconPacksSection(el) },
+		const tabs: { label: string; icon: string; builder: (el: HTMLElement) => void }[] = [
+			{ label: "Default Settings", icon: "lucide-cog", builder: (el) => this.buildInsertionSection(el) },
+			{ label: "CSS Type Detection", icon: "lucide-telescope", builder: (el) => this.buildDetectionSection(el) },
+			{ label: "Custom Callouts", icon: "lucide-paintbrush", builder: (el) => this.buildCustomTypesSection(el) },
+			{ label: "Most Used Callouts", icon: "lucide-stars", builder: (el) => this.buildFavoritesSection(el) },
+			{ label: "Title Overrides", icon: "lucide-pencil-line", builder: (el) => this.buildTitleOverridesTab(el) },
+			{ label: "Import / Export", icon: "lucide-import", builder: (el) => this.buildImportExportSection(el) },
+			{ label: "Icon Packs", icon: "lucide-package", builder: (el) => this.buildIconPacksSection(el) },
 		];
 
 		const buttons: HTMLElement[] = [];
@@ -114,10 +117,11 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 
 		for (let idx = 0; idx < tabs.length; idx++) {
 			const tab = tabs[idx]!;
-			const btn = tabBar.createEl("button", {
-				text: tab.label,
-				cls: "ecm-tab-button",
-			});
+			const btn = tabBar.createEl("button", { cls: "ecm-tab-button" });
+			const iconSpan = btn.createSpan({ cls: "ecm-tab-icon" });
+			setIcon(iconSpan, tab.icon);
+			btn.createSpan({ cls: "ecm-tab-label", text: tab.label });
+
 			const pane = tabContent.createDiv({ cls: "ecm-tab-pane" });
 			pane.style.display = "none";
 
@@ -223,81 +227,36 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(el)
-			.setName("Drop shadow")
+			.setName("Default collapse state (modal)")
 			.setDesc(
-				"Apply a subtle shadow to rendered callouts for added depth.",
-			)
-			.addToggle((t) => {
-				t.setValue(this.plugin.settings.enableDropShadow);
-				t.onChange(async (v) => {
-					this.plugin.settings.enableDropShadow = v;
-					await this.plugin.saveSettings();
-				});
-			});
-
-		// ── Title overrides ────────────────────────────────────────────
-		this.buildTitleOverridesSection(el);
-	}
-
-	private buildTitleOverridesSection(el: HTMLElement): void {
-		const overrides = this.plugin.settings.titleOverrides ?? {};
-
-		let selectedType = "";
-		let titleText = "";
-
-		new Setting(el)
-			.setName("Title overrides")
-			.setDesc(
-				"Replace the default title for specific callout types in reading view. Only affects callouts without an explicit title in markdown.",
+				"The default collapse state when inserting a callout via the full modal.",
 			)
 			.addDropdown((d) => {
-				const existing = new Set(Object.keys(overrides));
-				this.buildGroupedDropdown(d.selectEl);
-				// Remove options that already have overrides
-				for (const opt of Array.from(d.selectEl.querySelectorAll("option"))) {
-					if (existing.has(opt.value)) opt.remove();
-				}
-				selectedType = d.getValue();
-				d.onChange((v) => { selectedType = v; });
-			})
-			.addText((t) => {
-				t.setPlaceholder("Custom title");
-				t.onChange((v) => { titleText = v; });
-			})
-			.addButton((btn) => {
-				btn.setButtonText("+")
-					.setTooltip("Add title override")
-					.onClick(async () => {
-						if (!selectedType || !titleText.trim()) {
-							new Notice("Select a type and enter a title.");
-							return;
-						}
-						this.plugin.settings.titleOverrides[selectedType] = titleText.trim();
+				d.addOption("none", "Default (no fold)")
+					.addOption("open", "Open (+)")
+					.addOption("closed", "Closed (-)")
+					.setValue(this.plugin.settings.defaultCollapseModal)
+					.onChange(async (v: CollapseState) => {
+						this.plugin.settings.defaultCollapseModal = v;
 						await this.plugin.saveSettings();
-						this.display();
 					});
 			});
 
-		for (const [type, title] of Object.entries(overrides)) {
-			const label = type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-			new Setting(el)
-				.setName(label)
-				.addText((t) => {
-					t.setValue(title).onChange(async (v) => {
-						this.plugin.settings.titleOverrides[type] = v;
+		new Setting(el)
+			.setName("Default collapse state (quick pick)")
+			.setDesc(
+				"The default collapse state when inserting a callout via quick pick or favorites.",
+			)
+			.addDropdown((d) => {
+				d.addOption("none", "Default (no fold)")
+					.addOption("open", "Open (+)")
+					.addOption("closed", "Closed (-)")
+					.setValue(this.plugin.settings.defaultCollapseQuickPick)
+					.onChange(async (v: CollapseState) => {
+						this.plugin.settings.defaultCollapseQuickPick = v;
 						await this.plugin.saveSettings();
 					});
-				})
-				.addExtraButton((b) => {
-					b.setIcon("trash")
-						.setTooltip("Remove override")
-						.onClick(async () => {
-							delete this.plugin.settings.titleOverrides[type];
-							await this.plugin.saveSettings();
-							this.display();
-						});
-				});
-		}
+			});
 	}
 
 	// ── Section 2: CSS Type Detection ───────────────────────────────────────
@@ -655,7 +614,104 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		}
 	}
 
-	// ── Section 5: Import / Export ───────────────────────────────────────────
+	// ── Section 5: Title Overrides ───────────────────────────────────────────
+
+	private buildTitleOverridesTab(el: HTMLElement): void {
+		const overrides = this.plugin.settings.titleOverrides ?? {};
+
+		let selectedType = "";
+		let titleText = "";
+
+		new Setting(el)
+			.setName("Add title override")
+			.setDesc(
+				"Replace the default title for specific callout types in reading view. Only affects callouts without an explicit title in markdown.",
+			)
+			.addDropdown((d) => {
+				const existing = new Set(Object.keys(overrides));
+				this.buildGroupedDropdown(d.selectEl);
+				for (const opt of Array.from(d.selectEl.querySelectorAll("option"))) {
+					if (existing.has(opt.value)) opt.remove();
+				}
+				selectedType = d.getValue();
+				d.onChange((v) => { selectedType = v; });
+			})
+			.addText((t) => {
+				t.setPlaceholder("Custom title");
+				t.onChange((v) => { titleText = v; });
+			})
+			.addButton((btn) => {
+				btn.setButtonText("+")
+					.setTooltip("Add title override")
+					.onClick(async () => {
+						if (!selectedType || !titleText.trim()) {
+							new Notice("Select a type and enter a title.");
+							return;
+						}
+						this.plugin.settings.titleOverrides[selectedType] = titleText.trim();
+						await this.plugin.saveSettings();
+						this.display();
+					});
+			});
+
+		const entries = Object.entries(overrides);
+		if (entries.length === 0) {
+			el.createEl("p", {
+				text: "No title overrides defined yet.",
+				cls: "setting-item-description",
+			});
+			return;
+		}
+
+		const listEl = el.createDiv({ cls: "ecm-title-overrides" });
+
+		// Table header
+		const headerEl = listEl.createDiv({
+			cls: "ecm-title-override-row ecm-title-override-header",
+		});
+		headerEl.createSpan({ text: "Callout Type", cls: "ecm-title-override-col-type" });
+		headerEl.createSpan({ text: "Custom Title", cls: "ecm-title-override-col-title" });
+		headerEl.createSpan({ text: "", cls: "ecm-title-override-col-actions" });
+
+		for (const [type, title] of entries) {
+			const rowEl = listEl.createDiv({ cls: "ecm-title-override-row" });
+			const label = type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+			rowEl.createSpan({
+				text: label,
+				cls: "ecm-title-override-col-type",
+			});
+
+			// Inline-editable title input
+			const titleCell = rowEl.createDiv({ cls: "ecm-title-override-col-title" });
+			const titleInput = titleCell.createEl("input", {
+				cls: "ecm-title-override-input",
+				attr: { type: "text", value: title },
+			});
+			titleInput.addEventListener("change", async () => {
+				const v = titleInput.value.trim();
+				if (v) {
+					this.plugin.settings.titleOverrides[type] = v;
+				} else {
+					delete this.plugin.settings.titleOverrides[type];
+				}
+				await this.plugin.saveSettings();
+			});
+
+			// Delete button
+			const actionsEl = rowEl.createDiv({ cls: "ecm-title-override-col-actions custom-callout-actions" });
+			const deleteBtn = actionsEl.createDiv({ cls: "clickable-icon" });
+			setIcon(deleteBtn, "trash");
+			deleteBtn.setAttribute("aria-label", "Remove override");
+			deleteBtn.addEventListener("click", async () => {
+				delete this.plugin.settings.titleOverrides[type];
+				await this.plugin.saveSettings();
+				this.display();
+			});
+		}
+	}
+
+	// ── Section 6: Import / Export ───────────────────────────────────────────
 
 	private buildImportExportSection(el: HTMLElement): void {
 		const hasCallouts =
@@ -809,7 +865,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		URL.revokeObjectURL(url);
 	}
 
-	// ── Section 6: Icon Packs ───────────────────────────────────────────────
+	// ── Section 7: Icon Packs ───────────────────────────────────────────────
 
 	private buildIconPacksSection(el: HTMLElement): void {
 		new Setting(el)

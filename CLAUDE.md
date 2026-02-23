@@ -57,8 +57,9 @@ After every completed task, provide the following four items:
 | v0.6.9 | Stale snippet data on refresh | 2026-02-22 |
 | v0.7.0 | Post-processing enhancements | 2026-02-22 |
 | v0.7.1 | Custom title injection | 2026-02-22 |
+| v0.7.2 | Settings overhaul and collapse defaults | 2026-02-23 |
 
-**Next version: v0.7.2**
+**Next version: v0.7.3**
 
 ## Post-Phase 3 compliance review
 

@@ -17,6 +17,11 @@ import type { DownloadableIconPack } from "./icons/packs";
 export type CalloutSource = "builtin" | "snippet" | "custom" | "theme";
 
 /**
+ * Collapse state for callout insertion.
+ */
+export type CollapseState = "none" | "open" | "closed";
+
+/**
  * Which icon pack an icon belongs to.
  */
 export type IconType = "font-awesome" | "obsidian" | "image" | DownloadableIconPack;
@@ -104,10 +109,12 @@ export interface PluginSettings {
 	smoothTransitions: boolean;
 	/** Show a copy-to-clipboard button in each callout's title bar. */
 	showCopyButton: boolean;
-	/** Apply a subtle drop shadow to rendered callouts. */
-	enableDropShadow: boolean;
 	/** Per-type title overrides: callout type ID → custom display title. */
 	titleOverrides: Record<string, string>;
+	/** Default collapse state for the insertion modal. */
+	defaultCollapseModal: CollapseState;
+	/** Default collapse state for the quick-pick modal. */
+	defaultCollapseQuickPick: CollapseState;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -123,8 +130,9 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	favoriteCallouts: [],
 	smoothTransitions: true,
 	showCopyButton: false,
-	enableDropShadow: false,
 	titleOverrides: {},
+	defaultCollapseModal: "none",
+	defaultCollapseQuickPick: "none",
 };
 
 /**

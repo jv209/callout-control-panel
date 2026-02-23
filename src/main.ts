@@ -88,6 +88,7 @@ export default class EnhancedCalloutManager extends Plugin {
 				const modal = new InsertCalloutModal(this.app, {
 					defaultType,
 					autoFocusContent: this.settings.autoFocusContent,
+					defaultCollapse: this.settings.defaultCollapseModal,
 					snippetTypes: this.snippetTypes,
 					customTypes,
 					iconManager: this.iconManager,
@@ -116,7 +117,7 @@ export default class EnhancedCalloutManager extends Plugin {
 					customTypes,
 					this.snippetTypes,
 					(type) => {
-						QuickPickCalloutModal.insertQuickCallout(this.app, type);
+						QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
 						if (this.settings.rememberLastType) {
 							this.settings.lastUsedType = type;
 							void this.saveSettings();
@@ -156,7 +157,7 @@ export default class EnhancedCalloutManager extends Plugin {
 				editorCallback: () => {
 					const type = this.settings.favoriteCallouts[i];
 					if (!type) return; // slot unassigned — no-op
-					QuickPickCalloutModal.insertQuickCallout(this.app, type);
+					QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
 					if (this.settings.rememberLastType) {
 						this.settings.lastUsedType = type;
 						void this.saveSettings();
@@ -195,11 +196,6 @@ export default class EnhancedCalloutManager extends Plugin {
 							);
 						});
 					}
-				}
-
-				// 5.3 — Drop shadow
-				if (this.settings.enableDropShadow) {
-					callout.addClass("ecm-drop-shadow");
 				}
 
 				// 5.4 — Custom title injection

@@ -13,13 +13,15 @@
  */
 
 import { App, Modal, Setting, setIcon, Platform, MarkdownView } from "obsidian";
-import { type CalloutTypeInfo, BUILTIN_CALLOUT_TYPES } from "./types";
+import { type CalloutTypeInfo, type CollapseState, BUILTIN_CALLOUT_TYPES } from "./types";
 import type { IconManager } from "./icons/manager";
 
 /** Configuration passed from the plugin to the modal. */
 export interface InsertCalloutModalConfig {
 	defaultType: string;
 	autoFocusContent: boolean;
+	/** Default collapse state for new callouts. */
+	defaultCollapse?: CollapseState;
 	/** Snippet-detected callout types (shown in the "Snippet" group). */
 	snippetTypes: CalloutTypeInfo[];
 	/** User-defined custom callout types (shown first, in the "Custom" group). */
@@ -32,7 +34,7 @@ export class InsertCalloutModal extends Modal {
 	public type: string;
 	public title: string = "";
 	public content: string = "";
-	public collapse: "none" | "open" | "closed" = "none";
+	public collapse: CollapseState = "none";
 	private insertButton: HTMLElement;
 	private contentTextArea: HTMLTextAreaElement;
 	private customOptions: CalloutTypeInfo[] = [];
@@ -45,6 +47,7 @@ export class InsertCalloutModal extends Modal {
 	constructor(app: App, private config: InsertCalloutModalConfig) {
 		super(app);
 		this.type = config.defaultType;
+		this.collapse = config.defaultCollapse ?? "none";
 		this.autoFocusContent = config.autoFocusContent;
 		this.containerEl.addClass("insert-callout-modal");
 		this.prepareCalloutOptions();
@@ -201,7 +204,7 @@ export class InsertCalloutModal extends Modal {
 					.addOption("open", "Open")
 					.addOption("closed", "Closed")
 					.setValue(this.collapse)
-					.onChange((value: "none" | "open" | "closed") => { this.collapse = value; });
+					.onChange((value: CollapseState) => { this.collapse = value; });
 			});
 
 		// --- Content ---
