@@ -693,11 +693,20 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
         }
       });
     }).addButton((b) => {
-      b.setButtonText("No icon").setTooltip("Hide the icon (uses transparent in CSS). Useful for structural callouts like dashboards.").onClick(() => {
-        this.icon = { name: "no-icon", type: "no-icon" };
-        if (iconInput) {
-          iconInput.inputEl.value = "no-icon";
-          iconInput.inputEl.setAttribute("disabled", "true");
+      b.setButtonText("No icon").setTooltip("Toggle icon visibility. Click again to restore the icon field.").onClick(() => {
+        if (this.icon.type === "no-icon") {
+          this.icon = {};
+          if (iconInput) {
+            iconInput.inputEl.value = "";
+            iconInput.inputEl.removeAttribute("disabled");
+            iconInput.inputEl.focus();
+          }
+        } else {
+          this.icon = { name: "no-icon", type: "no-icon" };
+          if (iconInput) {
+            iconInput.inputEl.value = "no-icon";
+            iconInput.inputEl.setAttribute("disabled", "true");
+          }
         }
         this.updatePreview();
       });

@@ -142,13 +142,25 @@ export class CalloutEditModal extends Modal {
 			})
 			.addButton((b) => {
 				b.setButtonText("No icon")
-					.setTooltip("Hide the icon (uses transparent in CSS). Useful for structural callouts like dashboards.")
+					.setTooltip("Toggle icon visibility. Click again to restore the icon field.")
 					.onClick(() => {
-						this.icon = { name: "no-icon", type: "no-icon" };
-						// eslint-disable-next-line @typescript-eslint/no-misused-promises -- iconInput is TextComponent, not Promise
-						if (iconInput) {
-							iconInput.inputEl.value = "no-icon";
-							iconInput.inputEl.setAttribute("disabled", "true");
+						if (this.icon.type === "no-icon") {
+							// Undo: re-enable the input and reset icon state
+							this.icon = {};
+							// eslint-disable-next-line @typescript-eslint/no-misused-promises -- iconInput is TextComponent, not Promise
+							if (iconInput) {
+								iconInput.inputEl.value = "";
+								iconInput.inputEl.removeAttribute("disabled");
+								iconInput.inputEl.focus();
+							}
+						} else {
+							// Activate no-icon mode
+							this.icon = { name: "no-icon", type: "no-icon" };
+							// eslint-disable-next-line @typescript-eslint/no-misused-promises -- iconInput is TextComponent, not Promise
+							if (iconInput) {
+								iconInput.inputEl.value = "no-icon";
+								iconInput.inputEl.setAttribute("disabled", "true");
+							}
 						}
 						this.updatePreview();
 					});
