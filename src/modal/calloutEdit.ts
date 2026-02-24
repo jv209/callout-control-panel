@@ -113,7 +113,10 @@ export class CalloutEditModal extends Modal {
 			)
 			.addText((text) => {
 				iconInput = text;
-				if (this.icon.type !== "image") {
+				if (this.icon.type === "no-icon") {
+					text.setValue("no-icon");
+					text.inputEl.setAttribute("disabled", "true");
+				} else if (this.icon.type !== "image") {
 					text.setValue(this.icon.name ?? "");
 				}
 				text.setPlaceholder("Search icons…");
@@ -130,8 +133,22 @@ export class CalloutEditModal extends Modal {
 				});
 
 				text.inputEl.addEventListener("blur", () => {
-					this.resolveAndSetIcon(text.inputEl.value);
+					if (this.icon.type !== "no-icon") {
+						this.resolveAndSetIcon(text.inputEl.value);
+					}
 				});
+			})
+			.addButton((b) => {
+				b.setButtonText("No icon")
+					.setTooltip("Hide the icon (uses transparent in CSS). Useful for structural callouts like dashboards.")
+					.onClick(() => {
+						this.icon = { name: "no-icon", type: "no-icon" };
+						if (iconInput) {
+							iconInput.inputEl.value = "no-icon";
+							iconInput.inputEl.setAttribute("disabled", "true");
+						}
+						this.updatePreview();
+					});
 			})
 			.addButton((b) => {
 				const fileInput = document.createElement("input");
@@ -173,6 +190,9 @@ export class CalloutEditModal extends Modal {
 									name: canvas.toDataURL("image/png"),
 									type: "image",
 								};
+								if (iconInput) {
+									iconInput.inputEl.removeAttribute("disabled");
+								}
 								this.updatePreview();
 							} catch {
 								new Notice("There was an error parsing the image.");
@@ -199,7 +219,7 @@ export class CalloutEditModal extends Modal {
 					.onClick(() => {
 						// Commit any typed-but-not-blurred icon value
 						const currentIconValue = iconInput?.inputEl.value ?? "";
-						if (currentIconValue && this.icon.type !== "image") {
+						if (currentIconValue && this.icon.type !== "image" && this.icon.type !== "no-icon") {
 							this.resolveAndSetIcon(currentIconValue);
 						}
 
@@ -269,11 +289,15 @@ export class CalloutEditModal extends Modal {
 
 	private resolveAndSetIcon(name: string): void {
 		if (!name) return;
-		const type = this.plugin.iconManager.getIconType(name);
-		if (type) {
-			this.icon = { name, type };
+		if (name === "no-icon") {
+			this.icon = { name: "no-icon", type: "no-icon" };
 		} else {
-			this.icon = { name };
+			const type = this.plugin.iconManager.getIconType(name);
+			if (type) {
+				this.icon = { name, type };
+			} else {
+				this.icon = { name };
+			}
 		}
 		this.updatePreview();
 	}
@@ -284,13 +308,16 @@ export class CalloutEditModal extends Modal {
 		this.previewEl.addClass("callout");
 
 		const header = this.previewEl.createDiv({ cls: "callout-title" });
-		const iconEl = header.createDiv({ cls: "callout-icon" });
 
-		const iconNode = this.plugin.iconManager.getIconNode(this.icon);
-		if (iconNode) {
-			iconEl.appendChild(iconNode);
-		} else if (this.icon.name) {
-			setIcon(iconEl, this.icon.name);
+		// Hide icon element entirely for no-icon callouts
+		if (this.icon.type !== "no-icon") {
+			const iconEl = header.createDiv({ cls: "callout-icon" });
+			const iconNode = this.plugin.iconManager.getIconNode(this.icon);
+			if (iconNode) {
+				iconEl.appendChild(iconNode);
+			} else if (this.icon.name) {
+				setIcon(iconEl, this.icon.name);
+			}
 		}
 
 		header.createDiv({

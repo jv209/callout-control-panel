@@ -1,4 +1,4 @@
-import { Plugin, Notice, getIcon, setIcon } from "obsidian";
+import { Plugin, Notice, Platform, getIcon, setIcon } from "obsidian";
 import {
 	type CalloutTypeInfo,
 	type CustomCallout,
@@ -78,6 +78,7 @@ export default class EnhancedCalloutManager extends Plugin {
 		this.addCommand({
 			id: "insert-callout",
 			name: "Insert callout",
+			icon: "lucide-quote",
 			editorCallback: () => {
 				const defaultType = this.settings.rememberLastType
 					? this.settings.lastUsedType
@@ -110,6 +111,7 @@ export default class EnhancedCalloutManager extends Plugin {
 		this.addCommand({
 			id: "insert-callout-quick",
 			name: "Insert callout (quick pick)",
+			icon: "lucide-message-square-quote",
 			editorCallback: () => {
 				const customTypes = this.getCustomTypes();
 				const modal = new QuickPickCalloutModal(
@@ -132,6 +134,7 @@ export default class EnhancedCalloutManager extends Plugin {
 		this.addCommand({
 			id: "open-settings",
 			name: "Open settings",
+			icon: "lucide-cog",
 			callback: () => {
 				// app.setting is an undocumented Obsidian internal
 				const setting = (
@@ -150,10 +153,15 @@ export default class EnhancedCalloutManager extends Plugin {
 		// Favorite callout commands — 5 stable slots that users can
 		// bind to hotkeys.  Each reads its assigned type at invocation
 		// time, so rebinding in settings takes effect immediately.
+		const favoriteIcons = [
+			"lucide-dice-1", "lucide-dice-2", "lucide-dice-3",
+			"lucide-dice-4", "lucide-dice-5",
+		];
 		for (let i = 0; i < 5; i++) {
 			this.addCommand({
 				id: `insert-favorite-${i + 1}`,
 				name: `Insert favorite callout ${i + 1}`,
+				icon: favoriteIcons[i],
 				editorCallback: () => {
 					const type = this.settings.favoriteCallouts[i];
 					if (!type) return; // slot unassigned — no-op
@@ -167,6 +175,25 @@ export default class EnhancedCalloutManager extends Plugin {
 		}
 
 		this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
+
+		// Ribbon icon — opens the quick pick modal for fast callout insertion
+		this.addRibbonIcon("message-square-quote", "Insert callout (quick pick)", () => {
+			const customTypes = this.getCustomTypes();
+			const modal = new QuickPickCalloutModal(
+				this.app,
+				customTypes,
+				this.snippetTypes,
+				(type) => {
+					QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
+					if (this.settings.rememberLastType) {
+						this.settings.lastUsedType = type;
+						void this.saveSettings();
+					}
+				},
+				this.iconManager,
+			);
+			modal.open();
+		});
 
 		// ── Post-processor: callout enhancements ────────────────────
 		this.registerMarkdownPostProcessor((el) => {
@@ -494,7 +521,7 @@ export default class EnhancedCalloutManager extends Plugin {
 
 		// Validate icon names against Obsidian's icon set
 		for (const st of types) {
-			if (!st.iconDefault && !getIcon(st.icon)) {
+			if (!st.iconDefault && st.icon !== "no-icon" && !getIcon(st.icon)) {
 				st.iconInvalid = true;
 			}
 		}

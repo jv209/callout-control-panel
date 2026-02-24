@@ -92,7 +92,15 @@ export class CalloutManager extends Component {
 		// The in-memory sheet also gets this string (browsers normalize it,
 		// but the formatted version is stored separately for file output).
 		let formattedRule: string;
-		if (callout.icon.type === "obsidian") {
+		if (callout.icon.type === "no-icon") {
+			// Structural callouts (dashboards, containers) use transparent
+			// to hide the icon via CSS. The icon element is hidden by the
+			// accompanying display:none rules the user adds manually.
+			formattedRule = `.callout[data-callout="${callout.type.toLowerCase()}"] {\n` +
+				(color ? `    ${color}\n` : "") +
+				`    --callout-icon: transparent;\n` +
+				`}`;
+		} else if (callout.icon.type === "obsidian") {
 			formattedRule = `.callout[data-callout="${callout.type.toLowerCase()}"] {\n` +
 				(color ? `    ${color}\n` : "") +
 				`    --callout-icon: ${callout.icon.name};\n` +

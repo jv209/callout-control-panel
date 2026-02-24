@@ -291,14 +291,16 @@
 
 .ccp-title-override-input {
 	width: 100%;
+	min-height: 1.8em;
 	background: transparent;
 	border: none;
 	border-bottom: 1px solid transparent;
-	font-size: var(--font-ui-smaller);
+	font-size: var(--font-ui-small);
 	font-family: var(--font-monospace);
 	color: var(--text-normal);
-	padding: 2px 0;
+	padding: 4px 4px;
 	opacity: 0.7;
+	box-sizing: border-box;
 }
 
 .ccp-title-override-input:hover,
@@ -306,6 +308,14 @@
 	border-bottom-color: var(--interactive-accent);
 	opacity: 1;
 	outline: none;
+}
+
+/* Larger touch targets on tablet/mobile */
+.is-tablet .ccp-title-override-input,
+.is-mobile .ccp-title-override-input {
+	min-height: 2.4em;
+	font-size: var(--font-ui-medium);
+	padding: 6px 8px;
 }
 
 /* ─── Settings tab bar ─────────────────────────────────────────────────── */

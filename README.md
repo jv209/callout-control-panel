@@ -2,8 +2,6 @@
 
 An Obsidian plugin that unifies callout insertion, detection, and management into a single tool.
 
-> **Status:** In development. See the [Todo List](Todo%20List.md) for the current plan and progress.
-
 ## What it does
 
 Callout Control Panel gives you one hotkey to insert any callout — built-in, theme-defined, snippet-defined, or custom types you've created yourself — through a single modal dialog.
@@ -11,7 +9,7 @@ Callout Control Panel gives you one hotkey to insert any callout — built-in, t
 ### Features
 
 **Insert callouts fast**
-- Open a modal via hotkey or command palette
+- Open a modal via hotkey, command palette, or ribbon icon
 - Select from all available callout types in one dropdown
 - Set a title, collapse state, and content
 - Callout markdown is inserted at your cursor with smart formatting
@@ -19,17 +17,59 @@ Callout Control Panel gives you one hotkey to insert any callout — built-in, t
 
 **Detect callout types automatically**
 - Scans your CSS snippet files for custom callout definitions
+- Detects callouts from your active theme
 - Recognizes all 14 built-in Obsidian callout types and their aliases
+- Live monitoring — changes to snippets and themes are picked up automatically
 
 **Create and manage custom callout types**
 - Define new callout types with a name, icon, and color
 - Choose icons from Obsidian's built-in set, Font Awesome, or downloadable packs (Octicons, RPG Awesome)
 - Upload custom images as icons
+- Use "no-icon" for structural callouts like dashboards
 - Edit or delete existing custom types
 - Import and export type definitions as JSON
 - Export types as a CSS snippet file
 
-<!-- TODO: Add screenshots once the UI is implemented -->
+## Workflows
+
+The plugin supports several workflows depending on how you use callouts. Pick the one that fits you best.
+
+### Desktop: hotkey workflow
+
+Best for keyboard-driven users who insert callouts frequently.
+
+1. Open **Settings > Hotkeys** and assign a key to **Insert Callout** (full modal) or **Insert Callout (quick pick)**
+2. Press the hotkey while editing — the modal opens instantly
+3. Pick a type, set options, press Enter
+
+For your most-used callouts, assign **Favorite Callout 1–5** to individual hotkeys. Each favorite inserts a specific type in one keystroke.
+
+### Mobile: toolbar workflow
+
+The easiest setup for phones and tablets.
+
+1. Open **Settings > Mobile**
+2. Under **Configure mobile toolbar**, add **Insert Callout (quick pick)**
+3. Tap the toolbar icon to open the quick-pick list
+4. Select a type — the callout is inserted at your cursor
+
+You can also add individual favorites to the toolbar for one-tap access to your most-used types.
+
+### Desktop or mobile: ribbon workflow
+
+1. Enable the ribbon icon (it appears automatically when the plugin is active)
+2. Tap/click the icon to open the quick-pick list
+3. Select a callout type
+
+### Custom type creation workflow
+
+For users who want to design their own callout types:
+
+1. Open **Settings > Callout Control Panel > Custom Callouts**
+2. Press **+** to add a new type
+3. Set the type ID (used in markdown), icon, and color
+4. The type appears immediately in all insertion modals
+5. The plugin generates a CSS snippet file in `.obsidian/snippets/` so your callouts persist even if the plugin is removed
 
 ## Installation
 
@@ -63,30 +103,14 @@ The plugin inserts standard Obsidian callout syntax:
 > Content goes here
 ```
 
-### Assigning a hotkey
-
-1. Open **Settings > Hotkeys**
-2. Search for "Insert Callout"
-3. Click the hotkey field and press your preferred key combination
-
 ### Creating a custom callout type
 
-1. Open **Settings > Callout Control Panel**
-2. Under **Custom types**, select **Add new**
+1. Open **Settings > Callout Control Panel > Custom Callouts**
+2. Press **+** to add a new type
 3. Enter a type name, choose an icon and color
-4. Select **Save**
+4. Press the checkmark to save
 
 The custom type will immediately appear in the insertion modal and generate the appropriate CSS rule.
-
-## Settings
-
-| Setting | Description | Default |
-|---------|------------|---------|
-| Default callout type | The type pre-selected when the modal opens | `note` |
-| Remember last used type | Use the last-inserted type as the default next time | Off |
-| Auto-focus content field | Automatically focus the content textarea when the modal opens | On |
-| Scan CSS snippets | Detect custom callout types from your `.obsidian/snippets/` CSS files | On |
-| Inject color | Include `--callout-color` in generated CSS rules for custom types | On |
 
 ## Defining callouts in CSS snippets
 
@@ -100,6 +124,40 @@ If you have CSS snippets that define callout types, the plugin will detect them 
 ```
 
 Both `--callout-color` (as an RGB tuple) and `--callout-icon` (as a Lucide icon name) are optional. If omitted, defaults will be used — and the plugin will show a warning so you know something is missing.
+
+### Structural callouts (no-icon / dashboards)
+
+You can create callouts without icons for use as structural containers — for example, dashboard layouts with nested callouts. In the custom callout editor, press **No icon** to set `--callout-icon: transparent` in the generated CSS.
+
+In your own CSS snippets, use `transparent` as the icon value:
+
+```css
+.callout[data-callout="dashboard"] {
+    --callout-color: 32, 94, 166;
+    --callout-icon: transparent;
+}
+```
+
+To fully hide the icon area, add these rules alongside your callout definition:
+
+```css
+.callout[data-callout="dashboard"] .callout-title-icon {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.callout[data-callout="dashboard"] .callout-title,
+.callout[data-callout="dashboard"] .callout-title-inner,
+.callout[data-callout="dashboard"] .callout-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+```
+
+The plugin will detect these callouts and display them as "no-icon" in the settings panel.
 
 ## Troubleshooting
 
@@ -145,47 +203,6 @@ This plugin incorporates code from three open-source Obsidian plugins, all licen
 - **[Admonitions](https://github.com/valentine195/obsidian-admonition)** by Jeremy Valentine — callout management and icon system
 
 See [ATTRIBUTION.md](ATTRIBUTION.md) for full license notices.
-
-## Development
-
-### Prerequisites
-
-- Node.js 18+
-- npm
-
-### Setup
-
-```bash
-npm install
-```
-
-### Development build (watch mode)
-
-```bash
-npm run dev
-```
-
-### Production build
-
-```bash
-npm run build
-```
-
-### Linting
-
-```bash
-npm run lint
-```
-
-### Manual testing
-
-Copy `main.js`, `manifest.json`, and `styles.css` to your vault:
-
-```
-<Vault>/.obsidian/plugins/callout-control-panel/
-```
-
-Reload Obsidian and enable the plugin in **Settings > Community plugins**.
 
 ## License
 

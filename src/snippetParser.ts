@@ -245,8 +245,14 @@ export function extractCalloutProperties(
 
 	// Extract --callout-icon: icon-name
 	const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
-	const icon = iconMatch?.[1] ? iconMatch[1] : "lucide-box";
+	let icon = iconMatch?.[1] ? iconMatch[1] : "lucide-box";
 	const iconDefault = !iconMatch?.[1];
+
+	// "transparent" is used to hide the icon element entirely.
+	// Display as "no-icon" in the UI for clarity.
+	if (icon === "transparent") {
+		icon = "no-icon";
+	}
 
 	return { color, icon, iconDefault };
 }

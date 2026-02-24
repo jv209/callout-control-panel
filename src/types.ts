@@ -24,7 +24,7 @@ export type CollapseState = "none" | "open" | "closed";
 /**
  * Which icon pack an icon belongs to.
  */
-export type IconType = "font-awesome" | "obsidian" | "image" | DownloadableIconPack;
+export type IconType = "font-awesome" | "obsidian" | "image" | "no-icon" | DownloadableIconPack;
 
 /**
  * An icon reference: pack type + icon name (or image URL for type "image").
