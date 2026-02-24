@@ -383,6 +383,25 @@
 	margin-left: 6px;
 }
 
+/* Mobile: always show labels, no hover animation, larger touch targets */
+.is-mobile .ccp-tab-button {
+	padding: 10px 10px;
+	min-height: 44px;
+}
+
+.is-mobile .ccp-tab-label {
+	max-width: 200px;
+	opacity: 1;
+	margin-left: 6px;
+	transition: none;
+}
+
+.is-mobile .ccp-tab-button .ccp-tab-label {
+	max-width: 200px;
+	opacity: 1;
+	margin-left: 6px;
+}
+
 /* ─── Settings content area ───────────────────────────────────────────── */
 
 .ccp-tab-pane {
