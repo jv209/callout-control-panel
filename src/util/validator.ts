@@ -70,7 +70,7 @@ export class CalloutValidator {
 		}
 
 		const iconName = callout.icon?.name ?? null;
-		if (iconName) {
+		if (iconName && callout.icon?.type !== "no-icon") {
 			const validIcon = CalloutValidator.validateIcon(
 				callout.icon,
 				plugin,
@@ -169,7 +169,7 @@ export class CalloutValidator {
 		definition: CalloutIconDefinition,
 		plugin: ValidatorPluginRef,
 	): Result {
-		if (definition.type === "image") {
+		if (definition.type === "image" || definition.type === "no-icon") {
 			return { success: true };
 		}
 

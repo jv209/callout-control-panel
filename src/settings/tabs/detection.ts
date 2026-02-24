@@ -2,7 +2,7 @@
  * Tab builder — CSS Type Detection.
  */
 
-import { Setting, setIcon } from "obsidian";
+import { Platform, Setting, setIcon } from "obsidian";
 import type { SettingsTabContext } from "../types";
 
 export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): void {
@@ -86,8 +86,11 @@ export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): voi
 					await ctx.plugin.refreshSnippetTypes();
 					ctx.refresh();
 				});
-		})
-		.addExtraButton((btn) => {
+		});
+
+	// "Open snippets folder" uses openWithDefaultApp which is desktop-only
+	if (!Platform.isMobile) {
+		detectedSetting.addExtraButton((btn) => {
 			btn
 				.setIcon("folder-open")
 				.setTooltip("Open snippets folder")
@@ -100,6 +103,7 @@ export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): voi
 					).openWithDefaultApp(snippetsPath);
 				});
 		});
+	}
 
 	if (totalWarnCount > 0) {
 		const parts: string[] = [];

@@ -283,12 +283,15 @@ function buildDetectionTab(el, ctx) {
       await ctx.plugin.refreshSnippetTypes();
       ctx.refresh();
     });
-  }).addExtraButton((btn) => {
-    btn.setIcon("folder-open").setTooltip("Open snippets folder").onClick(() => {
-      const snippetsPath = `${ctx.app.vault.configDir}/snippets`;
-      ctx.app.openWithDefaultApp(snippetsPath);
-    });
   });
+  if (!import_obsidian2.Platform.isMobile) {
+    detectedSetting.addExtraButton((btn) => {
+      btn.setIcon("folder-open").setTooltip("Open snippets folder").onClick(() => {
+        const snippetsPath = `${ctx.app.vault.configDir}/snippets`;
+        ctx.app.openWithDefaultApp(snippetsPath);
+      });
+    });
+  }
   if (totalWarnCount > 0) {
     const parts = [];
     if (colorWarnCount > 0) parts.push(`${colorWarnCount} missing color`);
@@ -470,7 +473,7 @@ var CalloutValidator = class _CalloutValidator {
    * Checks type, icon, and color. Assigns a random color if missing.
    */
   static validateImport(plugin, callout) {
-    var _a, _b;
+    var _a, _b, _c;
     const result = {
       success: true,
       messages: []
@@ -483,7 +486,7 @@ var CalloutValidator = class _CalloutValidator {
       return validType;
     }
     const iconName = (_b = (_a = callout.icon) == null ? void 0 : _a.name) != null ? _b : null;
-    if (iconName) {
+    if (iconName && ((_c = callout.icon) == null ? void 0 : _c.type) !== "no-icon") {
       const validIcon = _CalloutValidator.validateIcon(
         callout.icon,
         plugin
@@ -557,7 +560,7 @@ var CalloutValidator = class _CalloutValidator {
   /** Validate an icon definition (non-empty, resolvable by the icon manager). */
   static validateIcon(definition, plugin) {
     var _a;
-    if (definition.type === "image") {
+    if (definition.type === "image" || definition.type === "no-icon") {
       return { success: true };
     }
     if (!((_a = definition.name) == null ? void 0 : _a.length)) {
@@ -660,7 +663,10 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
     ).addText((text2) => {
       var _a;
       iconInput = text2;
-      if (this.icon.type !== "image") {
+      if (this.icon.type === "no-icon") {
+        text2.setValue("no-icon");
+        text2.inputEl.setAttribute("disabled", "true");
+      } else if (this.icon.type !== "image") {
         text2.setValue((_a = this.icon.name) != null ? _a : "");
       }
       text2.setPlaceholder("Search icons\u2026");
@@ -676,7 +682,18 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
         suggest.close();
       });
       text2.inputEl.addEventListener("blur", () => {
-        this.resolveAndSetIcon(text2.inputEl.value);
+        if (this.icon.type !== "no-icon") {
+          this.resolveAndSetIcon(text2.inputEl.value);
+        }
+      });
+    }).addButton((b) => {
+      b.setButtonText("No icon").setTooltip("Hide the icon (uses transparent in CSS). Useful for structural callouts like dashboards.").onClick(() => {
+        this.icon = { name: "no-icon", type: "no-icon" };
+        if (iconInput) {
+          iconInput.inputEl.value = "no-icon";
+          iconInput.inputEl.setAttribute("disabled", "true");
+        }
+        this.updatePreview();
       });
     }).addButton((b) => {
       const fileInput = document.createElement("input");
@@ -716,6 +733,9 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
                 name: canvas.toDataURL("image/png"),
                 type: "image"
               };
+              if (iconInput) {
+                iconInput.inputEl.removeAttribute("disabled");
+              }
               this.updatePreview();
             } catch (e) {
               new import_obsidian5.Notice("There was an error parsing the image.");
@@ -734,7 +754,7 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
       b.setTooltip("Save").setIcon("checkmark").setCta().onClick(() => {
         var _a;
         const currentIconValue = (_a = iconInput == null ? void 0 : iconInput.inputEl.value) != null ? _a : "";
-        if (currentIconValue && this.icon.type !== "image") {
+        if (currentIconValue && this.icon.type !== "image" && this.icon.type !== "no-icon") {
           this.resolveAndSetIcon(currentIconValue);
         }
         const result = CalloutValidator.validate(
@@ -788,11 +808,15 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
   }
   resolveAndSetIcon(name) {
     if (!name) return;
-    const type = this.plugin.iconManager.getIconType(name);
-    if (type) {
-      this.icon = { name, type };
+    if (name === "no-icon") {
+      this.icon = { name: "no-icon", type: "no-icon" };
     } else {
-      this.icon = { name };
+      const type = this.plugin.iconManager.getIconType(name);
+      if (type) {
+        this.icon = { name, type };
+      } else {
+        this.icon = { name };
+      }
     }
     this.updatePreview();
   }
@@ -801,12 +825,14 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
     this.previewEl.empty();
     this.previewEl.addClass("callout");
     const header = this.previewEl.createDiv({ cls: "callout-title" });
-    const iconEl = header.createDiv({ cls: "callout-icon" });
-    const iconNode = this.plugin.iconManager.getIconNode(this.icon);
-    if (iconNode) {
-      iconEl.appendChild(iconNode);
-    } else if (this.icon.name) {
-      (0, import_obsidian5.setIcon)(iconEl, this.icon.name);
+    if (this.icon.type !== "no-icon") {
+      const iconEl = header.createDiv({ cls: "callout-icon" });
+      const iconNode = this.plugin.iconManager.getIconNode(this.icon);
+      if (iconNode) {
+        iconEl.appendChild(iconNode);
+      } else if (this.icon.name) {
+        (0, import_obsidian5.setIcon)(iconEl, this.icon.name);
+      }
     }
     header.createDiv({
       cls: "callout-title-inner",
@@ -845,8 +871,8 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
 
 // src/settings/tabs/customCallouts.ts
 function buildCustomCalloutsTab(el, ctx) {
-  var _a, _b;
-  new import_obsidian6.Setting(el).setName("Add new type").setDesc("Create a custom callout type with a custom icon and color.").addButton((btn) => {
+  var _a, _b, _c;
+  const addSetting = new import_obsidian6.Setting(el).setName("Add new type").setDesc("Create a custom callout type with a custom icon and color.").addButton((btn) => {
     btn.setButtonText("+").setTooltip("Add callout type").onClick(() => {
       const modal = new CalloutEditModal(ctx.app, ctx.plugin);
       modal.onClose = async () => {
@@ -861,12 +887,15 @@ function buildCustomCalloutsTab(el, ctx) {
       };
       modal.open();
     });
-  }).addExtraButton((btn) => {
-    btn.setIcon("folder-open").setTooltip("Open snippets folder").onClick(() => {
-      const snippetsPath = `${ctx.app.vault.configDir}/snippets`;
-      ctx.app.openWithDefaultApp(snippetsPath);
-    });
   });
+  if (!import_obsidian6.Platform.isMobile) {
+    addSetting.addExtraButton((btn) => {
+      btn.setIcon("folder-open").setTooltip("Open snippets folder").onClick(() => {
+        const snippetsPath = `${ctx.app.vault.configDir}/snippets`;
+        ctx.app.openWithDefaultApp(snippetsPath);
+      });
+    });
+  }
   const customCallouts = Object.values(ctx.plugin.settings.customCallouts);
   if (customCallouts.length === 0) {
     el.createEl("p", {
@@ -889,17 +918,21 @@ function buildCustomCalloutsTab(el, ctx) {
     const iconEl = rowEl.createDiv({
       cls: "detected-snippet-col-icon custom-callout-type-icon"
     });
-    const iconNode = ctx.plugin.iconManager.getIconNode(callout.icon);
-    if (iconNode) {
-      iconEl.appendChild(iconNode);
+    if (((_a = callout.icon) == null ? void 0 : _a.type) === "no-icon") {
+      iconEl.setText("\u2014");
     } else {
-      (0, import_obsidian6.setIcon)(iconEl, "lucide-alert-circle");
+      const iconNode = ctx.plugin.iconManager.getIconNode(callout.icon);
+      if (iconNode) {
+        iconEl.appendChild(iconNode);
+      } else {
+        (0, import_obsidian6.setIcon)(iconEl, "lucide-alert-circle");
+      }
     }
     if (callout.color) {
       iconEl.style.setProperty("--callout-color", callout.color);
     }
     rowEl.createSpan({ text: callout.type, cls: "custom-callout-col-callout" });
-    const iconName = (_b = (_a = callout.icon) == null ? void 0 : _a.name) != null ? _b : "\u2014";
+    const iconName = (_c = (_b = callout.icon) == null ? void 0 : _b.name) != null ? _c : "\u2014";
     rowEl.createSpan({
       text: iconName,
       cls: "detected-snippet-col-iconname custom-callout-type-meta"
@@ -2718,8 +2751,11 @@ function extractCalloutProperties(css2, calloutId) {
   const colorMatch = block.match(/--callout-color:\s*([\d\s,]+)/);
   const color = (colorMatch == null ? void 0 : colorMatch[1]) ? colorMatch[1].trim() : "var(--callout-default)";
   const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
-  const icon2 = (iconMatch == null ? void 0 : iconMatch[1]) ? iconMatch[1] : "lucide-box";
+  let icon2 = (iconMatch == null ? void 0 : iconMatch[1]) ? iconMatch[1] : "lucide-box";
   const iconDefault = !(iconMatch == null ? void 0 : iconMatch[1]);
+  if (icon2 === "transparent") {
+    icon2 = "no-icon";
+  }
   return { color, icon: icon2, iconDefault };
 }
 
@@ -19485,7 +19521,12 @@ var CalloutManager = class extends import_obsidian17.Component {
     if (!callout.icon) return;
     const color = ((_a = callout.injectColor) != null ? _a : this.plugin.settings.injectColor) ? `--callout-color: ${callout.color};` : "";
     let formattedRule;
-    if (callout.icon.type === "obsidian") {
+    if (callout.icon.type === "no-icon") {
+      formattedRule = `.callout[data-callout="${callout.type.toLowerCase()}"] {
+` + (color ? `    ${color}
+` : "") + `    --callout-icon: transparent;
+}`;
+    } else if (callout.icon.type === "obsidian") {
       formattedRule = `.callout[data-callout="${callout.type.toLowerCase()}"] {
 ` + (color ? `    ${color}
 ` : "") + `    --callout-icon: ${callout.icon.name};
@@ -19593,6 +19634,7 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
     this.addCommand({
       id: "insert-callout",
       name: "Insert callout",
+      icon: "lucide-quote",
       editorCallback: () => {
         const defaultType = this.settings.rememberLastType ? this.settings.lastUsedType : this.settings.defaultCalloutType;
         const customTypes = this.getCustomTypes();
@@ -19618,6 +19660,7 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
     this.addCommand({
       id: "insert-callout-quick",
       name: "Insert callout (quick pick)",
+      icon: "lucide-message-square-quote",
       editorCallback: () => {
         const customTypes = this.getCustomTypes();
         const modal = new QuickPickCalloutModal(
@@ -19639,16 +19682,25 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
     this.addCommand({
       id: "open-settings",
       name: "Open settings",
+      icon: "lucide-cog",
       callback: () => {
         const setting = this.app.setting;
         setting.open();
         setting.openTabById(this.manifest.id);
       }
     });
+    const favoriteIcons = [
+      "lucide-dice-1",
+      "lucide-dice-2",
+      "lucide-dice-3",
+      "lucide-dice-4",
+      "lucide-dice-5"
+    ];
     for (let i = 0; i < 5; i++) {
       this.addCommand({
         id: `insert-favorite-${i + 1}`,
         name: `Insert favorite callout ${i + 1}`,
+        icon: favoriteIcons[i],
         editorCallback: () => {
           const type = this.settings.favoriteCallouts[i];
           if (!type) return;
@@ -19661,6 +19713,23 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
       });
     }
     this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
+    this.addRibbonIcon("message-square-quote", "Insert callout (quick pick)", () => {
+      const customTypes = this.getCustomTypes();
+      const modal = new QuickPickCalloutModal(
+        this.app,
+        customTypes,
+        this.snippetTypes,
+        (type) => {
+          QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
+          if (this.settings.rememberLastType) {
+            this.settings.lastUsedType = type;
+            void this.saveSettings();
+          }
+        },
+        this.iconManager
+      );
+      modal.open();
+    });
     this.registerMarkdownPostProcessor((el) => {
       var _a, _b;
       const callouts = el.querySelectorAll(".callout");
@@ -19896,7 +19965,7 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
       }
     }
     for (const st of types) {
-      if (!st.iconDefault && !(0, import_obsidian18.getIcon)(st.icon)) {
+      if (!st.iconDefault && st.icon !== "no-icon" && !(0, import_obsidian18.getIcon)(st.icon)) {
         st.iconInvalid = true;
       }
     }

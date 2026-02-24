@@ -403,55 +403,67 @@ This phase replaces the simple "scan on load" approach with Plugin B's real-time
 - [x] Detection settings stored as `calloutDetection: { obsidian, theme, snippet }` in `PluginSettings`
 - [ ] Conditional per-callout styling (by theme, by color scheme) — deferred to a later phase; Plugin B's `CalloutSettings` types are available when needed
 
-### 4.6 Test live detection
-- [ ] Install/change a theme → verify new callout types appear automatically
-- [ ] Enable/disable a snippet → verify callout types update without restart
-- [ ] Verify performance (no lag when CSS changes)
+### 4.6 Test live detection ✅
+- [x] Install/change a theme → verify new callout types appear automatically
+- [x] Enable/disable a snippet → verify callout types update without restart
+- [x] Verify performance (no lag when CSS changes)
+
+**Phase 4 complete.** Live CSS monitoring is fully functional with multi-source detection, hybrid resolver, and live stylesheet watcher.
 
 ---
 
-## Phase 5: Post-Processing Enhancements (Future)
+## Phase 5: Post-Processing Enhancements ✅
 
 This phase adds Plugin C's markdown post-processor features that modify how callouts look after they're rendered.
 
-### 5.1 Collapsible callout animation
-- [ ] Port the collapse/expand system with smooth CSS transitions
-- [ ] Add settings toggles for collapsible behavior
+### 5.1 Collapsible callout defaults ✅
+- [x] Default collapse state setting for full modal
+- [x] Default collapse state setting for quick pick / favorites
+- [x] Smooth CSS transitions evaluated and removed (caused visual issues)
 
-### 5.2 Copy-to-clipboard button
-- [ ] Port the copy button that appears on rendered callouts
-- [ ] Add settings toggle
+### 5.2 Copy-to-clipboard button ✅
+- [x] Port the copy button that appears on rendered callouts
+- [x] Button anchored to `.callout` element (not `.callout-content`) to avoid theme conflicts
+- [x] Add settings toggle
 
-### 5.3 Drop shadow and visual options
-- [ ] Port the drop shadow CSS class
-- [ ] Add settings toggle
+### 5.3 Drop shadow and visual options ✅
+- [x] Evaluated and deferred — inline `style.setProperty` for `--callout-color` is the idiomatic approach; drop shadow is low-priority
 
-### 5.4 Custom title injection
-- [ ] Port the title override system for rendered callouts
+### 5.4 Custom title injection ✅
+- [x] Port the title override system for rendered callouts
+- [x] Only overrides default (auto-generated) titles, not explicit markdown titles
+- [x] Settings tab with per-type override management
+
+**Phase 5 complete.** Copy button, collapse defaults, and title overrides are all functional. Compliance audit passed (v0.7.4).
 
 ---
 
-## Phase 6: Polish and Release Prep (Future)
+## Phase 6: Polish and Release Prep
 
-### 6.1 README and documentation
-- [ ] Finalize the README with feature descriptions, screenshots, and installation instructions
-- [ ] Add usage examples and keyboard shortcut documentation
+### 6.1 README and documentation ✅
+- [x] Finalize the README with feature descriptions and installation instructions
+- [x] Add workflow descriptions (desktop hotkey, mobile toolbar, ribbon)
+- [x] Document structural callouts / no-icon / dashboard use case
+- [x] Create wiki-ready docs in `docs/wiki/` for each settings section
+- [ ] Add screenshots once UI is stable
+- [ ] Record demo video (2–3 min)
 
 ### 6.2 Community release checklist
-- [ ] Review against Obsidian's [Plugin Guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines)
-- [ ] Review against Obsidian's [Developer Policies](https://docs.obsidian.md/Developer+policies)
-- [ ] Ensure no network calls without disclosure (Font Awesome icon pack downloads need a note)
-- [ ] Test on mobile: verify command palette / quick-pick insertion works, icon pack cache writes succeed, and modals render on narrow screens — `isDesktopOnly` is already `false`
-- [ ] Create a GitHub release with `main.js`, `manifest.json`, `styles.css`
+- [x] Review against Obsidian's [Plugin Guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines) — passed (v0.7.4)
+- [x] Review against Obsidian's [Developer Policies](https://docs.obsidian.md/Developer+policies) — passed (v0.7.4)
+- [x] Ensure no network calls without disclosure — README "Network connections" section added (v0.7.4)
+- [x] Test on mobile: command palette, quick-pick, modals, settings tabs — tested on iPhone and iPad (v0.7.6)
+- [x] Create a GitHub release with `main.js`, `manifest.json`, `styles.css` — v1.1.0 release created
 - [ ] Submit PR to `obsidianmd/obsidian-releases`
 
 ### 6.3 Localization
 - [ ] Add additional language files beyond English
 - [ ] Wire locale detection to `moment.locale()`
 
-### 6.4 Testing framework
-- [ ] Set up automated tests (at minimum for the CSS parser and validation)
-- [ ] Add the test runner to the CI workflow
+### 6.4 Testing framework ✅
+- [x] Set up Vitest test runner
+- [x] CSS parser tests (8 tests passing)
+- [ ] Add additional test coverage for validator and snippet parser
 
 ---
 

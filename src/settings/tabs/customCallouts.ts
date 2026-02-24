@@ -2,13 +2,13 @@
  * Tab builder — Custom Callouts.
  */
 
-import { Setting, setIcon } from "obsidian";
+import { Platform, Setting, setIcon } from "obsidian";
 import { confirmWithModal } from "../../modal/confirm";
 import { CalloutEditModal } from "../../modal/calloutEdit";
 import type { SettingsTabContext } from "../types";
 
 export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext): void {
-	new Setting(el)
+	const addSetting = new Setting(el)
 		.setName("Add new type")
 		.setDesc("Create a custom callout type with a custom icon and color.")
 		.addButton((btn) => {
@@ -29,8 +29,11 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 					};
 					modal.open();
 				});
-		})
-		.addExtraButton((btn) => {
+		});
+
+	// "Open snippets folder" uses openWithDefaultApp which is desktop-only
+	if (!Platform.isMobile) {
+		addSetting.addExtraButton((btn) => {
 			btn
 				.setIcon("folder-open")
 				.setTooltip("Open snippets folder")
@@ -43,6 +46,7 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 					).openWithDefaultApp(snippetsPath);
 				});
 		});
+	}
 
 	const customCallouts = Object.values(ctx.plugin.settings.customCallouts);
 
@@ -73,11 +77,16 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 		const iconEl = rowEl.createDiv({
 			cls: "detected-snippet-col-icon custom-callout-type-icon",
 		});
-		const iconNode = ctx.plugin.iconManager.getIconNode(callout.icon);
-		if (iconNode) {
-			iconEl.appendChild(iconNode);
+		if (callout.icon?.type === "no-icon") {
+			// No-icon callouts show a dash instead of an icon
+			iconEl.setText("—");
 		} else {
-			setIcon(iconEl, "lucide-alert-circle");
+			const iconNode = ctx.plugin.iconManager.getIconNode(callout.icon);
+			if (iconNode) {
+				iconEl.appendChild(iconNode);
+			} else {
+				setIcon(iconEl, "lucide-alert-circle");
+			}
 		}
 		if (callout.color) {
 			iconEl.style.setProperty("--callout-color", callout.color);
