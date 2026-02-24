@@ -21,7 +21,7 @@ export async function confirmWithModal(
 			};
 			modal.open();
 		} catch (e) {
-			reject(e);
+			reject(e instanceof Error ? e : new Error(String(e)));
 		}
 	});
 }
@@ -59,6 +59,6 @@ export class ConfirmModal extends Modal {
 	}
 
 	onOpen() {
-		this.display();
+		void this.display();
 	}
 }

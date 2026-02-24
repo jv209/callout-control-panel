@@ -17,15 +17,14 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 				.setTooltip("Add callout type")
 				.onClick(() => {
 					const modal = new CalloutEditModal(ctx.app, ctx.plugin);
-					modal.onClose = async () => {
+					modal.onClose = () => {
 						if (!modal.saved) return;
-						await ctx.plugin.addCustomCallout({
+						void ctx.plugin.addCustomCallout({
 							type: modal.type,
 							icon: modal.icon,
 							color: modal.color,
 							injectColor: modal.injectColor,
-						});
-						ctx.refresh();
+						}).then(() => ctx.refresh());
 					};
 					modal.open();
 				});
@@ -121,15 +120,14 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 				ctx.plugin,
 				callout,
 			);
-			modal.onClose = async () => {
+			modal.onClose = () => {
 				if (!modal.saved) return;
-				await ctx.plugin.editCustomCallout(callout.type, {
+				void ctx.plugin.editCustomCallout(callout.type, {
 					type: modal.type,
 					icon: modal.icon,
 					color: modal.color,
 					injectColor: modal.injectColor,
-				});
-				ctx.refresh();
+				}).then(() => ctx.refresh());
 			};
 			modal.open();
 		});
@@ -137,15 +135,15 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 		const deleteBtn = actionsEl.createDiv({ cls: "clickable-icon" });
 		setIcon(deleteBtn, "trash");
 		deleteBtn.setAttribute("aria-label", "Delete");
-		deleteBtn.addEventListener("click", async () => {
-			const confirmed = await confirmWithModal(
+		deleteBtn.addEventListener("click", () => {
+			void confirmWithModal(
 				ctx.app,
 				`Delete custom type "${callout.type}"?`,
-			);
-			if (confirmed) {
-				await ctx.plugin.removeCustomCallout(callout);
-				ctx.refresh();
-			}
+			).then((confirmed) => {
+				if (confirmed) {
+					void ctx.plugin.removeCustomCallout(callout).then(() => ctx.refresh());
+				}
+			});
 		});
 	}
 }

@@ -34,7 +34,7 @@ export class ExportModal extends Modal {
 		]);
 
 		new Setting(this.contentEl).addButton((b) =>
-			b.setButtonText("Export Selected").onClick(() => {
+			b.setButtonText("Export selected").onClick(() => {
 				this.export = true;
 				this.close();
 			}),
@@ -44,7 +44,7 @@ export class ExportModal extends Modal {
 		new Setting(this.contentEl)
 			.addButton((b) =>
 				b
-					.setButtonText("Select All")
+					.setButtonText("Select all")
 					.setCta()
 					.onClick(() => {
 						this.selectedCallouts = [...this.calloutNames];
@@ -52,7 +52,7 @@ export class ExportModal extends Modal {
 					}),
 			)
 			.addButton((b) =>
-				b.setButtonText("Deselect All").onClick(() => {
+				b.setButtonText("Deselect all").onClick(() => {
 					this.selectedCallouts = [];
 					this.generateToggles(toggleEl);
 				}),

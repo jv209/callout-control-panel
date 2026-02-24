@@ -15,7 +15,7 @@
  * these helpers use the most common/direct approach only.
  */
 
-import type { App } from 'obsidian';
+import { type App, requestUrl } from 'obsidian';
 
 // ---- Internal type representing Obsidian's undocumented customCss property ----
 interface ObsidianCustomCss {
@@ -143,15 +143,14 @@ export async function fetchObsidianStyleSheet(app: App): Promise<ObsidianStyleSh
 		// styleSheets not available — fall through.
 	}
 
-	// Strategy 2: Fetch the CSS file.
+	// Strategy 2: Fetch the CSS file using Obsidian's requestUrl.
 	try {
-		const response = await fetch('app://obsidian.md/app.css');
-		if (response.ok) {
-			const cssText = await response.text();
-			return { cssText, method: 'fetch' };
+		const response = await requestUrl({ url: 'app://obsidian.md/app.css' });
+		if (response.status === 200) {
+			return { cssText: response.text, method: 'fetch' };
 		}
 	} catch {
-		// Fetch not available — fall through.
+		// requestUrl not available — fall through.
 	}
 
 	throw new Error('Unable to fetch the Obsidian built-in stylesheet.');
@@ -165,6 +164,7 @@ export async function fetchObsidianStyleSheet(app: App): Promise<ObsidianStyleSh
  * and which can be passed to Plugin.register() for cleanup.
  */
 export function createCustomStyleSheet(): CustomStyleSheet {
+	// eslint-disable-next-line obsidianmd/no-forbidden-elements -- managed style element for dynamic CSS injection
 	const styleEl = document.createElement('style');
 	document.head.appendChild(styleEl);
 

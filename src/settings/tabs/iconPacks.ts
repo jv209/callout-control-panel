@@ -9,7 +9,9 @@ import type { SettingsTabContext } from "../types";
 
 export function buildIconPacksTab(el: HTMLElement, ctx: SettingsTabContext): void {
 	new Setting(el)
+		// eslint-disable-next-line obsidianmd/ui/sentence-case -- "Font Awesome" is a proper noun
 		.setName("Use Font Awesome icons")
+		// eslint-disable-next-line obsidianmd/ui/sentence-case -- "Font Awesome" is a proper noun
 		.setDesc("Font Awesome Free icons will be available in the icon picker.")
 		.addToggle((t) => {
 			t.setValue(ctx.plugin.settings.useFontAwesome);

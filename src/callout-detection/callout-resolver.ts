@@ -37,7 +37,7 @@ export class CalloutResolver {
 			cls: 'calloutmanager-callout-resolver',
 		});
 
-		this.hostElement.style.setProperty('display', 'none', 'important');
+		// Host must be hidden — uses CSS class from styles.css (.calloutmanager-callout-resolver).
 		this.calloutPreview = new IsolatedCalloutPreviewComponent(this.hostElement, {
 			id: '',
 			icon: '',
@@ -108,6 +108,6 @@ export class CalloutResolver {
 	}
 
 	public get customStyleEl(): HTMLStyleElement {
-		return this.calloutPreview.customStyleEl as HTMLStyleElement;
+		return this.calloutPreview.customStyleEl;
 	}
 }

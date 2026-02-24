@@ -5,6 +5,28 @@
  * (https://github.com/cumany/obsidian-editing-toolbar), licensed under MIT.
  */
 
+/* ─── Utility classes ─────────────────────────────────────────────────── */
+
+.ccp-hidden {
+	display: none !important;
+}
+
+.ccp-transparent-icon {
+	opacity: 0.35;
+}
+
+.ccp-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+}
+
+.calloutmanager-callout-resolver {
+	display: none !important;
+}
+
 /* Textarea fills the modal width */
 .insert-callout-modal textarea {
 	width: 100%;

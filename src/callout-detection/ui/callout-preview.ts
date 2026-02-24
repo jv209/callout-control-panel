@@ -143,7 +143,9 @@ export class IsolatedCalloutPreviewComponent extends CalloutPreviewComponent {
 			shadowHead.appendChild(cssElClone);
 		}
 
+		// eslint-disable-next-line obsidianmd/no-forbidden-elements -- Shadow DOM requires inline style elements
 		shadowHead.createEl('style', { text: SHADOW_DOM_RESET_STYLES });
+		// eslint-disable-next-line obsidianmd/no-forbidden-elements -- Shadow DOM requires inline style elements
 		this.customStyleEl = shadowHead.createEl('style', { attr: { 'data-custom-styles': 'true' } });
 
 		shadowBody.classList.add(`theme-${colorScheme}`, 'obsidian-app');

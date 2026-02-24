@@ -81,7 +81,8 @@ export class CalloutEditModal extends Modal {
 		// Type ID
 		let typeInput: TextComponent;
 		new Setting(form)
-			.setName("Type ID")
+			.setName("Type identifier")
+			// eslint-disable-next-line obsidianmd/ui/sentence-case -- multi-sentence description
 			.setDesc('Used in markdown, e.g. "my-callout". No spaces allowed.')
 			.addText((text) => {
 				typeInput = text;
@@ -109,7 +110,8 @@ export class CalloutEditModal extends Modal {
 		new Setting(form)
 			.setName("Icon")
 			.setDesc(
-				"Icon name (Obsidian, Font Awesome, or downloaded pack). Type to search.",
+				// eslint-disable-next-line obsidianmd/ui/sentence-case -- proper nouns
+			"Icon name (Obsidian, Font Awesome, or downloaded pack). Type to search.",
 			)
 			.addText((text) => {
 				iconInput = text;
@@ -143,6 +145,7 @@ export class CalloutEditModal extends Modal {
 					.setTooltip("Hide the icon (uses transparent in CSS). Useful for structural callouts like dashboards.")
 					.onClick(() => {
 						this.icon = { name: "no-icon", type: "no-icon" };
+						// eslint-disable-next-line @typescript-eslint/no-misused-promises -- iconInput is TextComponent, not Promise
 						if (iconInput) {
 							iconInput.inputEl.value = "no-icon";
 							iconInput.inputEl.setAttribute("disabled", "true");
@@ -154,7 +157,7 @@ export class CalloutEditModal extends Modal {
 				const fileInput = document.createElement("input");
 				fileInput.type = "file";
 				fileInput.accept = "image/*";
-				fileInput.style.display = "none";
+				fileInput.addClass("ccp-sr-only");
 
 				b.setButtonText("Upload image").setIcon("image-file");
 				b.buttonEl.appendChild(fileInput);
@@ -190,7 +193,8 @@ export class CalloutEditModal extends Modal {
 									name: canvas.toDataURL("image/png"),
 									type: "image",
 								};
-								if (iconInput) {
+								// eslint-disable-next-line @typescript-eslint/no-misused-promises -- iconInput is TextComponent, not Promise
+							if (iconInput) {
 									iconInput.inputEl.removeAttribute("disabled");
 								}
 								this.updatePreview();

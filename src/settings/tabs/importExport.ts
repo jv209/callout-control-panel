@@ -80,7 +80,7 @@ export function buildImportExportTab(el: HTMLElement, ctx: SettingsTabContext): 
 			input.type = "file";
 			input.accept = ".json";
 			input.multiple = true;
-			input.style.display = "none";
+			input.addClass("ccp-sr-only");
 
 			input.onchange = async () => {
 				const files = input.files;

@@ -144,7 +144,7 @@ export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): voi
 			});
 			if (st.icon === "transparent") {
 				setIcon(iconEl, "lucide-eye-off");
-				iconEl.style.opacity = "0.35";
+				iconEl.addClass("ccp-transparent-icon");
 			} else {
 				setIcon(iconEl, st.icon);
 			}
