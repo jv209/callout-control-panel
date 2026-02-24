@@ -63,8 +63,9 @@ After every completed task, provide the following four items:
 | v0.7.5 | Plugin rename and version sync | 2026-02-23 |
 | v0.7.6 | Mobile polish and no-icon support | 2026-02-24 |
 | v0.7.7 | Mobile tab fix and ribbon guard | 2026-02-24 |
+| v0.7.8 | Transparent icon detection fix | 2026-02-24 |
 
-**Next version: v0.7.8**
+**Next version: v0.7.9**
 
 ## Post-Phase 3 compliance review
 

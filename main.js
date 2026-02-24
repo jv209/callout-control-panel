@@ -268,13 +268,13 @@ function buildDetectionTab(el, ctx) {
     (st) => st.color.startsWith("var(")
   ).length;
   const iconMissingCount = ctx.plugin.snippetTypes.filter(
-    (st) => st.iconDefault
+    (st) => st.iconDefault && st.icon !== "transparent"
   ).length;
   const iconInvalidCount = ctx.plugin.snippetTypes.filter(
     (st) => st.iconInvalid
   ).length;
   const totalWarnCount = ctx.plugin.snippetTypes.filter(
-    (st) => st.color.startsWith("var(") || st.iconDefault || st.iconInvalid
+    (st) => st.color.startsWith("var(") || st.iconDefault && st.icon !== "transparent" || st.iconInvalid
   ).length;
   const heading = count > 0 ? `Detected types (${count})` : "No custom types detected";
   const desc = count > 0 ? "Custom callout types found in your enabled CSS snippets." : "No callout definitions were found in your enabled CSS snippet files.";
@@ -324,10 +324,15 @@ function buildDetectionTab(el, ctx) {
       const iconEl = rowEl.createDiv({
         cls: "detected-snippet-col-icon detected-snippet-type-icon"
       });
-      (0, import_obsidian2.setIcon)(iconEl, st.icon);
+      if (st.icon === "transparent") {
+        (0, import_obsidian2.setIcon)(iconEl, "lucide-eye-off");
+        iconEl.style.opacity = "0.35";
+      } else {
+        (0, import_obsidian2.setIcon)(iconEl, st.icon);
+      }
       iconEl.style.setProperty("--callout-color", st.color);
       rowEl.createSpan({ text: st.label, cls: "detected-snippet-col-callout" });
-      const iconText = st.iconDefault ? "\u2014" : st.icon;
+      const iconText = st.icon === "transparent" ? "transparent" : st.iconDefault ? "\u2014" : st.icon;
       const iconNameEl = rowEl.createSpan({
         text: iconText,
         cls: "detected-snippet-col-iconname detected-snippet-type-meta"
@@ -340,7 +345,7 @@ function buildDetectionTab(el, ctx) {
       });
       const statusEl = rowEl.createDiv({ cls: "detected-snippet-col-status" });
       const missingColor = st.color.startsWith("var(");
-      const missingIcon = st.iconDefault === true;
+      const missingIcon = st.iconDefault === true && st.icon !== "transparent";
       const invalidIcon = st.iconInvalid === true;
       if (missingColor || missingIcon || invalidIcon) {
         const reasons = [];
@@ -2753,9 +2758,6 @@ function extractCalloutProperties(css2, calloutId) {
   const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
   let icon2 = (iconMatch == null ? void 0 : iconMatch[1]) ? iconMatch[1] : "lucide-box";
   const iconDefault = !(iconMatch == null ? void 0 : iconMatch[1]);
-  if (icon2 === "transparent") {
-    icon2 = "no-icon";
-  }
   return { color, icon: icon2, iconDefault };
 }
 
@@ -19937,7 +19939,7 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
       }
     }
     for (const st of types) {
-      if (!st.iconDefault && st.icon !== "no-icon" && !(0, import_obsidian18.getIcon)(st.icon)) {
+      if (!st.iconDefault && st.icon !== "no-icon" && st.icon !== "transparent" && !(0, import_obsidian18.getIcon)(st.icon)) {
         st.iconInvalid = true;
       }
     }
