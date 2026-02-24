@@ -19661,23 +19661,7 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
       id: "insert-callout-quick",
       name: "Insert callout (quick pick)",
       icon: "lucide-message-square-quote",
-      editorCallback: () => {
-        const customTypes = this.getCustomTypes();
-        const modal = new QuickPickCalloutModal(
-          this.app,
-          customTypes,
-          this.snippetTypes,
-          (type) => {
-            QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
-            if (this.settings.rememberLastType) {
-              this.settings.lastUsedType = type;
-              void this.saveSettings();
-            }
-          },
-          this.iconManager
-        );
-        modal.open();
-      }
+      editorCallback: () => this.openQuickPick()
     });
     this.addCommand({
       id: "open-settings",
@@ -19713,23 +19697,11 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
       });
     }
     this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
-    this.addRibbonIcon("message-square-quote", "Insert callout (quick pick)", () => {
-      const customTypes = this.getCustomTypes();
-      const modal = new QuickPickCalloutModal(
-        this.app,
-        customTypes,
-        this.snippetTypes,
-        (type) => {
-          QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
-          if (this.settings.rememberLastType) {
-            this.settings.lastUsedType = type;
-            void this.saveSettings();
-          }
-        },
-        this.iconManager
-      );
-      modal.open();
-    });
+    if (!import_obsidian18.Platform.isMobile) {
+      this.addRibbonIcon("message-square-quote", "Insert callout (quick pick)", () => {
+        this.openQuickPick();
+      });
+    }
     this.registerMarkdownPostProcessor((el) => {
       var _a, _b;
       const callouts = el.querySelectorAll(".callout");
@@ -20041,6 +20013,24 @@ var EnhancedCalloutManager = class extends import_obsidian18.Plugin {
     await this.saveSettings();
   }
   // ── Helpers ───────────────────────────────────────────────────────────────
+  /** Open the quick-pick modal. Shared by the command and the ribbon icon. */
+  openQuickPick() {
+    const customTypes = this.getCustomTypes();
+    const modal = new QuickPickCalloutModal(
+      this.app,
+      customTypes,
+      this.snippetTypes,
+      (type) => {
+        QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
+        if (this.settings.rememberLastType) {
+          this.settings.lastUsedType = type;
+          void this.saveSettings();
+        }
+      },
+      this.iconManager
+    );
+    modal.open();
+  }
   /** Convert persisted custom callouts to CalloutTypeInfo for use in modals. */
   getCustomTypes() {
     return Object.values(this.settings.customCallouts).map(

@@ -112,23 +112,7 @@ export default class EnhancedCalloutManager extends Plugin {
 			id: "insert-callout-quick",
 			name: "Insert callout (quick pick)",
 			icon: "lucide-message-square-quote",
-			editorCallback: () => {
-				const customTypes = this.getCustomTypes();
-				const modal = new QuickPickCalloutModal(
-					this.app,
-					customTypes,
-					this.snippetTypes,
-					(type) => {
-						QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
-						if (this.settings.rememberLastType) {
-							this.settings.lastUsedType = type;
-							void this.saveSettings();
-						}
-					},
-					this.iconManager,
-				);
-				modal.open();
-			},
+			editorCallback: () => this.openQuickPick(),
 		});
 
 		this.addCommand({
@@ -176,24 +160,14 @@ export default class EnhancedCalloutManager extends Plugin {
 
 		this.addSettingTab(new EnhancedCalloutSettingTab(this.app, this));
 
-		// Ribbon icon — opens the quick pick modal for fast callout insertion
-		this.addRibbonIcon("message-square-quote", "Insert callout (quick pick)", () => {
-			const customTypes = this.getCustomTypes();
-			const modal = new QuickPickCalloutModal(
-				this.app,
-				customTypes,
-				this.snippetTypes,
-				(type) => {
-					QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
-					if (this.settings.rememberLastType) {
-						this.settings.lastUsedType = type;
-						void this.saveSettings();
-					}
-				},
-				this.iconManager,
-			);
-			modal.open();
-		});
+		// Ribbon icon — opens the quick pick modal for fast callout insertion.
+		// Hidden on mobile where the ribbon doesn't exist; users invoke the
+		// same logic via the command palette or mobile toolbar instead.
+		if (!Platform.isMobile) {
+			this.addRibbonIcon("message-square-quote", "Insert callout (quick pick)", () => {
+				this.openQuickPick();
+			});
+		}
 
 		// ── Post-processor: callout enhancements ────────────────────
 		this.registerMarkdownPostProcessor((el) => {
@@ -624,6 +598,25 @@ export default class EnhancedCalloutManager extends Plugin {
 	}
 
 	// ── Helpers ───────────────────────────────────────────────────────────────
+
+	/** Open the quick-pick modal. Shared by the command and the ribbon icon. */
+	private openQuickPick(): void {
+		const customTypes = this.getCustomTypes();
+		const modal = new QuickPickCalloutModal(
+			this.app,
+			customTypes,
+			this.snippetTypes,
+			(type) => {
+				QuickPickCalloutModal.insertQuickCallout(this.app, type, this.settings.defaultCollapseQuickPick);
+				if (this.settings.rememberLastType) {
+					this.settings.lastUsedType = type;
+					void this.saveSettings();
+				}
+			},
+			this.iconManager,
+		);
+		modal.open();
+	}
 
 	/** Convert persisted custom callouts to CalloutTypeInfo for use in modals. */
 	private getCustomTypes(): CalloutTypeInfo[] {
