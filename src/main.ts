@@ -495,7 +495,7 @@ export default class EnhancedCalloutManager extends Plugin {
 
 		// Validate icon names against Obsidian's icon set
 		for (const st of types) {
-			if (!st.iconDefault && st.icon !== "no-icon" && !getIcon(st.icon)) {
+			if (!st.iconDefault && st.icon !== "no-icon" && st.icon !== "transparent" && !getIcon(st.icon)) {
 				st.iconInvalid = true;
 			}
 		}

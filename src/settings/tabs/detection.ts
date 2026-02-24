@@ -59,13 +59,13 @@ export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): voi
 		(st) => st.color.startsWith("var("),
 	).length;
 	const iconMissingCount = ctx.plugin.snippetTypes.filter(
-		(st) => st.iconDefault,
+		(st) => st.iconDefault && st.icon !== "transparent",
 	).length;
 	const iconInvalidCount = ctx.plugin.snippetTypes.filter(
 		(st) => st.iconInvalid,
 	).length;
 	const totalWarnCount = ctx.plugin.snippetTypes.filter(
-		(st) => st.color.startsWith("var(") || st.iconDefault || st.iconInvalid,
+		(st) => st.color.startsWith("var(") || (st.iconDefault && st.icon !== "transparent") || st.iconInvalid,
 	).length;
 
 	const heading =
@@ -142,12 +142,17 @@ export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): voi
 			const iconEl = rowEl.createDiv({
 				cls: "detected-snippet-col-icon detected-snippet-type-icon",
 			});
-			setIcon(iconEl, st.icon);
+			if (st.icon === "transparent") {
+				setIcon(iconEl, "lucide-eye-off");
+				iconEl.style.opacity = "0.35";
+			} else {
+				setIcon(iconEl, st.icon);
+			}
 			iconEl.style.setProperty("--callout-color", st.color);
 
 			rowEl.createSpan({ text: st.label, cls: "detected-snippet-col-callout" });
 
-			const iconText = st.iconDefault ? "—" : st.icon;
+			const iconText = st.icon === "transparent" ? "transparent" : st.iconDefault ? "—" : st.icon;
 			const iconNameEl = rowEl.createSpan({
 				text: iconText,
 				cls: "detected-snippet-col-iconname detected-snippet-type-meta",
@@ -164,7 +169,7 @@ export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): voi
 
 			const statusEl = rowEl.createDiv({ cls: "detected-snippet-col-status" });
 			const missingColor = st.color.startsWith("var(");
-			const missingIcon = st.iconDefault === true;
+			const missingIcon = st.iconDefault === true && st.icon !== "transparent";
 			const invalidIcon = st.iconInvalid === true;
 			if (missingColor || missingIcon || invalidIcon) {
 				const reasons: string[] = [];
