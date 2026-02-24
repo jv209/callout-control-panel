@@ -142,11 +142,18 @@ export class CalloutEditModal extends Modal {
 			})
 			.addButton((b) => {
 				b.setButtonText("No icon")
-					.setTooltip("Toggle icon visibility. Click again to restore the icon field.")
-					.onClick(() => {
+					.setTooltip("Toggle icon visibility. Click again to restore the icon field.");
+
+				// Show active state if editing an existing no-icon callout
+				if (this.icon.type === "no-icon") {
+					b.buttonEl.addClass("ccp-toggle-active");
+				}
+
+				b.onClick(() => {
 						if (this.icon.type === "no-icon") {
 							// Undo: re-enable the input and reset icon state
 							this.icon = {};
+							b.buttonEl.removeClass("ccp-toggle-active");
 							// eslint-disable-next-line @typescript-eslint/no-misused-promises -- iconInput is TextComponent, not Promise
 							if (iconInput) {
 								iconInput.inputEl.value = "";
@@ -156,6 +163,7 @@ export class CalloutEditModal extends Modal {
 						} else {
 							// Activate no-icon mode
 							this.icon = { name: "no-icon", type: "no-icon" };
+							b.buttonEl.addClass("ccp-toggle-active");
 							// eslint-disable-next-line @typescript-eslint/no-misused-promises -- iconInput is TextComponent, not Promise
 							if (iconInput) {
 								iconInput.inputEl.value = "no-icon";

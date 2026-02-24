@@ -15,6 +15,11 @@
 	opacity: 0.35;
 }
 
+.ccp-toggle-active {
+	background-color: var(--interactive-accent) !important;
+	color: var(--text-on-accent) !important;
+}
+
 .ccp-sr-only {
 	position: absolute;
 	width: 1px;
