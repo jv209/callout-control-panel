@@ -693,9 +693,14 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
         }
       });
     }).addButton((b) => {
-      b.setButtonText("No icon").setTooltip("Toggle icon visibility. Click again to restore the icon field.").onClick(() => {
+      b.setButtonText("No icon").setTooltip("Toggle icon visibility. Click again to restore the icon field.");
+      if (this.icon.type === "no-icon") {
+        b.buttonEl.addClass("ccp-toggle-active");
+      }
+      b.onClick(() => {
         if (this.icon.type === "no-icon") {
           this.icon = {};
+          b.buttonEl.removeClass("ccp-toggle-active");
           if (iconInput) {
             iconInput.inputEl.value = "";
             iconInput.inputEl.removeAttribute("disabled");
@@ -703,6 +708,7 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian5.Modal {
           }
         } else {
           this.icon = { name: "no-icon", type: "no-icon" };
+          b.buttonEl.addClass("ccp-toggle-active");
           if (iconInput) {
             iconInput.inputEl.value = "no-icon";
             iconInput.inputEl.setAttribute("disabled", "true");
