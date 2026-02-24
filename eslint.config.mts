@@ -13,7 +13,8 @@ export default tseslint.config(
 				projectService: {
 					allowDefaultProject: [
 						'eslint.config.js',
-						'manifest.json'
+						'manifest.json',
+						'vitest.config.ts'
 					]
 				},
 				tsconfigRootDir: import.meta.dirname,

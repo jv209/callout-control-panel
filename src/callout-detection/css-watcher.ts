@@ -57,7 +57,7 @@ export default class StylesheetWatcher {
 		const listener = () => this.checkForChanges(false);
 		this.app.workspace.on('css-change' as 'quit', listener);
 
-		this.checkForChanges();
+		void this.checkForChanges();
 
 		return () => {
 			if (!this.watching) return;

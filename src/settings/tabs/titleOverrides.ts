@@ -13,9 +13,8 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 
 	new Setting(el)
 		.setName("Add title override")
-		.setDesc(
-			"Replace the default title for specific callout types in reading view. Only affects callouts without an explicit title in markdown.",
-		)
+		// eslint-disable-next-line obsidianmd/ui/sentence-case -- multi-sentence description
+		.setDesc("Replace the default title for specific callout types in reading view. Only affects callouts without an explicit title in markdown.")
 		.addDropdown((d) => {
 			const existing = new Set(Object.keys(overrides));
 			ctx.buildGroupedDropdown(d.selectEl);
@@ -77,14 +76,14 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 			cls: "ccp-title-override-input",
 			attr: { type: "text", value: title },
 		});
-		titleInput.addEventListener("change", async () => {
+		titleInput.addEventListener("change", () => {
 			const v = titleInput.value.trim();
 			if (v) {
 				ctx.plugin.settings.titleOverrides[type] = v;
 			} else {
 				delete ctx.plugin.settings.titleOverrides[type];
 			}
-			await ctx.plugin.saveSettings();
+			void ctx.plugin.saveSettings();
 		});
 
 		// Delete button
@@ -92,10 +91,9 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 		const deleteBtn = actionsEl.createDiv({ cls: "clickable-icon" });
 		setIcon(deleteBtn, "trash");
 		deleteBtn.setAttribute("aria-label", "Remove override");
-		deleteBtn.addEventListener("click", async () => {
+		deleteBtn.addEventListener("click", () => {
 			delete ctx.plugin.settings.titleOverrides[type];
-			await ctx.plugin.saveSettings();
-			ctx.refresh();
+			void ctx.plugin.saveSettings().then(() => ctx.refresh());
 		});
 	}
 }

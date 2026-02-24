@@ -124,8 +124,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			setIcon(iconSpan, tab.icon);
 			btn.createSpan({ cls: "ccp-tab-label", text: tab.label });
 
-			const pane = tabContent.createDiv({ cls: "ccp-tab-pane" });
-			pane.style.display = "none";
+			const pane = tabContent.createDiv({ cls: "ccp-tab-pane ccp-hidden" });
 
 			try {
 				tab.builder(pane);
@@ -139,9 +138,9 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			const tabIdx = idx;
 			btn.addEventListener("click", () => {
 				for (const b of buttons) b.removeClass("ccp-tab-active");
-				for (const p of panes) p.style.display = "none";
+				for (const p of panes) p.addClass("ccp-hidden");
 				btn.addClass("ccp-tab-active");
-				pane.style.display = "";
+				pane.removeClass("ccp-hidden");
 				this.activeTabIndex = tabIdx;
 			});
 		}
@@ -149,7 +148,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		// Activate the remembered tab (or first if out of range)
 		const idx = this.activeTabIndex < tabs.length ? this.activeTabIndex : 0;
 		if (buttons[idx]) buttons[idx].addClass("ccp-tab-active");
-		if (panes[idx]) panes[idx].style.display = "";
+		if (panes[idx]) panes[idx].removeClass("ccp-hidden");
 	}
 
 	/**

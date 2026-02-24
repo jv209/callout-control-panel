@@ -335,7 +335,7 @@ export default class EnhancedCalloutManager extends Plugin {
 
 		// Migrate: if the user had explicitly disabled the old scanSnippets
 		// toggle, honour that by disabling the new snippet toggle.
-		if ((loaded as Record<string, unknown> | null)?.scanSnippets === false) {
+		if (loaded?.scanSnippets === false) {
 			this.settings.calloutDetection.snippet = false;
 		}
 	}

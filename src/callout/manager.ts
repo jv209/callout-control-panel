@@ -41,8 +41,9 @@ export class CalloutManager extends Component {
 
 	constructor(public plugin: CalloutManagerPluginRef) {
 		super();
+		// eslint-disable-next-line obsidianmd/no-forbidden-elements -- dynamic CSS injection for custom callout rules
 		this.style = document.createElement("style");
-		this.style.id = "CALLOUT_CONTROL_PANEL_STYLES";
+		this.style.setAttribute("id", "CALLOUT_CONTROL_PANEL_STYLES");
 	}
 
 	private get sheet(): CSSStyleSheet {

@@ -51,7 +51,7 @@ export class IconSuggestionModal extends FuzzyInputSuggest<CalloutIconDefinition
 	): void {
 		const { item } = result;
 		flairEl.appendChild(
-			this.plugin.iconManager.getIconNode(item) ?? createDiv(),
+			this.plugin.iconManager.getIconNode(item) ?? document.createElement("div"),
 		);
 	}
 	getItemText(item: CalloutIconDefinition): string {
