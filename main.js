@@ -613,21 +613,55 @@ function rgbToHex(rgb) {
 // src/util/mobileKeyboard.ts
 var import_obsidian5 = require("obsidian");
 function enableMobileKeyboardAvoidance(containerEl) {
-  if (!import_obsidian5.Platform.isMobile || !window.visualViewport) return () => {
+  if (!import_obsidian5.Platform.isMobile) return () => {
   };
-  const vv = window.visualViewport;
-  const onViewportChange = () => {
-    containerEl.style.height = `${vv.height}px`;
-    containerEl.style.top = `${vv.offsetTop}px`;
+  const modalEl = containerEl.querySelector(":scope > .modal");
+  const constrain = () => {
+    const vv2 = window.visualViewport;
+    const vpHeight = vv2 ? vv2.height : window.innerHeight;
+    const vpTop = vv2 ? vv2.offsetTop : 0;
+    containerEl.style.height = `${vpHeight}px`;
+    containerEl.style.top = `${vpTop}px`;
+    containerEl.style.bottom = "auto";
+    containerEl.style.overflow = "hidden";
+    if (modalEl) {
+      modalEl.style.maxHeight = `${vpHeight}px`;
+    }
   };
-  vv.addEventListener("resize", onViewportChange);
-  vv.addEventListener("scroll", onViewportChange);
-  onViewportChange();
-  return () => {
-    vv.removeEventListener("resize", onViewportChange);
-    vv.removeEventListener("scroll", onViewportChange);
+  const reset = () => {
     containerEl.style.removeProperty("height");
     containerEl.style.removeProperty("top");
+    containerEl.style.removeProperty("bottom");
+    containerEl.style.removeProperty("overflow");
+    if (modalEl) {
+      modalEl.style.removeProperty("max-height");
+    }
+  };
+  const vv = window.visualViewport;
+  if (vv) {
+    vv.addEventListener("resize", constrain);
+    vv.addEventListener("scroll", constrain);
+  }
+  window.addEventListener("resize", constrain);
+  let focusTimer = null;
+  const onFocusIn = (e) => {
+    const target = e.target;
+    if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable)) {
+      if (focusTimer) clearTimeout(focusTimer);
+      focusTimer = setTimeout(constrain, 300);
+    }
+  };
+  containerEl.addEventListener("focusin", onFocusIn);
+  constrain();
+  return () => {
+    if (vv) {
+      vv.removeEventListener("resize", constrain);
+      vv.removeEventListener("scroll", constrain);
+    }
+    window.removeEventListener("resize", constrain);
+    containerEl.removeEventListener("focusin", onFocusIn);
+    if (focusTimer) clearTimeout(focusTimer);
+    reset();
   };
 }
 

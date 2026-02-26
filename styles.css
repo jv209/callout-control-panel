@@ -476,11 +476,21 @@
 
 /* ─── Mobile keyboard avoidance ──────────────────────────────────────── */
 /* When the soft keyboard opens, JS constrains the modal-container height
-   via visualViewport. These rules ensure the modal itself scrolls within
-   the reduced space instead of overflowing behind the keyboard. */
+   and sets bottom:auto to override inset:0. These rules ensure the modal
+   box itself scrolls within the reduced space. */
+
+.is-mobile .insert-callout-modal,
+.is-mobile .callout-edit-modal {
+	/* JS sets height/top/bottom — ensure container clips to those bounds */
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
 
 .is-mobile .insert-callout-modal .modal,
 .is-mobile .callout-edit-modal .modal {
 	max-height: 100%;
 	overflow-y: auto;
+	box-sizing: border-box;
 }
