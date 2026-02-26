@@ -1,6 +1,6 @@
 {
 	"name": "callout-control-panel",
-	"version": "1.2.0",
+	"version": "1.2.5",
 	"description": "Insert, detect, and manage custom callout types with a unified modal and full icon support.",
 	"main": "main.js",
 	"type": "module",

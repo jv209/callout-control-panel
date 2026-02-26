@@ -1,8 +1,16 @@
 # Callout Control Panel — Wiki
 
-Welcome to the Callout Control Panel documentation. These pages cover each section of the plugin's settings in detail.
+Welcome to the Callout Control Panel documentation. These pages cover the plugin's workflows and settings in detail.
 
-## Pages
+## Suggested Workflows
+
+- [Suggested Workflows](Suggested-Workflows) — overview and quick-reference table
+- [Desktop Keyboard Workflow](Desktop-Keyboard-Workflow) — hotkeys, quick pick, and the command palette on desktop
+- [Mobile Workflow](Mobile-Workflow) — toolbar buttons and the command palette on phones and tablets
+- [Favorite Callouts Workflow](Favorite-Callouts-Workflow) — assigning your top callout types to individual hotkeys or toolbar slots
+- [Custom Type Creation Workflow](Custom-Type-Creation-Workflow) — designing and managing your own callout types
+
+## Settings Reference
 
 - [Default Settings](Default-Settings) — default callout type, collapse state, copy button, and other insertion preferences
 - [CSS Type Detection](CSS-Type-Detection) — how the plugin finds callout types from snippets, themes, and Obsidian's built-in styles
