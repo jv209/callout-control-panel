@@ -67,8 +67,9 @@ After every completed task, provide the following four items:
 | v0.7.9 | Lint compliance (36 → 0 errors) | 2026-02-24 |
 | v1.2.5 | Workflow docs and version sync | 2026-02-26 |
 | v1.2.6 | Mobile keyboard avoidance for modals | 2026-02-26 |
+| v1.2.7 | Robust mobile keyboard avoidance | 2026-02-26 |
 
-**Next version: v1.2.7**
+**Next version: v1.2.8**
 
 ## Post-Phase 3 compliance review
 
