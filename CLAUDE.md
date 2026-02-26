@@ -69,7 +69,9 @@ After every completed task, provide the following four items:
 | v1.2.6 | Mobile keyboard avoidance for modals | 2026-02-26 |
 | v1.2.7 | Robust mobile keyboard avoidance | 2026-02-26 |
 
-**Next version: v1.2.8**
+| v1.2.8 | Phone-safe compact modal | 2026-02-26 |
+
+**Next version: v1.2.9**
 
 ## Post-Phase 3 compliance review
 

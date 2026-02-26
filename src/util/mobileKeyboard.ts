@@ -20,13 +20,18 @@
 import { Platform } from "obsidian";
 
 /**
- * Adjusts a modal container to stay within the visual viewport on mobile.
+ * Adjusts a modal container to stay within the visual viewport on tablets.
  * Call in `onOpen()` and invoke the returned cleanup function in `onClose()`.
+ *
+ * Phones are excluded — the insert modal uses a stripped-down layout on
+ * phones that avoids keyboard issues, and this JS-based workaround was
+ * unreliable on phone-sized webviews.
  */
 export function enableMobileKeyboardAvoidance(
 	containerEl: HTMLElement,
 ): () => void {
-	if (!Platform.isMobile) return () => {};
+	// Only apply on tablets; phones use a compact layout instead
+	if (!Platform.isTablet) return () => {};
 
 	const modalEl = containerEl.querySelector(":scope > .modal") as HTMLElement | null;
 

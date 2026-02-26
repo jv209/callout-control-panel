@@ -613,7 +613,7 @@ function rgbToHex(rgb) {
 // src/util/mobileKeyboard.ts
 var import_obsidian5 = require("obsidian");
 function enableMobileKeyboardAvoidance(containerEl) {
-  if (!import_obsidian5.Platform.isMobile) return () => {
+  if (!import_obsidian5.Platform.isTablet) return () => {
   };
   const modalEl = containerEl.querySelector(":scope > .modal");
   const constrain = () => {
@@ -1673,16 +1673,18 @@ var InsertCalloutModal = class extends import_obsidian14.Modal {
         this.collapse = value;
       });
     });
-    new import_obsidian14.Setting(contentEl).setName("Content").addTextArea((text2) => {
-      text2.setPlaceholder("Input content").setValue(this.content).onChange((value) => {
-        this.content = value;
+    if (!import_obsidian14.Platform.isPhone) {
+      new import_obsidian14.Setting(contentEl).setName("Content").addTextArea((text2) => {
+        text2.setPlaceholder("Input content").setValue(this.content).onChange((value) => {
+          this.content = value;
+        });
+        text2.inputEl.rows = 5;
+        text2.inputEl.cols = 40;
+        this.contentTextArea = text2.inputEl;
       });
-      text2.inputEl.rows = 5;
-      text2.inputEl.cols = 40;
-      this.contentTextArea = text2.inputEl;
-    });
-    const shortcutHint = contentEl.createDiv("insert-callout-shortcut-hint");
-    shortcutHint.setText(`${import_obsidian14.Platform.isMacOS ? "\u2318" : "Ctrl"} + Enter to insert`);
+      const shortcutHint = contentEl.createDiv("insert-callout-shortcut-hint");
+      shortcutHint.setText(`${import_obsidian14.Platform.isMacOS ? "\u2318" : "Ctrl"} + Enter to insert`);
+    }
     new import_obsidian14.Setting(contentEl).addButton((btn) => {
       btn.setButtonText("Insert").setCta().onClick(() => {
         this.insertCallout();
