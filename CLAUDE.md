@@ -66,8 +66,9 @@ After every completed task, provide the following four items:
 | v0.7.8 | Transparent icon detection fix | 2026-02-24 |
 | v0.7.9 | Lint compliance (36 → 0 errors) | 2026-02-24 |
 | v1.2.5 | Workflow docs and version sync | 2026-02-26 |
+| v1.2.6 | Mobile keyboard avoidance for modals | 2026-02-26 |
 
-**Next version: v1.2.6**
+**Next version: v1.2.7**
 
 ## Post-Phase 3 compliance review
 
