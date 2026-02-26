@@ -32,34 +32,26 @@ Callout Control Panel gives you one hotkey to insert any callout — built-in, t
 
 ## Workflows
 
-The plugin supports several workflows depending on how you use callouts. Pick the one that fits you best.
+The plugin supports several ways to insert callouts. Pick the one that fits you best — or combine them.
 
-### Desktop: hotkey workflow
+### Desktop: hotkeys and command palette
 
 Best for keyboard-driven users who insert callouts frequently.
 
-1. Open **Settings > Hotkeys** and assign a key to **Insert Callout** (full modal) or **Insert Callout (quick pick)**
-2. Press the hotkey while editing — the modal opens instantly
-3. Pick a type, set options, press Enter
+- **Hotkeys** — Open **Settings > Hotkeys** and assign a key to **Insert Callout** (full modal) or **Insert Callout (quick pick)**. Press the hotkey while editing and the modal opens instantly.
+- **Command palette** — Press **Ctrl/Cmd+P** and type "insert callout" or "quick pick" to access either command without a dedicated hotkey.
+- **Ribbon icon** — Click the ribbon icon (appears automatically on desktop) to open the quick-pick list.
 
-For your most-used callouts, assign **Favorite Callout 1–5** to individual hotkeys. Each favorite inserts a specific type in one keystroke.
+For your most-used callouts, assign **Favorite Callout 1–5** to individual hotkeys. Each favorite inserts a specific type in one keystroke. You can change which type each favorite inserts at any time.
 
-### Mobile: toolbar workflow
+### Mobile: toolbar and command palette
 
 The easiest setup for phones and tablets.
 
-1. Open **Settings > Mobile**
-2. Under **Configure mobile toolbar**, add **Insert Callout (quick pick)**
-3. Tap the toolbar icon to open the quick-pick list
-4. Select a type — the callout is inserted at your cursor
+- **Mobile toolbar** — Open **Settings > Mobile > Configure mobile toolbar** and add **Insert Callout (quick pick)**. Tap the toolbar icon to open the quick-pick list.
+- **Command palette** — Open the command palette and search for "Insert callout" or "quick pick" to access either command.
 
-You can also add individual favorites to the toolbar for one-tap access to your most-used types.
-
-### Desktop or mobile: ribbon workflow
-
-1. Enable the ribbon icon (it appears automatically when the plugin is active)
-2. Tap/click the icon to open the quick-pick list
-3. Select a callout type
+You can also add individual favorite callout commands to the mobile toolbar for one-tap access to specific types.
 
 ### Custom type creation workflow
 
@@ -70,6 +62,8 @@ For users who want to design their own callout types:
 3. Set the type ID (used in markdown), icon, and color
 4. The type appears immediately in all insertion modals
 5. The plugin generates a CSS snippet file in `.obsidian/snippets/` so your callouts persist even if the plugin is removed
+
+For more detailed workflow ideas, see the [Suggested Workflows](docs/wiki/Suggested-Workflows.md) wiki page.
 
 ## Installation
 
