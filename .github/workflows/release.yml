@@ -9,6 +9,12 @@ on:
             tag:
                 description: "Tag to upload assets for (e.g. v0.1.0)"
                 required: true
+            release_title:
+                description: "Release title (e.g. 'Icon Manager port from Plugin C'). Defaults to 'Release <tag>' if empty."
+                required: false
+            release_description:
+                description: "Release description (what changed, aimed at end users). Leave empty for auto-generated notes."
+                required: false
 
 permissions:
     contents: write
@@ -41,11 +47,24 @@ jobs:
                     tag="${GITHUB_REF#refs/tags/}"
                   fi
 
+                  # Determine release title
+                  title="${{ github.event.inputs.release_title }}"
+                  if [ -z "$title" ]; then
+                    title="Release $tag"
+                  fi
+
+                  # Build gh release create arguments
+                  create_args=(--title "$title" --draft=false)
+
+                  description="${{ github.event.inputs.release_description }}"
+                  if [ -n "$description" ]; then
+                    create_args+=(--notes "$description")
+                  else
+                    create_args+=(--generate-notes)
+                  fi
+
                   # Create the release if it doesn't exist yet
-                  gh release create "$tag" \
-                    --title "Release $tag" \
-                    --generate-notes \
-                    --draft=false 2>/dev/null || true
+                  gh release create "$tag" "${create_args[@]}" 2>/dev/null || true
 
                   # Upload (or replace) the required plugin assets
                   gh release upload "$tag" \
