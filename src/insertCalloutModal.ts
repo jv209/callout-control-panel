@@ -214,21 +214,23 @@ export class InsertCalloutModal extends Modal {
 					.onChange((value: CollapseState) => { this.collapse = value; });
 			});
 
-		// --- Content ---
-		new Setting(contentEl)
-			.setName("Content")
-			.addTextArea((text) => {
-				text.setPlaceholder("Input content")
-					.setValue(this.content)
-					.onChange((value) => { this.content = value; });
-				text.inputEl.rows = 5;
-				text.inputEl.cols = 40;
-				this.contentTextArea = text.inputEl;
-			});
+		// --- Content (hidden on phones — users type content directly in the editor) ---
+		if (!Platform.isPhone) {
+			new Setting(contentEl)
+				.setName("Content")
+				.addTextArea((text) => {
+					text.setPlaceholder("Input content")
+						.setValue(this.content)
+						.onChange((value) => { this.content = value; });
+					text.inputEl.rows = 5;
+					text.inputEl.cols = 40;
+					this.contentTextArea = text.inputEl;
+				});
 
-		// --- Keyboard shortcut hint ---
-		const shortcutHint = contentEl.createDiv("insert-callout-shortcut-hint");
-		shortcutHint.setText(`${Platform.isMacOS ? "\u2318" : "Ctrl"} + Enter to insert`);
+			// --- Keyboard shortcut hint ---
+			const shortcutHint = contentEl.createDiv("insert-callout-shortcut-hint");
+			shortcutHint.setText(`${Platform.isMacOS ? "\u2318" : "Ctrl"} + Enter to insert`);
+		}
 
 		// --- Buttons ---
 		new Setting(contentEl)
