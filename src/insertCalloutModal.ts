@@ -324,11 +324,20 @@ export class InsertCalloutModal extends Modal {
 			newCursorPos = { line: cursor.line + calloutLines, ch: 0 };
 		}
 
-		// Place cursor below the callout
-		setTimeout(() => {
-			editor.replaceRange("\n", newCursorPos);
-			editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
-			editor.focus();
-		}, 0);
+		if (Platform.isPhone) {
+			// Phone compact modal: place cursor on the content line so the
+			// user can start typing immediately (no content textarea on phones).
+			setTimeout(() => {
+				editor.setCursor({ line: newCursorPos.line - 1, ch: 2 });
+				editor.focus();
+			}, 50);
+		} else {
+			// Desktop / tablet: place cursor below the callout
+			setTimeout(() => {
+				editor.replaceRange("\n", newCursorPos);
+				editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
+				editor.focus();
+			}, 0);
+		}
 	}
 }

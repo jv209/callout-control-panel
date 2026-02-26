@@ -1758,11 +1758,18 @@ var InsertCalloutModal = class extends import_obsidian14.Modal {
       const calloutLines = calloutText.split("\n").length;
       newCursorPos = { line: cursor.line + calloutLines, ch: 0 };
     }
-    setTimeout(() => {
-      editor.replaceRange("\n", newCursorPos);
-      editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
-      editor.focus();
-    }, 0);
+    if (import_obsidian14.Platform.isPhone) {
+      setTimeout(() => {
+        editor.setCursor({ line: newCursorPos.line - 1, ch: 2 });
+        editor.focus();
+      }, 50);
+    } else {
+      setTimeout(() => {
+        editor.replaceRange("\n", newCursorPos);
+        editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
+        editor.focus();
+      }, 0);
+    }
   }
 };
 
