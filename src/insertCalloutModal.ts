@@ -15,6 +15,7 @@
 import { App, Modal, Setting, setIcon, Platform, MarkdownView } from "obsidian";
 import { type CalloutTypeInfo, type CollapseState, BUILTIN_CALLOUT_TYPES } from "./types";
 import type { IconManager } from "./icons/manager";
+import { enableMobileKeyboardAvoidance } from "./util/mobileKeyboard";
 
 /** Configuration passed from the plugin to the modal. */
 export interface InsertCalloutModalConfig {
@@ -43,6 +44,7 @@ export class InsertCalloutModal extends Modal {
 	private allCalloutOptions: CalloutTypeInfo[] = [];
 	private iconContainerEl: HTMLElement;
 	private autoFocusContent: boolean;
+	private cleanupKeyboard: (() => void) | undefined;
 
 	constructor(app: App, private config: InsertCalloutModalConfig) {
 		super(app);
@@ -110,7 +112,12 @@ export class InsertCalloutModal extends Modal {
 	}
 
 	onOpen() {
+		this.cleanupKeyboard = enableMobileKeyboardAvoidance(this.containerEl);
 		this.display();
+	}
+
+	onClose() {
+		this.cleanupKeyboard?.();
 	}
 
 	private display() {

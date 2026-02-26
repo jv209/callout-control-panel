@@ -18,6 +18,7 @@ import type { IconManager } from "../icons/manager";
 import { IconSuggestionModal } from "./iconSuggestionModal";
 import { CalloutValidator } from "../util/validator";
 import { hexToRgb, rgbToHex } from "../util/color";
+import { enableMobileKeyboardAvoidance } from "../util/mobileKeyboard";
 
 // ─── Plugin surface required by this modal ────────────────────────────────────
 
@@ -44,6 +45,7 @@ export class CalloutEditModal extends Modal {
 	private previewEl!: HTMLElement;
 	private colorWrapperEl!: HTMLElement;
 	private readonly originalType: string | undefined;
+	private cleanupKeyboard: (() => void) | undefined;
 
 	constructor(
 		app: App,
@@ -62,7 +64,12 @@ export class CalloutEditModal extends Modal {
 	}
 
 	onOpen() {
+		this.cleanupKeyboard = enableMobileKeyboardAvoidance(this.containerEl);
 		this.display();
+	}
+
+	onClose() {
+		this.cleanupKeyboard?.();
 	}
 
 	private display() {
