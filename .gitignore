@@ -16,3 +16,7 @@ data.json
 
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
+
+# AI assistant instructions (private development notes)
+CLAUDE.md
+.claude/
