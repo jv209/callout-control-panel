@@ -105,7 +105,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		const tabContent = containerEl.createDiv({ cls: "ccp-tab-content" });
 
 		const tabs: { label: string; icon: string; builder: (el: HTMLElement) => void }[] = [
-			{ label: "Default Settings",   icon: "lucide-cog",         builder: (el) => buildInsertionTab(el, ctx) },
+			{ label: "Defaults",           icon: "lucide-cog",         builder: (el) => buildInsertionTab(el, ctx) },
 			{ label: "CSS Type Detection", icon: "lucide-telescope",    builder: (el) => buildDetectionTab(el, ctx) },
 			{ label: "Custom Callouts",    icon: "lucide-paintbrush",   builder: (el) => buildCustomCalloutsTab(el, ctx) },
 			{ label: "Most Used Callouts", icon: "lucide-stars",        builder: (el) => buildFavoritesTab(el, ctx) },
