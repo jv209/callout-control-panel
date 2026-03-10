@@ -154,7 +154,7 @@ export default class StylesheetWatcher {
 			});
 			return true;
 		} catch (ex) {
-			console.warn('Unable to fetch Obsidian stylesheet.', ex);
+			console.error('Callout Control Panel: unable to fetch Obsidian stylesheet.', ex);
 			return false;
 		}
 	}

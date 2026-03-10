@@ -127,7 +127,7 @@ export class IconManager {
 
 			new Notice(`${DownloadableIcons[pack]} successfully downloaded.`);
 		} catch (e) {
-			console.error(e);
+			console.error("Callout Control Panel: icon download failed", e);
 			new Notice("Could not download icon pack");
 		}
 	}

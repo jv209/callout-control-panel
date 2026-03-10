@@ -33,31 +33,37 @@ export function enableMobileKeyboardAvoidance(
 	// Only apply on tablets; phones use a compact layout instead
 	if (!Platform.isTablet) return () => {};
 
-	const modalEl = containerEl.querySelector(":scope > .modal") as HTMLElement | null;
+	const modalEl = containerEl.querySelector<HTMLElement>(":scope > .modal");
 
 	const constrain = () => {
 		const vv = window.visualViewport;
 		const vpHeight = vv ? vv.height : window.innerHeight;
 		const vpTop = vv ? vv.offsetTop : 0;
 
-		// Override inset:0's bottom so height is respected
-		containerEl.style.height = `${vpHeight}px`;
-		containerEl.style.top = `${vpTop}px`;
-		containerEl.style.bottom = "auto";
-		containerEl.style.overflow = "hidden";
+		// Override inset:0's bottom so height is respected.
+		// Dynamic viewport values must be set via JS — CSS classes cannot
+		// know the keyboard height at build time.
+		containerEl.setCssProps({
+			"height": `${vpHeight}px`,
+			"top": `${vpTop}px`,
+			"bottom": "auto",
+			"overflow": "hidden",
+		});
 
 		if (modalEl) {
-			modalEl.style.maxHeight = `${vpHeight}px`;
+			modalEl.setCssProps({ "max-height": `${vpHeight}px` });
 		}
 	};
 
 	const reset = () => {
-		containerEl.style.removeProperty("height");
-		containerEl.style.removeProperty("top");
-		containerEl.style.removeProperty("bottom");
-		containerEl.style.removeProperty("overflow");
+		containerEl.setCssProps({
+			"height": "",
+			"top": "",
+			"bottom": "",
+			"overflow": "",
+		});
 		if (modalEl) {
-			modalEl.style.removeProperty("max-height");
+			modalEl.setCssProps({ "max-height": "" });
 		}
 	};
 

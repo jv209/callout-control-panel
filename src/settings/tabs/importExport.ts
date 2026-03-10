@@ -131,7 +131,7 @@ export function buildImportExportTab(el: HTMLElement, ctx: SettingsTabContext): 
 					ctx.refresh();
 				} catch (e) {
 					new Notice("There was an error importing the file(s).");
-					console.error(e);
+					console.error("Callout Control Panel: import error", e);
 				}
 				input.value = "";
 			};

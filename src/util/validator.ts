@@ -93,8 +93,8 @@ export class CalloutValidator {
 				callout.color,
 			)
 		) {
-			console.warn(
-				`No valid color for imported callout "${callout.type}". Assigning a random color.`,
+			console.error(
+				`Callout Control Panel: no valid color for imported callout "${callout.type}". Assigning a random color.`,
 			);
 			callout.color = `${Math.floor(Math.random() * 255)}, ${Math.floor(
 				Math.random() * 255,

@@ -509,8 +509,8 @@ var CalloutValidator = class _CalloutValidator {
     if (!("color" in callout) || !/(?:(?:2(?:[0-4]\d|5[0-5])|\d{1,2}|1\d\d)\s*,\s*){2}\s*(?:2(?:[0-4]\d|5[0-5])|\d{1,2}|1\d\d)/.test(
       callout.color
     )) {
-      console.warn(
-        `No valid color for imported callout "${callout.type}". Assigning a random color.`
+      console.error(
+        `Callout Control Panel: no valid color for imported callout "${callout.type}". Assigning a random color.`
       );
       callout.color = `${Math.floor(Math.random() * 255)}, ${Math.floor(
         Math.random() * 255
@@ -620,21 +620,25 @@ function enableMobileKeyboardAvoidance(containerEl) {
     const vv2 = window.visualViewport;
     const vpHeight = vv2 ? vv2.height : window.innerHeight;
     const vpTop = vv2 ? vv2.offsetTop : 0;
-    containerEl.style.height = `${vpHeight}px`;
-    containerEl.style.top = `${vpTop}px`;
-    containerEl.style.bottom = "auto";
-    containerEl.style.overflow = "hidden";
+    containerEl.setCssProps({
+      "height": `${vpHeight}px`,
+      "top": `${vpTop}px`,
+      "bottom": "auto",
+      "overflow": "hidden"
+    });
     if (modalEl) {
-      modalEl.style.maxHeight = `${vpHeight}px`;
+      modalEl.setCssProps({ "max-height": `${vpHeight}px` });
     }
   };
   const reset = () => {
-    containerEl.style.removeProperty("height");
-    containerEl.style.removeProperty("top");
-    containerEl.style.removeProperty("bottom");
-    containerEl.style.removeProperty("overflow");
+    containerEl.setCssProps({
+      "height": "",
+      "top": "",
+      "bottom": "",
+      "overflow": ""
+    });
     if (modalEl) {
-      modalEl.style.removeProperty("max-height");
+      modalEl.setCssProps({ "max-height": "" });
     }
   };
   const vv = window.visualViewport;
@@ -1310,7 +1314,7 @@ function buildImportExportTab(el, ctx) {
         ctx.refresh();
       } catch (e) {
         new import_obsidian11.Notice("There was an error importing the file(s).");
-        console.error(e);
+        console.error("Callout Control Panel: import error", e);
       }
       input.value = "";
     };
@@ -1458,7 +1462,7 @@ var EnhancedCalloutSettingTab = class extends import_obsidian13.PluginSettingTab
     const tabBar = containerEl.createDiv({ cls: "ccp-tab-bar" });
     const tabContent = containerEl.createDiv({ cls: "ccp-tab-content" });
     const tabs = [
-      { label: "Default Settings", icon: "lucide-cog", builder: (el) => buildInsertionTab(el, ctx) },
+      { label: "Defaults", icon: "lucide-cog", builder: (el) => buildInsertionTab(el, ctx) },
       { label: "CSS Type Detection", icon: "lucide-telescope", builder: (el) => buildDetectionTab(el, ctx) },
       { label: "Custom Callouts", icon: "lucide-paintbrush", builder: (el) => buildCustomCalloutsTab(el, ctx) },
       { label: "Most Used Callouts", icon: "lucide-stars", builder: (el) => buildFavoritesTab(el, ctx) },
@@ -2092,7 +2096,7 @@ var StylesheetWatcher = class {
       });
       return true;
     } catch (ex) {
-      console.warn("Unable to fetch Obsidian stylesheet.", ex);
+      console.error("Callout Control Panel: unable to fetch Obsidian stylesheet.", ex);
       return false;
     }
   }
@@ -19486,7 +19490,7 @@ var IconManager = class {
       this.setIconDefinitions();
       new import_obsidian18.Notice(`${DownloadableIcons[pack]} successfully downloaded.`);
     } catch (e) {
-      console.error(e);
+      console.error("Callout Control Panel: icon download failed", e);
       new import_obsidian18.Notice("Could not download icon pack");
     }
   }
