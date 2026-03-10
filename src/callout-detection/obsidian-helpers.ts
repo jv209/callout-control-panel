@@ -159,27 +159,26 @@ export async function fetchObsidianStyleSheet(app: App): Promise<ObsidianStyleSh
 // ---- Custom stylesheet helper ----
 
 /**
- * Creates a managed <style> element that is added to the document head.
+ * Creates a managed CSSStyleSheet added via adoptedStyleSheets.
  * Returns an object whose `.css` property can be set to apply styles,
  * and which can be passed to Plugin.register() for cleanup.
  */
 export function createCustomStyleSheet(): CustomStyleSheet {
-	// eslint-disable-next-line obsidianmd/no-forbidden-elements -- managed style element for dynamic CSS injection
-	const styleEl = document.createElement('style');
-	document.head.appendChild(styleEl);
+	const sheet = new CSSStyleSheet();
+	document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
 
 	return {
 		get css(): string {
-			return styleEl.textContent ?? '';
+			return Array.from(sheet.cssRules).map(r => r.cssText).join('\n');
 		},
 		set css(value: string) {
-			styleEl.textContent = value;
+			sheet.replaceSync(value);
 		},
-		setAttribute(name: string, value: string) {
-			styleEl.setAttribute(name, value);
+		setAttribute() {
+			// No-op: constructable stylesheets do not support attributes.
 		},
 		unload() {
-			styleEl.remove();
+			document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== sheet);
 		},
 	};
 }

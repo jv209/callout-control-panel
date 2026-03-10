@@ -1,6 +1,6 @@
 /**
  * Callout CSS manager — generates CSS rules for custom callout types.
- * Uses dual output: an in-memory <style> element for instant rendering
+ * Uses dual output: an in-memory CSSStyleSheet for instant rendering
  * and a vault snippet file for persistence and user editability.
  *
  * Source: obsidian-admonition v10.3.2 (MIT, Jeremy Valentine)
@@ -37,17 +37,11 @@ export class CalloutManager extends Component {
 	private indexing: string[] = [];
 	/** Formatted rule strings parallel to indexing — used for snippet file output. */
 	private formattedRules: string[] = [];
-	private style: HTMLStyleElement;
+	private sheet: CSSStyleSheet;
 
 	constructor(public plugin: CalloutManagerPluginRef) {
 		super();
-		// eslint-disable-next-line obsidianmd/no-forbidden-elements -- dynamic CSS injection for custom callout rules
-		this.style = document.createElement("style");
-		this.style.setAttribute("id", "CALLOUT_CONTROL_PANEL_STYLES");
-	}
-
-	private get sheet(): CSSStyleSheet {
-		return this.style.sheet!;
+		this.sheet = new CSSStyleSheet();
 	}
 
 	private get snippetPath(): string {
@@ -58,11 +52,11 @@ export class CalloutManager extends Component {
 	}
 
 	onload(): void {
-		document.head.appendChild(this.style);
+		document.adoptedStyleSheets = [...document.adoptedStyleSheets, this.sheet];
 	}
 
 	onunload(): void {
-		this.style.detach();
+		document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== this.sheet);
 	}
 
 	/** Load all custom callouts into the style sheet and write the snippet. */

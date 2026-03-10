@@ -106,12 +106,12 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 
 		const tabs: { label: string; icon: string; builder: (el: HTMLElement) => void }[] = [
 			{ label: "Defaults",           icon: "lucide-cog",         builder: (el) => buildInsertionTab(el, ctx) },
-			{ label: "CSS Type Detection", icon: "lucide-telescope",    builder: (el) => buildDetectionTab(el, ctx) },
-			{ label: "Custom Callouts",    icon: "lucide-paintbrush",   builder: (el) => buildCustomCalloutsTab(el, ctx) },
-			{ label: "Most Used Callouts", icon: "lucide-stars",        builder: (el) => buildFavoritesTab(el, ctx) },
-			{ label: "Title Overrides",    icon: "lucide-pencil-line",  builder: (el) => buildTitleOverridesTab(el, ctx) },
-			{ label: "Import / Export",    icon: "lucide-import",       builder: (el) => buildImportExportTab(el, ctx) },
-			{ label: "Icon Packs",         icon: "lucide-package",      builder: (el) => buildIconPacksTab(el, ctx) },
+			{ label: "CSS type detection", icon: "lucide-telescope",    builder: (el) => buildDetectionTab(el, ctx) },
+			{ label: "Custom callouts",    icon: "lucide-paintbrush",   builder: (el) => buildCustomCalloutsTab(el, ctx) },
+			{ label: "Most used callouts", icon: "lucide-stars",        builder: (el) => buildFavoritesTab(el, ctx) },
+			{ label: "Title overrides",    icon: "lucide-pencil-line",  builder: (el) => buildTitleOverridesTab(el, ctx) },
+			{ label: "Import / export",    icon: "lucide-import",       builder: (el) => buildImportExportTab(el, ctx) },
+			{ label: "Icon packs",         icon: "lucide-package",      builder: (el) => buildIconPacksTab(el, ctx) },
 		];
 
 		const buttons: HTMLElement[] = [];

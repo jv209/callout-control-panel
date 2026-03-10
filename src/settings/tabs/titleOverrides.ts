@@ -13,8 +13,7 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 
 	new Setting(el)
 		.setName("Add title override")
-		// eslint-disable-next-line obsidianmd/ui/sentence-case -- multi-sentence description
-		.setDesc("Replace the default title for specific callout types in reading view. Only affects callouts without an explicit title in markdown.")
+		.setDesc("Override titles for callout types in reading view")
 		.addDropdown((d) => {
 			const existing = new Set(Object.keys(overrides));
 			ctx.buildGroupedDropdown(d.selectEl);
@@ -57,8 +56,8 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 	const headerEl = listEl.createDiv({
 		cls: "ccp-title-override-row ccp-title-override-header",
 	});
-	headerEl.createSpan({ text: "Callout Type", cls: "ccp-title-override-col-type" });
-	headerEl.createSpan({ text: "Custom Title", cls: "ccp-title-override-col-title" });
+	headerEl.createSpan({ text: "Callout type", cls: "ccp-title-override-col-type" });
+	headerEl.createSpan({ text: "Custom title", cls: "ccp-title-override-col-title" });
 	headerEl.createSpan({ text: "", cls: "ccp-title-override-col-actions" });
 
 	for (const [type, title] of entries) {
