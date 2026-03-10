@@ -118,7 +118,9 @@ export class IsolatedCalloutPreviewComponent extends CalloutPreviewComponent {
 	protected readonly shadowHostEl: HTMLElement;
 	protected readonly shadowRoot: ShadowRoot;
 
-	public readonly customStyleEl: HTMLStyleElement;
+	public readonly customStyleSheet: CSSStyleSheet;
+	/** Sentinel element placed at the end of shadowHead for DOM ordering in updateStylesWith. */
+	private readonly customStyleAnchor: HTMLElement;
 
 	public constructor(containerEl: HTMLElement | DocumentFragment, options: IsolatedPreviewOptions) {
 		super(NO_ATTACH, options);
@@ -143,10 +145,13 @@ export class IsolatedCalloutPreviewComponent extends CalloutPreviewComponent {
 			shadowHead.appendChild(cssElClone);
 		}
 
-		// eslint-disable-next-line obsidianmd/no-forbidden-elements -- Shadow DOM requires inline style elements
-		shadowHead.createEl('style', { text: SHADOW_DOM_RESET_STYLES });
-		// eslint-disable-next-line obsidianmd/no-forbidden-elements -- Shadow DOM requires inline style elements
-		this.customStyleEl = shadowHead.createEl('style', { attr: { 'data-custom-styles': 'true' } });
+		// Use constructable stylesheets instead of creating <style> elements.
+		const resetSheet = new CSSStyleSheet();
+		resetSheet.replaceSync(SHADOW_DOM_RESET_STYLES);
+		this.customStyleSheet = new CSSStyleSheet();
+		shadowRoot.adoptedStyleSheets = [resetSheet, this.customStyleSheet];
+		// Invisible anchor element for DOM ordering used by updateStylesWith.
+		this.customStyleAnchor = shadowHead.createSpan({ cls: 'ccp-style-anchor' });
 
 		shadowBody.classList.add(`theme-${colorScheme}`, 'obsidian-app');
 		const viewContentEl = shadowBody
@@ -180,10 +185,10 @@ export class IsolatedCalloutPreviewComponent extends CalloutPreviewComponent {
 	}
 
 	public updateStylesWith(styleEls: HTMLStyleElement[]): typeof this {
-		const { styleEls: oldStyleEls, customStyleEl } = this;
+		const { styleEls: oldStyleEls, customStyleAnchor } = this;
 
 		let i, end;
-		let lastNode = customStyleEl.previousSibling as HTMLElement;
+		let lastNode = customStyleAnchor.previousSibling as HTMLElement;
 		for (i = 0, end = Math.min(styleEls.length, oldStyleEls.length); i < end; i++) {
 			const el = styleEls[i]!;
 			oldStyleEls[i]!.replaceWith(el);

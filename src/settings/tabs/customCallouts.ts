@@ -65,7 +65,7 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 	});
 	headerEl.createSpan({ text: "Icon", cls: "detected-snippet-col-icon" });
 	headerEl.createSpan({ text: "Callout", cls: "custom-callout-col-callout" });
-	headerEl.createSpan({ text: "Icon Name", cls: "detected-snippet-col-iconname" });
+	headerEl.createSpan({ text: "Icon name", cls: "detected-snippet-col-iconname" });
 	headerEl.createSpan({ text: "Color", cls: "detected-snippet-col-color" });
 	headerEl.createSpan({ text: "", cls: "custom-callout-col-actions" });
 

@@ -89,8 +89,7 @@ export class CalloutEditModal extends Modal {
 		let typeInput: TextComponent;
 		new Setting(form)
 			.setName("Type identifier")
-			// eslint-disable-next-line obsidianmd/ui/sentence-case -- multi-sentence description
-			.setDesc('Used in markdown, e.g. "my-callout". No spaces allowed.')
+			.setDesc("Used in callout Markdown syntax, no spaces allowed")
 			.addText((text) => {
 				typeInput = text;
 				text.setValue(this.type).onChange((v) => {
@@ -117,8 +116,7 @@ export class CalloutEditModal extends Modal {
 		new Setting(form)
 			.setName("Icon")
 			.setDesc(
-				// eslint-disable-next-line obsidianmd/ui/sentence-case -- proper nouns
-			"Icon name (Obsidian, Font Awesome, or downloaded pack). Type to search.",
+			"Icon name from a built-in or downloaded pack, type to search.",
 			)
 			.addText((text) => {
 				iconInput = text;

@@ -37,7 +37,7 @@ export class ConfirmModal extends Modal {
 		super(app);
 	}
 
-	async display() {
+	display() {
 		this.contentEl.empty();
 		this.contentEl.addClass("confirm-modal");
 		this.contentEl.createEl("p", {

@@ -107,7 +107,7 @@ export class CalloutResolver {
 		return false;
 	}
 
-	public get customStyleEl(): HTMLStyleElement {
-		return this.calloutPreview.customStyleEl;
+	public get customStyleSheet(): CSSStyleSheet {
+		return this.calloutPreview.customStyleSheet;
 	}
 }

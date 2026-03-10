@@ -132,7 +132,7 @@ export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): voi
 		});
 		headerEl.createSpan({ text: "Icon", cls: "detected-snippet-col-icon" });
 		headerEl.createSpan({ text: "Callout", cls: "detected-snippet-col-callout" });
-		headerEl.createSpan({ text: "Icon Name", cls: "detected-snippet-col-iconname" });
+		headerEl.createSpan({ text: "Icon name", cls: "detected-snippet-col-iconname" });
 		headerEl.createSpan({ text: "Color", cls: "detected-snippet-col-color" });
 		headerEl.createSpan({ text: "", cls: "detected-snippet-col-status" });
 
