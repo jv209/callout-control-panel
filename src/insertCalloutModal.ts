@@ -253,7 +253,7 @@ export class InsertCalloutModal extends Modal {
 
 		// Auto-focus content textarea
 		if (this.autoFocusContent) {
-			activeWindow.setTimeout(() => {
+			window.setTimeout(() => {
 				if (this.contentTextArea) {
 					this.contentTextArea.focus();
 				}
@@ -327,13 +327,13 @@ export class InsertCalloutModal extends Modal {
 		if (Platform.isPhone) {
 			// Phone compact modal: place cursor on the content line so the
 			// user can start typing immediately (no content textarea on phones).
-			activeWindow.setTimeout(() => {
+			window.setTimeout(() => {
 				editor.setCursor({ line: newCursorPos.line - 1, ch: 2 });
 				editor.focus();
 			}, 50);
 		} else {
 			// Desktop / tablet: place cursor below the callout
-			activeWindow.setTimeout(() => {
+			window.setTimeout(() => {
 				editor.replaceRange("\n", newCursorPos);
 				editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
 				editor.focus();
