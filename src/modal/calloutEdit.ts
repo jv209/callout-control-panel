@@ -7,6 +7,7 @@
 
 import {
 	App,
+	createEl,
 	Modal,
 	Notice,
 	Setting,
@@ -179,7 +180,7 @@ export class CalloutEditModal extends Modal {
 					});
 			})
 			.addButton((b) => {
-				const fileInput = document.createElement("input");
+				const fileInput = createEl("input");
 				fileInput.type = "file";
 				fileInput.accept = "image/*";
 				fileInput.addClass("ccp-sr-only");
@@ -196,7 +197,7 @@ export class CalloutEditModal extends Modal {
 						const img = new Image();
 						img.onload = () => {
 							try {
-								const canvas = document.createElement("canvas");
+								const canvas = createEl("canvas");
 								const maxSize = 24;
 								let w = img.width,
 									h = img.height;

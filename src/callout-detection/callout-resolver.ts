@@ -33,7 +33,7 @@ export class CalloutResolver {
 
 	public constructor(app: App) {
 		this.app = app;
-		this.hostElement = document.body.createDiv({
+		this.hostElement = activeDocument.body.createDiv({
 			cls: 'calloutmanager-callout-resolver',
 		});
 

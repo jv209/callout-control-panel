@@ -2,7 +2,7 @@
 	"id": "callout-control-panel",
 	"name": "Callout Control Panel",
 	"version": "1.5.0",
-	"minAppVersion": "1.4.0",
+	"minAppVersion": "1.4.10",
 	"description": "Insert, detect, and manage custom callout types with a unified modal and full icon support.",
 	"author": "jv209",
 	"authorUrl": "https://github.com/jv209",

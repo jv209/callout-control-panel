@@ -122,7 +122,7 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 				line: selectionStart.line + calloutLines,
 				ch: 0,
 			};
-			setTimeout(() => {
+			activeWindow.setTimeout(() => {
 				editor.replaceRange("\n", newCursorPos);
 				editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
 				editor.focus();
@@ -134,7 +134,7 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 			editor.replaceRange(calloutText, cursor);
 			const calloutLines = calloutText.split("\n").length;
 			// Place cursor on the content line (after "> ")
-			setTimeout(() => {
+			activeWindow.setTimeout(() => {
 				editor.setCursor({
 					line: cursor.line + calloutLines - 1,
 					ch: 2,

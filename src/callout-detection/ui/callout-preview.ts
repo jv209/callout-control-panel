@@ -9,7 +9,7 @@
  * Modified: Replaced path-aliased imports with local references.
  */
 
-import { Component, getIcon } from 'obsidian';
+import { Component, createFragment, getIcon } from 'obsidian';
 
 import type { CalloutID, RGB } from '../types';
 
@@ -36,7 +36,7 @@ export class CalloutPreviewComponent extends Component {
 		super();
 		const { color, icon, id, title, content } = options;
 
-		const frag = document.createDocumentFragment();
+		const frag = createFragment();
 
 		const calloutEl = (this.calloutEl = frag.createDiv({ cls: ['callout', 'calloutmanager-preview'] }));
 		const titleElContainer = calloutEl.createDiv({ cls: 'callout-title' });
@@ -125,7 +125,7 @@ export class IsolatedCalloutPreviewComponent extends CalloutPreviewComponent {
 	public constructor(containerEl: HTMLElement | DocumentFragment, options: IsolatedPreviewOptions) {
 		super(NO_ATTACH, options);
 
-		const frag = document.createDocumentFragment();
+		const frag = createFragment();
 		const focused = options.focused ?? false;
 		const colorScheme = options.colorScheme;
 		const readingView = (options.viewType ?? 'reading') === 'reading';
@@ -235,7 +235,7 @@ export class IsolatedCalloutPreviewComponent extends CalloutPreviewComponent {
 
 function getCurrentStyles(doc?: Document): Array<HTMLStyleElement | HTMLLinkElement> {
 	const els: Array<HTMLStyleElement | HTMLLinkElement> = [];
-	let node = (doc ?? window.document).head.firstElementChild;
+	let node = (doc ?? activeDocument).head.firstElementChild;
 	for (; node != null; node = node.nextElementSibling) {
 		const nodeTag = node.tagName;
 		if (nodeTag === 'STYLE' || (nodeTag === 'LINK' && node.getAttribute('rel')?.toLowerCase() === 'stylesheet')) {
