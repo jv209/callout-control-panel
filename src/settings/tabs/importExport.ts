@@ -2,7 +2,7 @@
  * Tab builder — Import / Export.
  */
 
-import { createEl, Notice, Platform, Setting } from "obsidian";
+import { Notice, Platform, Setting } from "obsidian";
 import type { CustomCallout } from "../../types";
 import { ExportModal } from "../../modal/export";
 import { CalloutValidator } from "../../util/validator";

@@ -481,7 +481,6 @@
 
 .is-mobile .insert-callout-modal,
 .is-mobile .callout-edit-modal {
-	/* JS sets height/top/bottom — ensure container clips to those bounds */
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -493,4 +492,15 @@
 	max-height: 100%;
 	overflow-y: auto;
 	box-sizing: border-box;
+}
+
+.ccp-keyboard-constrained {
+	height: var(--ccp-vp-height);
+	top: var(--ccp-vp-top);
+	bottom: auto;
+	overflow: hidden;
+}
+
+.ccp-keyboard-constrained > .modal {
+	max-height: var(--ccp-vp-height);
 }

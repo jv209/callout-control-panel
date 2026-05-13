@@ -316,7 +316,7 @@ function buildDetectionTab(el, ctx) {
     });
     headerEl.createSpan({ text: "Icon", cls: "detected-snippet-col-icon" });
     headerEl.createSpan({ text: "Callout", cls: "detected-snippet-col-callout" });
-    headerEl.createSpan({ text: "Icon Name", cls: "detected-snippet-col-iconname" });
+    headerEl.createSpan({ text: "Icon name", cls: "detected-snippet-col-iconname" });
     headerEl.createSpan({ text: "Color", cls: "detected-snippet-col-color" });
     headerEl.createSpan({ text: "", cls: "detected-snippet-col-status" });
     for (const st of ctx.plugin.snippetTypes) {
@@ -409,7 +409,7 @@ var ConfirmModal = class extends import_obsidian3.Modal {
     this.buttons = buttons;
     this.confirmed = false;
   }
-  async display() {
+  display() {
     this.contentEl.empty();
     this.contentEl.addClass("confirm-modal");
     this.contentEl.createEl("p", {
@@ -454,7 +454,7 @@ var IconSuggestionModal = class extends import_utilities.FuzzyInputSuggest {
     var _a;
     const { item } = result;
     flairEl.appendChild(
-      (_a = this.plugin.iconManager.getIconNode(item)) != null ? _a : document.createElement("div")
+      (_a = this.plugin.iconManager.getIconNode(item)) != null ? _a : createDiv()
     );
   }
   getItemText(item) {
@@ -471,7 +471,7 @@ var isSelectorValid = /* @__PURE__ */ ((dummyElement) => (selector) => {
     return false;
   }
   return true;
-})(document.createDocumentFragment());
+})(createFragment());
 var CalloutValidator = class _CalloutValidator {
   /**
    * Validate an imported callout definition.
@@ -615,31 +615,18 @@ var import_obsidian5 = require("obsidian");
 function enableMobileKeyboardAvoidance(containerEl) {
   if (!import_obsidian5.Platform.isTablet) return () => {
   };
-  const modalEl = containerEl.querySelector(":scope > .modal");
   const constrain = () => {
     const vv2 = window.visualViewport;
     const vpHeight = vv2 ? vv2.height : window.innerHeight;
     const vpTop = vv2 ? vv2.offsetTop : 0;
-    containerEl.setCssProps({
-      "height": `${vpHeight}px`,
-      "top": `${vpTop}px`,
-      "bottom": "auto",
-      "overflow": "hidden"
-    });
-    if (modalEl) {
-      modalEl.setCssProps({ "max-height": `${vpHeight}px` });
-    }
+    containerEl.style.setProperty("--ccp-vp-height", `${vpHeight}px`);
+    containerEl.style.setProperty("--ccp-vp-top", `${vpTop}px`);
+    containerEl.addClass("ccp-keyboard-constrained");
   };
   const reset = () => {
-    containerEl.setCssProps({
-      "height": "",
-      "top": "",
-      "bottom": "",
-      "overflow": ""
-    });
-    if (modalEl) {
-      modalEl.setCssProps({ "max-height": "" });
-    }
+    containerEl.removeClass("ccp-keyboard-constrained");
+    containerEl.style.removeProperty("--ccp-vp-height");
+    containerEl.style.removeProperty("--ccp-vp-top");
   };
   const vv = window.visualViewport;
   if (vv) {
@@ -651,8 +638,8 @@ function enableMobileKeyboardAvoidance(containerEl) {
   const onFocusIn = (e) => {
     const target = e.target;
     if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable)) {
-      if (focusTimer) clearTimeout(focusTimer);
-      focusTimer = setTimeout(constrain, 300);
+      if (focusTimer !== null) activeWindow.clearTimeout(focusTimer);
+      focusTimer = activeWindow.setTimeout(constrain, 300);
     }
   };
   containerEl.addEventListener("focusin", onFocusIn);
@@ -664,7 +651,7 @@ function enableMobileKeyboardAvoidance(containerEl) {
     }
     window.removeEventListener("resize", constrain);
     containerEl.removeEventListener("focusin", onFocusIn);
-    if (focusTimer) clearTimeout(focusTimer);
+    if (focusTimer !== null) activeWindow.clearTimeout(focusTimer);
     reset();
   };
 }
@@ -706,7 +693,7 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian6.Modal {
     this.updatePreview();
     const form = contentEl.createDiv({ cls: "callout-edit-form" });
     let typeInput;
-    new import_obsidian6.Setting(form).setName("Type identifier").setDesc('Used in markdown, e.g. "my-callout". No spaces allowed.').addText((text2) => {
+    new import_obsidian6.Setting(form).setName("Type identifier").setDesc("Used in callout Markdown syntax, no spaces allowed").addText((text2) => {
       typeInput = text2;
       text2.setValue(this.type).onChange((v) => {
         const result = CalloutValidator.validateType(
@@ -728,8 +715,7 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian6.Modal {
     });
     let iconInput;
     new import_obsidian6.Setting(form).setName("Icon").setDesc(
-      // eslint-disable-next-line obsidianmd/ui/sentence-case -- proper nouns
-      "Icon name (Obsidian, Font Awesome, or downloaded pack). Type to search."
+      "Icon name from a built-in or downloaded pack, type to search."
     ).addText((text2) => {
       var _a;
       iconInput = text2;
@@ -781,7 +767,7 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian6.Modal {
         this.updatePreview();
       });
     }).addButton((b) => {
-      const fileInput = document.createElement("input");
+      const fileInput = createEl("input");
       fileInput.type = "file";
       fileInput.accept = "image/*";
       fileInput.addClass("ccp-sr-only");
@@ -797,7 +783,7 @@ var CalloutEditModal = class _CalloutEditModal extends import_obsidian6.Modal {
           const img = new Image();
           img.onload = () => {
             try {
-              const canvas = document.createElement("canvas");
+              const canvas = createEl("canvas");
               const maxSize = 24;
               let w2 = img.width, h = img.height;
               if (w2 > h) {
@@ -994,7 +980,7 @@ function buildCustomCalloutsTab(el, ctx) {
   });
   headerEl.createSpan({ text: "Icon", cls: "detected-snippet-col-icon" });
   headerEl.createSpan({ text: "Callout", cls: "custom-callout-col-callout" });
-  headerEl.createSpan({ text: "Icon Name", cls: "detected-snippet-col-iconname" });
+  headerEl.createSpan({ text: "Icon name", cls: "detected-snippet-col-iconname" });
   headerEl.createSpan({ text: "Color", cls: "detected-snippet-col-color" });
   headerEl.createSpan({ text: "", cls: "custom-callout-col-actions" });
   for (const callout of customCallouts) {
@@ -1093,7 +1079,7 @@ function buildTitleOverridesTab(el, ctx) {
   const overrides = (_a = ctx.plugin.settings.titleOverrides) != null ? _a : {};
   let selectedType = "";
   let titleText = "";
-  new import_obsidian9.Setting(el).setName("Add title override").setDesc("Replace the default title for specific callout types in reading view. Only affects callouts without an explicit title in markdown.").addDropdown((d) => {
+  new import_obsidian9.Setting(el).setName("Add title override").setDesc("Override titles for callout types in reading view").addDropdown((d) => {
     const existing = new Set(Object.keys(overrides));
     ctx.buildGroupedDropdown(d.selectEl);
     for (const opt of Array.from(d.selectEl.querySelectorAll("option"))) {
@@ -1131,8 +1117,8 @@ function buildTitleOverridesTab(el, ctx) {
   const headerEl = listEl.createDiv({
     cls: "ccp-title-override-row ccp-title-override-header"
   });
-  headerEl.createSpan({ text: "Callout Type", cls: "ccp-title-override-col-type" });
-  headerEl.createSpan({ text: "Custom Title", cls: "ccp-title-override-col-title" });
+  headerEl.createSpan({ text: "Callout type", cls: "ccp-title-override-col-type" });
+  headerEl.createSpan({ text: "Custom title", cls: "ccp-title-override-col-title" });
   headerEl.createSpan({ text: "", cls: "ccp-title-override-col-actions" });
   for (const [type, title] of entries) {
     const rowEl = listEl.createDiv({ cls: "ccp-title-override-row" });
@@ -1234,7 +1220,7 @@ function buildImportExportTab(el, ctx) {
         const css2 = ctx.plugin.calloutManager.generateCssString();
         const blob = new Blob([css2], { type: "text/css" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = createEl("a");
         a.href = url;
         a.download = "custom_callouts.css";
         a.click();
@@ -1265,7 +1251,7 @@ function buildImportExportTab(el, ctx) {
     })
   );
   new import_obsidian11.Setting(el).setName("Import from JSON").setDesc("Import callout type definitions from a JSON file.").addButton((b) => {
-    const input = document.createElement("input");
+    const input = createEl("input");
     input.type = "file";
     input.accept = ".json";
     input.multiple = true;
@@ -1332,7 +1318,7 @@ function downloadJson(callouts) {
     type: "application/json"
   });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = createEl("a");
   a.href = url;
   a.download = "callout-types.json";
   a.click();
@@ -1351,7 +1337,7 @@ var DownloadableIcons = {
 // src/settings/tabs/iconPacks.ts
 function buildIconPacksTab(el, ctx) {
   var _a, _b;
-  new import_obsidian12.Setting(el).setName("Use Font Awesome icons").setDesc("Font Awesome Free icons will be available in the icon picker.").addToggle((t2) => {
+  new import_obsidian12.Setting(el).setName("Use font awesome icons").setDesc("Free font awesome icons will be available in the icon picker.").addToggle((t2) => {
     t2.setValue(ctx.plugin.settings.useFontAwesome);
     t2.onChange(async (v) => {
       try {
@@ -1463,12 +1449,12 @@ var EnhancedCalloutSettingTab = class extends import_obsidian13.PluginSettingTab
     const tabContent = containerEl.createDiv({ cls: "ccp-tab-content" });
     const tabs = [
       { label: "Defaults", icon: "lucide-cog", builder: (el) => buildInsertionTab(el, ctx) },
-      { label: "CSS Type Detection", icon: "lucide-telescope", builder: (el) => buildDetectionTab(el, ctx) },
-      { label: "Custom Callouts", icon: "lucide-paintbrush", builder: (el) => buildCustomCalloutsTab(el, ctx) },
-      { label: "Most Used Callouts", icon: "lucide-stars", builder: (el) => buildFavoritesTab(el, ctx) },
-      { label: "Title Overrides", icon: "lucide-pencil-line", builder: (el) => buildTitleOverridesTab(el, ctx) },
-      { label: "Import / Export", icon: "lucide-import", builder: (el) => buildImportExportTab(el, ctx) },
-      { label: "Icon Packs", icon: "lucide-package", builder: (el) => buildIconPacksTab(el, ctx) }
+      { label: "CSS type detection", icon: "lucide-telescope", builder: (el) => buildDetectionTab(el, ctx) },
+      { label: "Custom callouts", icon: "lucide-paintbrush", builder: (el) => buildCustomCalloutsTab(el, ctx) },
+      { label: "Most used callouts", icon: "lucide-stars", builder: (el) => buildFavoritesTab(el, ctx) },
+      { label: "Title overrides", icon: "lucide-pencil-line", builder: (el) => buildTitleOverridesTab(el, ctx) },
+      { label: "Import / export", icon: "lucide-import", builder: (el) => buildImportExportTab(el, ctx) },
+      { label: "Icon packs", icon: "lucide-package", builder: (el) => buildIconPacksTab(el, ctx) }
     ];
     const buttons = [];
     const panes = [];
@@ -1701,7 +1687,7 @@ var InsertCalloutModal = class extends import_obsidian14.Modal {
       return btn;
     });
     if (this.autoFocusContent) {
-      setTimeout(() => {
+      activeWindow.setTimeout(() => {
         if (this.contentTextArea) {
           this.contentTextArea.focus();
         }
@@ -1763,12 +1749,12 @@ var InsertCalloutModal = class extends import_obsidian14.Modal {
       newCursorPos = { line: cursor.line + calloutLines, ch: 0 };
     }
     if (import_obsidian14.Platform.isPhone) {
-      setTimeout(() => {
+      activeWindow.setTimeout(() => {
         editor.setCursor({ line: newCursorPos.line - 1, ch: 2 });
         editor.focus();
       }, 50);
     } else {
-      setTimeout(() => {
+      activeWindow.setTimeout(() => {
         editor.replaceRange("\n", newCursorPos);
         editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
         editor.focus();
@@ -1868,7 +1854,7 @@ var QuickPickCalloutModal = class extends import_obsidian15.SuggestModal {
         line: selectionStart.line + calloutLines,
         ch: 0
       };
-      setTimeout(() => {
+      activeWindow.setTimeout(() => {
         editor.replaceRange("\n", newCursorPos);
         editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
         editor.focus();
@@ -1879,7 +1865,7 @@ var QuickPickCalloutModal = class extends import_obsidian15.SuggestModal {
       }
       editor.replaceRange(calloutText, cursor);
       const calloutLines = calloutText.split("\n").length;
-      setTimeout(() => {
+      activeWindow.setTimeout(() => {
         editor.setCursor({
           line: cursor.line + calloutLines - 1,
           ch: 2
@@ -1954,7 +1940,7 @@ function getSnippetStyleElements(app) {
   const result = /* @__PURE__ */ new Map();
   const enabled = cc.enabledSnippets;
   if (!(enabled instanceof Set) || enabled.size === 0) return result;
-  for (const el of Array.from(document.querySelectorAll("head > style"))) {
+  for (const el of Array.from(activeDocument.querySelectorAll("head > style"))) {
     const styleEl = el;
     const snippetId = (_b = (_a = styleEl.getAttribute("data-snippet-id")) != null ? _a : styleEl.getAttribute("data-snippet")) != null ? _b : styleEl.id;
     if (snippetId && enabled.has(snippetId)) {
@@ -1964,13 +1950,13 @@ function getSnippetStyleElements(app) {
   return result;
 }
 function getCurrentColorScheme(_app) {
-  return document.body.classList.contains("theme-dark") ? "dark" : "light";
+  return activeDocument.body.classList.contains("theme-dark") ? "dark" : "light";
 }
 async function fetchObsidianStyleSheet(app) {
   var _a, _b;
   void app;
   try {
-    for (const sheet of Array.from(document.styleSheets)) {
+    for (const sheet of Array.from(activeDocument.styleSheets)) {
       try {
         const href = (_a = sheet.href) != null ? _a : "";
         if (href.includes("app.css") || ((_b = sheet.ownerNode) == null ? void 0 : _b.nodeName) === "STYLE") {
@@ -2479,7 +2465,7 @@ var CalloutPreviewComponent = class _CalloutPreviewComponent extends import_obsi
   constructor(containerEl, options) {
     super();
     const { color, icon: icon2, id, title, content } = options;
-    const frag = document.createDocumentFragment();
+    const frag = createFragment();
     const calloutEl = this.calloutEl = frag.createDiv({ cls: ["callout", "calloutmanager-preview"] });
     const titleElContainer = calloutEl.createDiv({ cls: "callout-title" });
     this.iconEl = titleElContainer.createDiv({ cls: "callout-icon" });
@@ -2535,7 +2521,7 @@ var IsolatedCalloutPreviewComponent = class _IsolatedCalloutPreviewComponent ext
   constructor(containerEl, options) {
     var _a, _b, _c;
     super(NO_ATTACH, options);
-    const frag = document.createDocumentFragment();
+    const frag = createFragment();
     const focused = (_a = options.focused) != null ? _a : false;
     const colorScheme = options.colorScheme;
     const readingView = ((_b = options.viewType) != null ? _b : "reading") === "reading";
@@ -2552,8 +2538,11 @@ var IsolatedCalloutPreviewComponent = class _IsolatedCalloutPreviewComponent ext
       }
       shadowHead.appendChild(cssElClone);
     }
-    shadowHead.createEl("style", { text: SHADOW_DOM_RESET_STYLES });
-    this.customStyleEl = shadowHead.createEl("style", { attr: { "data-custom-styles": "true" } });
+    const resetSheet = new CSSStyleSheet();
+    resetSheet.replaceSync(SHADOW_DOM_RESET_STYLES);
+    this.customStyleSheet = new CSSStyleSheet();
+    shadowRoot.adoptedStyleSheets = [resetSheet, this.customStyleSheet];
+    this.customStyleAnchor = shadowHead.createSpan({ cls: "ccp-style-anchor" });
     shadowBody.classList.add(`theme-${colorScheme}`, "obsidian-app");
     const viewContentEl = shadowBody.createDiv({ cls: "app-container" }).createDiv({ cls: "horizontal-main-container" }).createDiv({ cls: "workspace" }).createDiv({ cls: "workspace-split mod-root" }).createDiv({ cls: `workspace-tabs ${focused ? "mod-active" : ""}` }).createDiv({ cls: "workspace-tab-container" }).createDiv({ cls: `workspace-leaf ${focused ? "mod-active" : ""}` }).createDiv({ cls: "workspace-leaf-content" }).createDiv({ cls: "view-content" });
     const calloutParentEl = readingView ? createReadingViewContainer(viewContentEl) : createLiveViewContainer(viewContentEl);
@@ -2568,9 +2557,9 @@ var IsolatedCalloutPreviewComponent = class _IsolatedCalloutPreviewComponent ext
     );
   }
   updateStylesWith(styleEls) {
-    const { styleEls: oldStyleEls, customStyleEl } = this;
+    const { styleEls: oldStyleEls, customStyleAnchor } = this;
     let i, end2;
-    let lastNode = customStyleEl.previousSibling;
+    let lastNode = customStyleAnchor.previousSibling;
     for (i = 0, end2 = Math.min(styleEls.length, oldStyleEls.length); i < end2; i++) {
       const el = styleEls[i];
       oldStyleEls[i].replaceWith(el);
@@ -2609,7 +2598,7 @@ var IsolatedCalloutPreviewComponent = class _IsolatedCalloutPreviewComponent ext
 function getCurrentStyles(doc) {
   var _a;
   const els = [];
-  let node = (doc != null ? doc : window.document).head.firstElementChild;
+  let node = (doc != null ? doc : activeDocument).head.firstElementChild;
   for (; node != null; node = node.nextElementSibling) {
     const nodeTag = node.tagName;
     if (nodeTag === "STYLE" || nodeTag === "LINK" && ((_a = node.getAttribute("rel")) == null ? void 0 : _a.toLowerCase()) === "stylesheet") {
@@ -2674,7 +2663,7 @@ body {
 var CalloutResolver = class {
   constructor(app) {
     this.app = app;
-    this.hostElement = document.body.createDiv({
+    this.hostElement = activeDocument.body.createDiv({
       cls: "calloutmanager-callout-resolver"
     });
     this.calloutPreview = new IsolatedCalloutPreviewComponent(this.hostElement, {
@@ -2734,8 +2723,8 @@ var CalloutResolver = class {
     if (color.includes("var(")) return true;
     return false;
   }
-  get customStyleEl() {
-    return this.calloutPreview.customStyleEl;
+  get customStyleSheet() {
+    return this.calloutPreview.customStyleSheet;
   }
 };
 
@@ -19544,7 +19533,7 @@ var IconManager = class {
       return img;
     }
     if (icon2.type === "obsidian") {
-      const el = document.createElement("div");
+      const el = createDiv();
       (0, import_obsidian18.setIcon)(el, icon2.name);
       return el;
     }
@@ -19574,21 +19563,17 @@ var CalloutManager = class extends import_obsidian19.Component {
     this.indexing = [];
     /** Formatted rule strings parallel to indexing — used for snippet file output. */
     this.formattedRules = [];
-    this.style = document.createElement("style");
-    this.style.setAttribute("id", "CALLOUT_CONTROL_PANEL_STYLES");
-  }
-  get sheet() {
-    return this.style.sheet;
+    this.sheet = new CSSStyleSheet();
   }
   get snippetPath() {
     const css2 = this.plugin.app.customCss;
     return css2.getSnippetPath(SNIPPET_NAME);
   }
   onload() {
-    document.head.appendChild(this.style);
+    activeDocument.adoptedStyleSheets = [...activeDocument.adoptedStyleSheets, this.sheet];
   }
   onunload() {
-    this.style.detach();
+    activeDocument.adoptedStyleSheets = activeDocument.adoptedStyleSheets.filter((s2) => s2 !== this.sheet);
   }
   /** Load all custom callouts into the style sheet and write the snippet. */
   async loadCallouts(callouts) {
