@@ -7,17 +7,17 @@
 
 /* ─── Utility classes ─────────────────────────────────────────────────── */
 
-.ccp-hidden {
-	display: none !important;
+.ccp-hidden.ccp-hidden {
+	display: none;
 }
 
 .ccp-transparent-icon {
 	opacity: 0.35;
 }
 
-.ccp-toggle-active {
-	background-color: var(--interactive-accent) !important;
-	color: var(--text-on-accent) !important;
+.ccp-toggle-active.ccp-toggle-active {
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
 }
 
 .ccp-sr-only {
@@ -28,8 +28,8 @@
 	clip: rect(0, 0, 0, 0);
 }
 
-.calloutmanager-callout-resolver {
-	display: none !important;
+.calloutmanager-callout-resolver.calloutmanager-callout-resolver {
+	display: none;
 }
 
 /* Textarea fills the modal width */
@@ -463,8 +463,8 @@
 	opacity: 0.4;
 }
 
-.ccp-copy-button:hover {
-	opacity: 1 !important;
+.callout .ccp-copy-button:hover {
+	opacity: 1;
 	background: var(--background-modifier-hover);
 }
 
