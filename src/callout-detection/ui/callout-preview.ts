@@ -9,7 +9,7 @@
  * Modified: Replaced path-aliased imports with local references.
  */
 
-import { Component, createFragment, getIcon } from 'obsidian';
+import { Component, getIcon } from 'obsidian';
 
 import type { CalloutID, RGB } from '../types';
 

@@ -33,31 +33,20 @@ export function enableMobileKeyboardAvoidance(
 	// Only apply on tablets; phones use a compact layout instead
 	if (!Platform.isTablet) return () => {};
 
-	const modalEl = containerEl.querySelector<HTMLElement>(":scope > .modal");
-
 	const constrain = () => {
 		const vv = window.visualViewport;
 		const vpHeight = vv ? vv.height : window.innerHeight;
 		const vpTop = vv ? vv.offsetTop : 0;
 
-		containerEl.style.height = `${vpHeight}px`;
-		containerEl.style.top = `${vpTop}px`;
-		containerEl.style.bottom = "auto";
-		containerEl.style.overflow = "hidden";
-
-		if (modalEl) {
-			modalEl.style.maxHeight = `${vpHeight}px`;
-		}
+		containerEl.style.setProperty("--ccp-vp-height", `${vpHeight}px`);
+		containerEl.style.setProperty("--ccp-vp-top", `${vpTop}px`);
+		containerEl.addClass("ccp-keyboard-constrained");
 	};
 
 	const reset = () => {
-		containerEl.style.height = "";
-		containerEl.style.top = "";
-		containerEl.style.bottom = "";
-		containerEl.style.overflow = "";
-		if (modalEl) {
-			modalEl.style.maxHeight = "";
-		}
+		containerEl.removeClass("ccp-keyboard-constrained");
+		containerEl.style.removeProperty("--ccp-vp-height");
+		containerEl.style.removeProperty("--ccp-vp-top");
 	};
 
 	// 1. visualViewport events (preferred)
@@ -72,7 +61,7 @@ export function enableMobileKeyboardAvoidance(
 
 	// 3. focusin — when user taps an input, re-measure after a short
 	//    delay to give the keyboard time to appear
-	let focusTimer: ReturnType<typeof setTimeout> | null = null;
+	let focusTimer: number | null = null;
 	const onFocusIn = (e: FocusEvent) => {
 		const target = e.target as HTMLElement | null;
 		if (
@@ -82,7 +71,7 @@ export function enableMobileKeyboardAvoidance(
 				target.tagName === "SELECT" ||
 				target.isContentEditable)
 		) {
-			if (focusTimer) activeWindow.clearTimeout(focusTimer);
+			if (focusTimer !== null) activeWindow.clearTimeout(focusTimer);
 			focusTimer = activeWindow.setTimeout(constrain, 300);
 		}
 	};
@@ -98,7 +87,7 @@ export function enableMobileKeyboardAvoidance(
 		}
 		window.removeEventListener("resize", constrain);
 		containerEl.removeEventListener("focusin", onFocusIn);
-		if (focusTimer) activeWindow.clearTimeout(focusTimer);
+		if (focusTimer !== null) activeWindow.clearTimeout(focusTimer);
 		reset();
 	};
 }

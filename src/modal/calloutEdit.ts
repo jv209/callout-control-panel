@@ -7,7 +7,6 @@
 
 import {
 	App,
-	createEl,
 	Modal,
 	Notice,
 	Setting,

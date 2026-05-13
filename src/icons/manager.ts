@@ -18,7 +18,7 @@ import {
 } from "@fortawesome/fontawesome-svg-core";
 import type { IconName } from "@fortawesome/fontawesome-svg-core";
 import type { CalloutIconDefinition, IconType } from "../types";
-import { type App, createDiv, getIconIds, Notice, requestUrl, setIcon } from "obsidian";
+import { type App, getIconIds, Notice, requestUrl, setIcon } from "obsidian";
 import { type DownloadableIconPack, DownloadableIcons } from "./packs";
 
 export { type DownloadableIconPack, DownloadableIcons };
