@@ -71,8 +71,8 @@ export function enableMobileKeyboardAvoidance(
 				target.tagName === "SELECT" ||
 				target.isContentEditable)
 		) {
-			if (focusTimer !== null) activeWindow.clearTimeout(focusTimer);
-			focusTimer = activeWindow.setTimeout(constrain, 300);
+			if (focusTimer !== null) window.clearTimeout(focusTimer);
+			focusTimer = window.setTimeout(constrain, 300);
 		}
 	};
 	containerEl.addEventListener("focusin", onFocusIn);
@@ -87,7 +87,7 @@ export function enableMobileKeyboardAvoidance(
 		}
 		window.removeEventListener("resize", constrain);
 		containerEl.removeEventListener("focusin", onFocusIn);
-		if (focusTimer !== null) activeWindow.clearTimeout(focusTimer);
+		if (focusTimer !== null) window.clearTimeout(focusTimer);
 		reset();
 	};
 }

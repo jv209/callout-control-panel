@@ -638,8 +638,8 @@ function enableMobileKeyboardAvoidance(containerEl) {
   const onFocusIn = (e) => {
     const target = e.target;
     if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable)) {
-      if (focusTimer !== null) activeWindow.clearTimeout(focusTimer);
-      focusTimer = activeWindow.setTimeout(constrain, 300);
+      if (focusTimer !== null) window.clearTimeout(focusTimer);
+      focusTimer = window.setTimeout(constrain, 300);
     }
   };
   containerEl.addEventListener("focusin", onFocusIn);
@@ -651,7 +651,7 @@ function enableMobileKeyboardAvoidance(containerEl) {
     }
     window.removeEventListener("resize", constrain);
     containerEl.removeEventListener("focusin", onFocusIn);
-    if (focusTimer !== null) activeWindow.clearTimeout(focusTimer);
+    if (focusTimer !== null) window.clearTimeout(focusTimer);
     reset();
   };
 }
@@ -1687,7 +1687,7 @@ var InsertCalloutModal = class extends import_obsidian14.Modal {
       return btn;
     });
     if (this.autoFocusContent) {
-      activeWindow.setTimeout(() => {
+      window.setTimeout(() => {
         if (this.contentTextArea) {
           this.contentTextArea.focus();
         }
@@ -1749,12 +1749,12 @@ var InsertCalloutModal = class extends import_obsidian14.Modal {
       newCursorPos = { line: cursor.line + calloutLines, ch: 0 };
     }
     if (import_obsidian14.Platform.isPhone) {
-      activeWindow.setTimeout(() => {
+      window.setTimeout(() => {
         editor.setCursor({ line: newCursorPos.line - 1, ch: 2 });
         editor.focus();
       }, 50);
     } else {
-      activeWindow.setTimeout(() => {
+      window.setTimeout(() => {
         editor.replaceRange("\n", newCursorPos);
         editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
         editor.focus();
@@ -1854,7 +1854,7 @@ var QuickPickCalloutModal = class extends import_obsidian15.SuggestModal {
         line: selectionStart.line + calloutLines,
         ch: 0
       };
-      activeWindow.setTimeout(() => {
+      window.setTimeout(() => {
         editor.replaceRange("\n", newCursorPos);
         editor.setCursor({ line: newCursorPos.line + 1, ch: 0 });
         editor.focus();
@@ -1865,7 +1865,7 @@ var QuickPickCalloutModal = class extends import_obsidian15.SuggestModal {
       }
       editor.replaceRange(calloutText, cursor);
       const calloutLines = calloutText.split("\n").length;
-      activeWindow.setTimeout(() => {
+      window.setTimeout(() => {
         editor.setCursor({
           line: cursor.line + calloutLines - 1,
           ch: 2

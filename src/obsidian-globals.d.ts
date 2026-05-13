@@ -5,10 +5,8 @@
  * but are not exported from the "obsidian" module.
  */
 
-/* eslint-disable no-var */
-
-declare var activeDocument: Document;
-declare var activeWindow: Window & typeof globalThis;
+declare var activeDocument: Document; // eslint-disable-line no-var -- declare var is required for global ambient declarations
+declare var activeWindow: Window; // eslint-disable-line no-var -- declare var is required for global ambient declarations
 
 declare function createEl<K extends keyof HTMLElementTagNameMap>(
 	tag: K,
