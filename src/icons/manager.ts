@@ -18,7 +18,7 @@ import {
 } from "@fortawesome/fontawesome-svg-core";
 import type { IconName } from "@fortawesome/fontawesome-svg-core";
 import type { CalloutIconDefinition, IconType } from "../types";
-import { type App, getIconIds, Notice, requestUrl, setIcon } from "obsidian";
+import { type App, createDiv, getIconIds, Notice, requestUrl, setIcon } from "obsidian";
 import { type DownloadableIconPack, DownloadableIcons } from "./packs";
 
 export { type DownloadableIconPack, DownloadableIcons };
@@ -185,7 +185,7 @@ export class IconManager {
 			return img;
 		}
 		if (icon.type === "obsidian") {
-			const el = document.createElement("div");
+			const el = createDiv();
 			setIcon(el, icon.name);
 			return el;
 		}

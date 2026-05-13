@@ -52,11 +52,11 @@ export class CalloutManager extends Component {
 	}
 
 	onload(): void {
-		document.adoptedStyleSheets = [...document.adoptedStyleSheets, this.sheet];
+		activeDocument.adoptedStyleSheets = [...activeDocument.adoptedStyleSheets, this.sheet];
 	}
 
 	onunload(): void {
-		document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== this.sheet);
+		activeDocument.adoptedStyleSheets = activeDocument.adoptedStyleSheets.filter(s => s !== this.sheet);
 	}
 
 	/** Load all custom callouts into the style sheet and write the snippet. */

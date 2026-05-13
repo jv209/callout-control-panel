@@ -80,7 +80,7 @@ export function getSnippetStyleElements(app: App): Map<string, HTMLStyleElement>
 	const enabled = (cc as unknown as Record<string, unknown>).enabledSnippets;
 	if (!(enabled instanceof Set) || enabled.size === 0) return result;
 
-	for (const el of Array.from(document.querySelectorAll('head > style'))) {
+	for (const el of Array.from(activeDocument.querySelectorAll('head > style'))) {
 		const styleEl = el as HTMLStyleElement;
 		// Check common Obsidian snippet attributes
 		const snippetId =
@@ -101,7 +101,7 @@ export function getSnippetStyleElements(app: App): Map<string, HTMLStyleElement>
  * Gets the current color scheme ('dark' or 'light').
  */
 export function getCurrentColorScheme(_app: App): 'dark' | 'light' {
-	return document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+	return activeDocument.body.classList.contains('theme-dark') ? 'dark' : 'light';
 }
 
 // ---- Obsidian built-in stylesheet ----
@@ -124,7 +124,7 @@ export async function fetchObsidianStyleSheet(app: App): Promise<ObsidianStyleSh
 	// Strategy 1: Read from document.styleSheets (DOM).
 	void app; // app reserved for future strategies (Electron IPC)
 	try {
-		for (const sheet of Array.from(document.styleSheets)) {
+		for (const sheet of Array.from(activeDocument.styleSheets)) {
 			try {
 				const href = sheet.href ?? '';
 				if (href.includes('app.css') || sheet.ownerNode?.nodeName === 'STYLE') {
@@ -165,7 +165,7 @@ export async function fetchObsidianStyleSheet(app: App): Promise<ObsidianStyleSh
  */
 export function createCustomStyleSheet(): CustomStyleSheet {
 	const sheet = new CSSStyleSheet();
-	document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+	activeDocument.adoptedStyleSheets = [...activeDocument.adoptedStyleSheets, sheet];
 
 	return {
 		get css(): string {
@@ -178,7 +178,7 @@ export function createCustomStyleSheet(): CustomStyleSheet {
 			// No-op: constructable stylesheets do not support attributes.
 		},
 		unload() {
-			document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== sheet);
+			activeDocument.adoptedStyleSheets = activeDocument.adoptedStyleSheets.filter(s => s !== sheet);
 		},
 	};
 }

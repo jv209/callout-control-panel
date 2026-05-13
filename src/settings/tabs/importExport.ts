@@ -2,7 +2,7 @@
  * Tab builder — Import / Export.
  */
 
-import { Notice, Platform, Setting } from "obsidian";
+import { createEl, Notice, Platform, Setting } from "obsidian";
 import type { CustomCallout } from "../../types";
 import { ExportModal } from "../../modal/export";
 import { CalloutValidator } from "../../util/validator";
@@ -27,7 +27,7 @@ export function buildImportExportTab(el: HTMLElement, ctx: SettingsTabContext): 
 						const css = ctx.plugin.calloutManager.generateCssString();
 						const blob = new Blob([css], { type: "text/css" });
 						const url = URL.createObjectURL(blob);
-						const a = document.createElement("a");
+						const a = createEl("a");
 						a.href = url;
 						a.download = "custom_callouts.css";
 						a.click();
@@ -76,7 +76,7 @@ export function buildImportExportTab(el: HTMLElement, ctx: SettingsTabContext): 
 		.setName("Import from JSON")
 		.setDesc("Import callout type definitions from a JSON file.")
 		.addButton((b) => {
-			const input = document.createElement("input");
+			const input = createEl("input");
 			input.type = "file";
 			input.accept = ".json";
 			input.multiple = true;
@@ -151,7 +151,7 @@ export function downloadJson(callouts: CustomCallout[]): void {
 		type: "application/json",
 	});
 	const url = URL.createObjectURL(blob);
-	const a = document.createElement("a");
+	const a = createEl("a");
 	a.href = url;
 	a.download = "callout-types.json";
 	a.click();

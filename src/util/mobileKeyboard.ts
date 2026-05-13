@@ -40,30 +40,23 @@ export function enableMobileKeyboardAvoidance(
 		const vpHeight = vv ? vv.height : window.innerHeight;
 		const vpTop = vv ? vv.offsetTop : 0;
 
-		// Override inset:0's bottom so height is respected.
-		// Dynamic viewport values must be set via JS — CSS classes cannot
-		// know the keyboard height at build time.
-		containerEl.setCssProps({
-			"height": `${vpHeight}px`,
-			"top": `${vpTop}px`,
-			"bottom": "auto",
-			"overflow": "hidden",
-		});
+		containerEl.style.height = `${vpHeight}px`;
+		containerEl.style.top = `${vpTop}px`;
+		containerEl.style.bottom = "auto";
+		containerEl.style.overflow = "hidden";
 
 		if (modalEl) {
-			modalEl.setCssProps({ "max-height": `${vpHeight}px` });
+			modalEl.style.maxHeight = `${vpHeight}px`;
 		}
 	};
 
 	const reset = () => {
-		containerEl.setCssProps({
-			"height": "",
-			"top": "",
-			"bottom": "",
-			"overflow": "",
-		});
+		containerEl.style.height = "";
+		containerEl.style.top = "";
+		containerEl.style.bottom = "";
+		containerEl.style.overflow = "";
 		if (modalEl) {
-			modalEl.setCssProps({ "max-height": "" });
+			modalEl.style.maxHeight = "";
 		}
 	};
 
@@ -89,8 +82,8 @@ export function enableMobileKeyboardAvoidance(
 				target.tagName === "SELECT" ||
 				target.isContentEditable)
 		) {
-			if (focusTimer) clearTimeout(focusTimer);
-			focusTimer = setTimeout(constrain, 300);
+			if (focusTimer) activeWindow.clearTimeout(focusTimer);
+			focusTimer = activeWindow.setTimeout(constrain, 300);
 		}
 	};
 	containerEl.addEventListener("focusin", onFocusIn);
@@ -105,7 +98,7 @@ export function enableMobileKeyboardAvoidance(
 		}
 		window.removeEventListener("resize", constrain);
 		containerEl.removeEventListener("focusin", onFocusIn);
-		if (focusTimer) clearTimeout(focusTimer);
+		if (focusTimer) activeWindow.clearTimeout(focusTimer);
 		reset();
 	};
 }

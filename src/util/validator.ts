@@ -14,6 +14,7 @@
  * successful edit.
  */
 
+import { createFragment } from "obsidian";
 import type { CustomCallout, CalloutIconDefinition, IconType } from "../types";
 
 /** Minimum plugin surface area needed by the validator. */
@@ -45,7 +46,7 @@ export const isSelectorValid = ((dummyElement) => (selector: string) => {
 		return false;
 	}
 	return true;
-})(document.createDocumentFragment());
+})(createFragment());
 
 export class CalloutValidator {
 	/**
