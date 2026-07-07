@@ -19313,6 +19313,7 @@ var IconManager = class {
     this.plugin = plugin;
     this.DOWNLOADED = {};
     this.FONT_AWESOME_MAP = new Map(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment -- @fortawesome types resolve to `any` when linted without node_modules; type-safe with deps installed
       [...Object.values(icons2), ...Object.values(icons), ...Object.values(icons3)].map((i) => {
         return [
           i.iconName,
