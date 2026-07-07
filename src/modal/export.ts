@@ -40,7 +40,6 @@ export class ExportModal extends Modal {
 			}),
 		);
 
-		let toggleEl: HTMLDivElement;
 		new Setting(this.contentEl)
 			.addButton((b) =>
 				b
@@ -58,7 +57,7 @@ export class ExportModal extends Modal {
 				}),
 			);
 
-		toggleEl = this.contentEl.createDiv("additional");
+		const toggleEl = this.contentEl.createDiv("additional");
 		this.generateToggles(toggleEl);
 	}
 

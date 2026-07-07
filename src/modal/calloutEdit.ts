@@ -130,7 +130,7 @@ export class CalloutEditModal extends Modal {
 
 				const suggest = new IconSuggestionModal(
 					{ app: this.app, iconManager: this.plugin.iconManager },
-					text,
+					text.inputEl,
 					this.plugin.iconManager.iconDefinitions,
 				);
 				suggest.onSelect((item) => {

@@ -1,6 +1,6 @@
 {
 	"name": "callout-control-panel",
-	"version": "1.6.4",
+	"version": "1.6.5",
 	"description": "Insert, detect, and manage custom callout types with a unified modal and full icon support.",
 	"main": "main.js",
 	"type": "module",
@@ -31,7 +31,6 @@
 		"@fortawesome/free-brands-svg-icons": "^6.5.0",
 		"@fortawesome/free-regular-svg-icons": "^6.5.0",
 		"@fortawesome/free-solid-svg-icons": "^6.5.0",
-		"@javalent/utilities": "^1.0.0",
 		"obsidian": "latest"
 	}
 }

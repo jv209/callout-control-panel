@@ -245,7 +245,7 @@ export function extractCalloutProperties(
 
 	// Extract --callout-icon: icon-name
 	const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
-	let icon = iconMatch?.[1] ? iconMatch[1] : "lucide-box";
+	const icon = iconMatch?.[1] ? iconMatch[1] : "lucide-box";
 	const iconDefault = !iconMatch?.[1];
 
 	return { color, icon, iconDefault };

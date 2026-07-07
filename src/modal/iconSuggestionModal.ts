@@ -1,60 +1,69 @@
 /**
- * Icon fuzzy-search suggestion modal.
- * Source: obsidian-admonition v10.3.2 (MIT, Jeremy Valentine)
+ * Icon fuzzy-search suggestion popover.
  *
- * Dependency: @javalent/utilities (FuzzyInputSuggest)
+ * Originally derived from obsidian-admonition v10.3.2 (MIT, Jeremy Valentine).
+ * Reimplemented on Obsidian's native `AbstractInputSuggest` so the plugin no
+ * longer depends on `@javalent/utilities` (which pulled in Svelte).
  */
 
 import {
+	AbstractInputSuggest,
+	type App,
 	type FuzzyMatch,
-	type SearchComponent,
-	type TextComponent,
+	prepareFuzzySearch,
 	renderMatches,
 } from "obsidian";
-
-import { FuzzyInputSuggest } from "@javalent/utilities";
 
 import type { CalloutIconDefinition } from "../types";
 import type { IconManager } from "../icons/manager";
 
 /** Minimum plugin surface area needed by IconSuggestionModal. */
 export interface IconModalPluginRef {
-	app: unknown;
+	app: App;
 	iconManager: IconManager;
 }
 
-export class IconSuggestionModal extends FuzzyInputSuggest<CalloutIconDefinition> {
+export class IconSuggestionModal extends AbstractInputSuggest<
+	FuzzyMatch<CalloutIconDefinition>
+> {
 	constructor(
 		public plugin: IconModalPluginRef,
-		input: TextComponent | SearchComponent,
-		items: CalloutIconDefinition[],
+		inputEl: HTMLInputElement,
+		private items: CalloutIconDefinition[],
 	) {
-		super(plugin.app as import("obsidian").App, input, items);
+		super(plugin.app, inputEl);
 	}
-	renderNote(
-		noteEl: HTMLElement,
+
+	protected getSuggestions(
+		query: string,
+	): FuzzyMatch<CalloutIconDefinition>[] {
+		const matcher = prepareFuzzySearch(query);
+		const results: FuzzyMatch<CalloutIconDefinition>[] = [];
+		for (const item of this.items) {
+			const match = matcher(item.name ?? "");
+			if (match) results.push({ item, match });
+		}
+		results.sort((a, b) => b.match.score - a.match.score);
+		return results;
+	}
+
+	renderSuggestion(
 		result: FuzzyMatch<CalloutIconDefinition>,
+		el: HTMLElement,
 	): void {
-		noteEl.setText(
-			this.plugin.iconManager.getIconModuleName(result.item) ?? "",
-		);
-	}
-	renderTitle(
-		titleEl: HTMLElement,
-		result: FuzzyMatch<CalloutIconDefinition>,
-	): void {
-		renderMatches(titleEl, result.item.name ?? "", result.match.matches);
-	}
-	renderFlair(
-		flairEl: HTMLElement,
-		result: FuzzyMatch<CalloutIconDefinition>,
-	): void {
-		const { item } = result;
-		flairEl.appendChild(
-			this.plugin.iconManager.getIconNode(item) ?? createDiv(),
-		);
-	}
-	getItemText(item: CalloutIconDefinition): string {
-		return item.name ?? "";
+		const { item, match } = result;
+		el.addClass("mod-complex");
+
+		const content = el.createDiv("suggestion-content");
+		const titleEl = content.createDiv("suggestion-title");
+		renderMatches(titleEl, item.name ?? "", match.matches);
+		content
+			.createDiv("suggestion-note")
+			.setText(this.plugin.iconManager.getIconModuleName(item) ?? "");
+
+		const aux = el.createDiv("suggestion-aux");
+		aux
+			.createDiv("suggestion-flair")
+			.appendChild(this.plugin.iconManager.getIconNode(item) ?? createDiv());
 	}
 }
