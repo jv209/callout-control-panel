@@ -5,6 +5,25 @@
  * Extracted from settings.ts (hexToRgb, rgbToHex) and util/util.ts (hslToRgb, hsbToRgb).
  */
 
+import { requireApiVersion } from "obsidian";
+
+/**
+ * Format a stored callout color for the `--callout-color` CSS property.
+ *
+ * Colors are stored as a bare RGB triplet (e.g. "67, 214, 211").
+ *
+ * Obsidian 1.13.0 made `--callout-color` expect a *valid CSS color* rather
+ * than a bare triplet (breaking change). To keep working on both old and new
+ * Obsidian, we emit `rgb(...)` on 1.13+ and the legacy bare triplet on older
+ * builds. Values that are already a valid CSS color pass through unchanged.
+ */
+export function formatCalloutColor(color: string): string {
+	const value = color.trim();
+	const isTriplet = /^\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}$/.test(value);
+	if (!isTriplet) return value;
+	return requireApiVersion("1.13.0") ? `rgb(${value})` : value;
+}
+
 export function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 	return result

@@ -4,6 +4,7 @@
 
 import { Platform, Setting, setIcon } from "obsidian";
 import type { SettingsTabContext } from "../types";
+import { formatCalloutColor } from "../../util/color";
 
 export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): void {
 	const det = ctx.plugin.settings.calloutDetection ?? {
@@ -148,7 +149,7 @@ export function buildDetectionTab(el: HTMLElement, ctx: SettingsTabContext): voi
 			} else {
 				setIcon(iconEl, st.icon);
 			}
-			iconEl.style.setProperty("--callout-color", st.color);
+			iconEl.style.setProperty("--callout-color", formatCalloutColor(st.color));
 
 			rowEl.createSpan({ text: st.label, cls: "detected-snippet-col-callout" });
 

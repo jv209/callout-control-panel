@@ -119,6 +119,8 @@ If you have CSS snippets that define callout types, the plugin will detect them 
 
 Both `--callout-color` (as an RGB tuple) and `--callout-icon` (as a Lucide icon name) are optional. If omitted, defaults will be used — and the plugin will show a warning so you know something is missing.
 
+> **Obsidian 1.13 callout color change (v1.6.4+)** Obsidian **1.13.0** changed `--callout-color` to expect a *valid CSS color* (e.g. `rgb(68, 138, 255)` or `#448aff`) instead of a bare RGB tuple (`68, 138, 255`). This is a breaking change on Obsidian's side, and it broke the color on every custom callout that still used the old tuple format. **Callouts you create in the plugin are handled automatically** — the plugin now detects your Obsidian version and emits `rgb(...)` on 1.13+ and the legacy tuple on older builds, so they render correctly either way. **Hand-written CSS snippets are not** — if you defined callouts in your own snippet files, wrap their colors in `rgb()` to fix them on Obsidian 1.13+: ```css /* before (broken on 1.13+) */   --callout-color: 68, 138, 255; /* after  (works on 1.13+)  */   --callout-color: rgb(68, 138, 255); ```
+
 ### Structural callouts (no-icon / dashboards)
 
 You can create callouts without icons for use as structural containers — for example, dashboard layouts with nested callouts. In the custom callout editor, press **No icon** to set `--callout-icon: transparent` in the generated CSS.
@@ -174,7 +176,7 @@ The plugin couldn't find a `--callout-icon` declaration in your CSS block, or th
 
 ### My callout uses the accent color instead of my custom color
 
-The plugin couldn't parse a `--callout-color` value from your CSS block. A warning triangle will appear next to the callout in the settings panel. The color must be an RGB tuple of three numbers — for example, `--callout-color: 68, 138, 255;`. Hex values (`#44a8ff`), `rgb()` wrappers, and CSS color names (`red`) are not supported by Obsidian's callout color system.
+The plugin couldn't parse a `--callout-color` value from your CSS block. A warning triangle will appear next to the callout in the settings panel. In a hand-written snippet, give the color as an RGB tuple of three numbers — for example, `--callout-color: 68, 138, 255;`. On **Obsidian 1.13+** the value must be a valid CSS color, so wrap it as `rgb(68, 138, 255)` (see the Obsidian 1.13 note above). Callouts you create in the plugin handle this automatically.
 
 ## Network connections
 

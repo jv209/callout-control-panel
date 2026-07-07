@@ -16,6 +16,7 @@ import { App, Modal, Setting, setIcon, Platform, MarkdownView } from "obsidian";
 import { type CalloutTypeInfo, type CollapseState, BUILTIN_CALLOUT_TYPES } from "./types";
 import type { IconManager } from "./icons/manager";
 import { enableMobileKeyboardAvoidance } from "./util/mobileKeyboard";
+import { formatCalloutColor } from "./util/color";
 
 /** Configuration passed from the plugin to the modal. */
 export interface InsertCalloutModalConfig {
@@ -280,7 +281,7 @@ export class InsertCalloutModal extends Modal {
 			if (!rendered) {
 				setIcon(iconContainer, typeInfo.icon);
 			}
-			iconContainer.style.setProperty("--callout-color", typeInfo.color);
+			iconContainer.style.setProperty("--callout-color", formatCalloutColor(typeInfo.color));
 		} else {
 			setIcon(iconContainer, "lucide-alert-circle");
 			iconContainer.style.removeProperty("--callout-color");

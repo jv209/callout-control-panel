@@ -17,6 +17,7 @@
 import { type App, Component } from "obsidian";
 import type { CustomCallout } from "../types";
 import type { IconManager } from "../icons/manager";
+import { formatCalloutColor } from "../util/color";
 
 // Re-export for callers that previously imported from here.
 export type { CustomCallout };
@@ -80,7 +81,7 @@ export class CalloutManager extends Component {
 
 		const color =
 			(callout.injectColor ?? this.plugin.settings.injectColor)
-				? `--callout-color: ${callout.color};`
+				? `--callout-color: ${formatCalloutColor(callout.color)};`
 				: "";
 
 		// Build the formatted rule for the snippet file (clean, multi-line).

@@ -17,7 +17,7 @@ import type { CalloutIconDefinition, CustomCallout } from "../types";
 import type { IconManager } from "../icons/manager";
 import { IconSuggestionModal } from "./iconSuggestionModal";
 import { CalloutValidator } from "../util/validator";
-import { hexToRgb, rgbToHex } from "../util/color";
+import { hexToRgb, rgbToHex, formatCalloutColor } from "../util/color";
 import { enableMobileKeyboardAvoidance } from "../util/mobileKeyboard";
 
 // ─── Plugin surface required by this modal ────────────────────────────────────
@@ -355,7 +355,7 @@ export class CalloutEditModal extends Modal {
 		});
 
 		if (this.injectColor && this.color) {
-			this.previewEl.style.setProperty("--callout-color", this.color);
+			this.previewEl.style.setProperty("--callout-color", formatCalloutColor(this.color));
 		} else {
 			this.previewEl.style.removeProperty("--callout-color");
 		}

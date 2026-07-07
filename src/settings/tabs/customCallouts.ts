@@ -6,6 +6,7 @@ import { Platform, Setting, setIcon } from "obsidian";
 import { confirmWithModal } from "../../modal/confirm";
 import { CalloutEditModal } from "../../modal/calloutEdit";
 import type { SettingsTabContext } from "../types";
+import { formatCalloutColor } from "../../util/color";
 
 export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext): void {
 	const addSetting = new Setting(el)
@@ -88,7 +89,7 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 			}
 		}
 		if (callout.color) {
-			iconEl.style.setProperty("--callout-color", callout.color);
+			iconEl.style.setProperty("--callout-color", formatCalloutColor(callout.color));
 		}
 
 		// Callout name column
