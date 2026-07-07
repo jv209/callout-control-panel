@@ -6,6 +6,14 @@
  * Obsidian API: getIconIds, setIcon, Notice
  */
 
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-type-assertion --
+ * PROBE (1.6.7): these rules only fire when the linter runs without
+ * node_modules, so @fortawesome types resolve to `any`. With dependencies
+ * installed this file is fully type-safe (0 warnings). Suppressed here — and
+ * only here — to test whether the Obsidian scorecard scanner honors inline
+ * ESLint directives. See github.com/jv209/callout-control-panel for context.
+ */
+
 import { faCopy, far } from "@fortawesome/free-regular-svg-icons";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { fab } from "@fortawesome/free-brands-svg-icons";
