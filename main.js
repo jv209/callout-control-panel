@@ -1341,13 +1341,16 @@ var EnhancedCalloutSettingTab = class extends import_obsidian14.PluginSettingTab
     this.activeTabIndex = 0;
   }
   display() {
-    this.plugin.onTypesChanged = () => this.display();
+    this.renderContent();
+  }
+  renderContent() {
+    this.plugin.onTypesChanged = () => this.renderContent();
     const { containerEl } = this;
     containerEl.empty();
     const ctx = {
       app: this.app,
       plugin: this.plugin,
-      refresh: () => this.display(),
+      refresh: () => this.renderContent(),
       buildGroupedDropdown: (selectEl, includeNone) => this.buildGroupedDropdown(selectEl, includeNone)
     };
     const tabBar = containerEl.createDiv({ cls: "ccp-tab-bar" });

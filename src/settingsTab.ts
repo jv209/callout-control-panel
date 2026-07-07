@@ -85,8 +85,16 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
+		// Obsidian invokes display() to (re)render the tab. The declarative
+		// getSettingDefinitions() API (1.13+) doesn't fit this multi-tab UI, so
+		// we keep an imperative render but route every re-render through
+		// renderContent() to avoid calling the deprecated display() ourselves.
+		this.renderContent();
+	}
+
+	private renderContent(): void {
 		// Register auto-refresh so async rebuildDetectedTypes() updates the tab.
-		this.plugin.onTypesChanged = () => this.display();
+		this.plugin.onTypesChanged = () => this.renderContent();
 
 		const { containerEl } = this;
 		containerEl.empty();
@@ -95,7 +103,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		const ctx: SettingsTabContext = {
 			app: this.app,
 			plugin: this.plugin,
-			refresh: () => this.display(),
+			refresh: () => this.renderContent(),
 			buildGroupedDropdown: (selectEl, includeNone) =>
 				this.buildGroupedDropdown(selectEl, includeNone),
 		};
