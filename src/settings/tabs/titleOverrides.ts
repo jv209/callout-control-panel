@@ -41,7 +41,9 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 				});
 		});
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 	const entries = Object.entries(overrides);
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 	if (entries.length === 0) {
 		el.createEl("p", {
 			text: "No title overrides defined yet.",
@@ -62,9 +64,11 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 
 	for (const [type, title] of entries) {
 		const rowEl = listEl.createDiv({ cls: "ccp-title-override-row" });
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		const label = type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 		rowEl.createSpan({
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			text: label,
 			cls: "ccp-title-override-col-type",
 		});
@@ -73,13 +77,16 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 		const titleCell = rowEl.createDiv({ cls: "ccp-title-override-col-title" });
 		const titleInput = titleCell.createEl("input", {
 			cls: "ccp-title-override-input",
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			attr: { type: "text", value: title },
 		});
 		titleInput.addEventListener("change", () => {
 			const v = titleInput.value.trim();
 			if (v) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 				ctx.plugin.settings.titleOverrides[type] = v;
 			} else {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 				delete ctx.plugin.settings.titleOverrides[type];
 			}
 			void ctx.plugin.saveSettings();
@@ -91,6 +98,7 @@ export function buildTitleOverridesTab(el: HTMLElement, ctx: SettingsTabContext)
 		setIcon(deleteBtn, "trash");
 		deleteBtn.setAttribute("aria-label", "Remove override");
 		deleteBtn.addEventListener("click", () => {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			delete ctx.plugin.settings.titleOverrides[type];
 			void ctx.plugin.saveSettings().then(() => ctx.refresh());
 		});

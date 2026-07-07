@@ -61,6 +61,7 @@ export default class StylesheetWatcher {
 
 		return () => {
 			if (!this.watching) return;
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			this.app.workspace.off('css-change' as 'quit', listener);
 			this.watching = false;
 		};

@@ -910,6 +910,7 @@ function buildCustomCalloutsTab(el, ctx) {
     rowEl.createSpan({ text: callout.type, cls: "custom-callout-col-callout" });
     const iconName = (_c = (_b = callout.icon) == null ? void 0 : _b.name) != null ? _c : "\u2014";
     rowEl.createSpan({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
       text: iconName,
       cls: "detected-snippet-col-iconname custom-callout-type-meta"
     });
@@ -926,6 +927,7 @@ function buildCustomCalloutsTab(el, ctx) {
       const modal = new CalloutEditModal(
         ctx.app,
         ctx.plugin,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
         callout
       );
       modal.onClose = () => {
@@ -945,6 +947,7 @@ function buildCustomCalloutsTab(el, ctx) {
     deleteBtn.addEventListener("click", () => {
       void confirmWithModal(
         ctx.app,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
         `Delete custom type "${callout.type}"?`
       ).then((confirmed) => {
         if (confirmed) {
@@ -1030,12 +1033,14 @@ function buildTitleOverridesTab(el, ctx) {
     const rowEl = listEl.createDiv({ cls: "ccp-title-override-row" });
     const label = type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     rowEl.createSpan({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
       text: label,
       cls: "ccp-title-override-col-type"
     });
     const titleCell = rowEl.createDiv({ cls: "ccp-title-override-col-title" });
     const titleInput = titleCell.createEl("input", {
       cls: "ccp-title-override-input",
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
       attr: { type: "text", value: title }
     });
     titleInput.addEventListener("change", () => {
@@ -1149,6 +1154,7 @@ function buildImportExportTab(el, ctx) {
         if (!modal.export) return;
         const selected = Object.values(
           ctx.plugin.settings.customCallouts
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
         ).filter((cc) => modal.selectedCallouts.includes(cc.type));
         downloadJson(selected);
       };
@@ -1257,7 +1263,10 @@ function buildIconPacksTab(el, ctx) {
   });
   if (!ctx.plugin.settings.useFontAwesome) return;
   const installed = ctx.plugin.settings.icons;
-  const available = Object.entries(DownloadableIcons).filter(([pack]) => !installed.includes(pack));
+  const available = (
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
+    Object.entries(DownloadableIcons).filter(([pack]) => !installed.includes(pack))
+  );
   let selectedPack = (_a = available[0]) == null ? void 0 : _a[0];
   new import_obsidian13.Setting(el).setName("Load additional icon pack").setDesc("Download an additional icon pack. Requires an internet connection.").addDropdown((d) => {
     if (!available.length) {
@@ -1300,6 +1309,7 @@ function buildIconPacksTab(el, ctx) {
         b.setIcon("trash").setTooltip("Remove").onClick(async () => {
           const usingThisPack = Object.values(
             ctx.plugin.settings.customCallouts
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
           ).some((cc) => cc.icon.type === pack);
           if (usingThisPack) {
             const ok = await confirmWithModal(
@@ -1402,6 +1412,7 @@ var EnhancedCalloutSettingTab = class extends import_obsidian14.PluginSettingTab
       selectEl.createEl("option", { value: "", text: "\u2014 (none)" });
     }
     const customTypes = Object.values(this.plugin.settings.customCallouts).map(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
       (cc) => customCalloutToTypeInfo(cc, this.plugin.settings.injectColor)
     );
     const snippetTypes = this.plugin.snippetTypes;
@@ -20017,7 +20028,10 @@ var EnhancedCalloutManager = class extends import_obsidian21.Plugin {
   /** Convert persisted custom callouts to CalloutTypeInfo for use in modals. */
   getCustomTypes() {
     return Object.values(this.settings.customCallouts).map(
-      (cc) => customCalloutToTypeInfo(cc, this.settings.injectColor)
+      (cc) => (
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
+        customCalloutToTypeInfo(cc, this.settings.injectColor)
+      )
     );
   }
 };

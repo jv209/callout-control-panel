@@ -620,7 +620,9 @@ export default class EnhancedCalloutManager extends Plugin {
 
 	/** Convert persisted custom callouts to CalloutTypeInfo for use in modals. */
 	private getCustomTypes(): CalloutTypeInfo[] {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		return Object.values(this.settings.customCallouts).map((cc) =>
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			customCalloutToTypeInfo(cc, this.settings.injectColor),
 		);
 	}

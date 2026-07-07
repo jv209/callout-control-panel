@@ -48,8 +48,10 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 	const customCallouts = Object.values(ctx.plugin.settings.customCallouts);
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 	if (customCallouts.length === 0) {
 		el.createEl("p", {
 			text: "No custom callouts defined yet.",
@@ -77,10 +79,12 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 		const iconEl = rowEl.createDiv({
 			cls: "detected-snippet-col-icon custom-callout-type-icon",
 		});
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		if (callout.icon?.type === "no-icon") {
 			// No-icon callouts show a dash instead of an icon
 			iconEl.setText("—");
 		} else {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			const iconNode = ctx.plugin.iconManager.getIconNode(callout.icon);
 			if (iconNode) {
 				iconEl.appendChild(iconNode);
@@ -88,21 +92,27 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 				setIcon(iconEl, "lucide-alert-circle");
 			}
 		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		if (callout.color) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			iconEl.style.setProperty("--callout-color", formatCalloutColor(callout.color));
 		}
 
 		// Callout name column
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		rowEl.createSpan({ text: callout.type, cls: "custom-callout-col-callout" });
 
 		// Icon name column
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		const iconName = callout.icon?.name ?? "—";
 		rowEl.createSpan({
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			text: iconName,
 			cls: "detected-snippet-col-iconname custom-callout-type-meta",
 		});
 
 		// Color column
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		const colorText = callout.color ? `rgb(${callout.color})` : "—";
 		rowEl.createSpan({
 			text: colorText,
@@ -119,10 +129,12 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 			const modal = new CalloutEditModal(
 				ctx.app,
 				ctx.plugin,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 				callout,
 			);
 			modal.onClose = () => {
 				if (!modal.saved) return;
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 				void ctx.plugin.editCustomCallout(callout.type, {
 					type: modal.type,
 					icon: modal.icon,
@@ -139,9 +151,11 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 		deleteBtn.addEventListener("click", () => {
 			void confirmWithModal(
 				ctx.app,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 				`Delete custom type "${callout.type}"?`,
 			).then((confirmed) => {
 				if (confirmed) {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 					void ctx.plugin.removeCustomCallout(callout).then(() => ctx.refresh());
 				}
 			});

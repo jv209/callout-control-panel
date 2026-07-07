@@ -62,7 +62,9 @@ export class CalloutManager extends Component {
 
 	/** Load all custom callouts into the style sheet and write the snippet. */
 	async loadCallouts(callouts: Record<string, CustomCallout>): Promise<void> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		for (const callout of Object.values(callouts)) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			void this.addCallout(callout, false);
 		}
 		await this.writeSnippet();

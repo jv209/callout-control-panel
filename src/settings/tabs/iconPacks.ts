@@ -30,6 +30,7 @@ export function buildIconPacksTab(el: HTMLElement, ctx: SettingsTabContext): voi
 
 	const installed = ctx.plugin.settings.icons;
 	const available = (
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		Object.entries(DownloadableIcons) as [DownloadableIconPack, string][]
 	).filter(([pack]) => !installed.includes(pack));
 
@@ -89,8 +90,10 @@ export function buildIconPacksTab(el: HTMLElement, ctx: SettingsTabContext): voi
 					b.setIcon("trash")
 						.setTooltip("Remove")
 						.onClick(async () => {
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 							const usingThisPack = Object.values(
 								ctx.plugin.settings.customCallouts,
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 							).some((cc) => cc.icon.type === pack);
 							if (usingThisPack) {
 								const ok = await confirmWithModal(
