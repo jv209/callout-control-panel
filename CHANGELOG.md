@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.12
+
+### Fixed
+
+- **Plugin failed to load / would not toggle on after an update (popout windows), resolved at the root.** 1.6.11 fixed the crash by injecting a `<style>` element, but that tripped the Obsidian community scanner (`no-forbidden-elements`, and `prefer-active-doc`). The runtime stylesheet injection is now removed entirely: custom callout CSS is written only to the vault snippet (`.obsidian/snippets/callout-control-panel.css`), which Obsidian loads and applies to every window — including popouts — for us. `app.customCss.readSnippets()` is called after each write so changes take effect immediately. This eliminates the `NotAllowedError` cross-document `adoptedStyleSheets` crash path (no constructed stylesheet is adopted anywhere) and clears both scanner flags. (`src/callout/manager.ts`)
+- The `rgb()` / hex color-detection fix from 1.6.11 (scripture / illustration / application swatches no longer render an empty `rgb()`) remains in place.
+
 ## 1.6.11
 
 ### Fixed
