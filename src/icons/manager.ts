@@ -86,7 +86,7 @@ export class IconManager {
 			if (!icons) continue;
 			downloaded.push(
 				...Object.keys(icons).map((name) => {
-					return { type: pack as IconType, name };
+					return { type: pack, name };
 				})
 			);
 		}
@@ -94,8 +94,8 @@ export class IconManager {
 			...(this.plugin.settings.useFontAwesome
 				? this.FONT_AWESOME_MAP.values()
 				: []),
-			...getIconIds().map((name) => {
-				return { type: "obsidian" as IconType, name };
+			...getIconIds().map((name): CalloutIconDefinition => {
+				return { type: "obsidian", name };
 			}),
 			...downloaded,
 		];

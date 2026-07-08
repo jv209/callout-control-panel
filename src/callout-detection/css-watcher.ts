@@ -61,7 +61,7 @@ export default class StylesheetWatcher {
 
 		return () => {
 			if (!this.watching) return;
-			this.app.workspace.off('css-change' as 'quit', listener);
+			this.app.workspace.off('css-change', listener);
 			this.watching = false;
 		};
 	}
@@ -93,13 +93,13 @@ export default class StylesheetWatcher {
 			listenersForEvent = new Set();
 			this.listeners.set(event, listenersForEvent);
 		}
-		listenersForEvent.add(listener as (...data: unknown[]) => void);
+		listenersForEvent.add(listener);
 	}
 
 	public off<E extends keyof StylesheetWatcherEvents>(event: E, listener: StylesheetWatcherEvents[E]): void {
 		const listenersForEvent = this.listeners.get(event);
 		if (listenersForEvent === undefined) return;
-		listenersForEvent.delete(listener as (...data: unknown[]) => void);
+		listenersForEvent.delete(listener);
 		if (listenersForEvent.size === 0) {
 			this.listeners.delete(event);
 		}

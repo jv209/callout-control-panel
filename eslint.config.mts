@@ -1,9 +1,22 @@
 import tseslint from 'typescript-eslint';
 import obsidianmd from "eslint-plugin-obsidianmd";
 import globals from "globals";
-import { globalIgnores } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 
-export default tseslint.config(
+export default defineConfig(
+	// Ignore patterns must come first — ESLint flat config is read top-to-bottom.
+	globalIgnores([
+		"node_modules",
+		"dist",
+		"esbuild.config.mjs",
+		"eslint.config.js",
+		"version-bump.mjs",
+		"versions.json",
+		"main.js",
+		"plugin A",
+		"plugin B",
+		"plugin C",
+	]),
 	{
 		languageOptions: {
 			globals: {
@@ -18,7 +31,8 @@ export default tseslint.config(
 			parserOptions: {
 				projectService: {
 					allowDefaultProject: [
-						'eslint.config.js',
+						'eslint.config.mts',
+						'scanner-gate.config.mjs',
 						'manifest.json',
 						'vitest.config.ts'
 					]
@@ -33,16 +47,4 @@ export default tseslint.config(
 		files: ["**/*.ts"],
 		extends: [tseslint.configs.recommendedTypeChecked],
 	},
-	globalIgnores([
-		"node_modules",
-		"dist",
-		"esbuild.config.mjs",
-		"eslint.config.js",
-		"version-bump.mjs",
-		"versions.json",
-		"main.js",
-		"plugin A",
-		"plugin B",
-		"plugin C",
-	]),
 );
