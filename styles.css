@@ -60,7 +60,7 @@
 .callout-icon-container svg {
 	width: 16px;
 	height: 16px;
-	color: rgb(var(--callout-color));
+	color: var(--callout-color);
 }
 
 /* Shortcut hint shown at the bottom of the insertion modal */
@@ -89,7 +89,7 @@
 .quick-pick-callout-icon svg {
 	width: 16px;
 	height: 16px;
-	color: rgb(var(--callout-color));
+	color: var(--callout-color);
 }
 
 .quick-pick-callout-label {
@@ -190,7 +190,7 @@
 .custom-callout-type-icon svg {
 	width: 14px;
 	height: 14px;
-	color: rgb(var(--callout-color));
+	color: var(--callout-color);
 }
 
 .custom-callout-type-icon img {

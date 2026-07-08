@@ -6,7 +6,7 @@ import { Platform, Setting, setIcon } from "obsidian";
 import { confirmWithModal } from "../../modal/confirm";
 import { CalloutEditModal } from "../../modal/calloutEdit";
 import type { SettingsTabContext } from "../types";
-import { formatCalloutColor } from "../../util/color";
+import { formatSwatchColor } from "../../util/color";
 
 export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext): void {
 	const addSetting = new Setting(el)
@@ -95,7 +95,7 @@ export function buildCustomCalloutsTab(el: HTMLElement, ctx: SettingsTabContext)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		if (callout.color) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
-			iconEl.style.setProperty("--callout-color", formatCalloutColor(callout.color));
+			iconEl.style.setProperty("--callout-color", formatSwatchColor(callout.color));
 		}
 
 		// Callout name column

@@ -24,6 +24,27 @@ export function formatCalloutColor(color: string): string {
 	return requireApiVersion("1.13.0") ? `rgb(${value})` : value;
 }
 
+/**
+ * Format a stored callout color into an always-valid CSS color, regardless of
+ * Obsidian version.
+ *
+ * Unlike {@link formatCalloutColor}, this does NOT emit a bare RGB triplet on
+ * older builds. It is intended for the settings/modal swatch icons, whose
+ * `--callout-color` variable is consumed only by this plugin's own stylesheet
+ * (`color: var(--callout-color)`) — never by Obsidian's core callout renderer.
+ * A bare triplet is not a valid CSS color, so those swatches need the `rgb(...)`
+ * wrapper on every version.
+ *
+ * Bare triplets (e.g. "67, 214, 211") are wrapped in `rgb(...)`. Values that are
+ * already a valid CSS color (`var(...)`, `rgb(...)`, hex, named) pass through
+ * unchanged.
+ */
+export function formatSwatchColor(color: string): string {
+	const value = color.trim();
+	const isTriplet = /^\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}$/.test(value);
+	return isTriplet ? `rgb(${value})` : value;
+}
+
 export function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 	return result

@@ -1,7 +1,7 @@
 import { App, SuggestModal, MarkdownView, setIcon } from "obsidian";
 import { type CalloutTypeInfo, type CollapseState, BUILTIN_CALLOUT_TYPES } from "./types";
 import type { IconManager } from "./icons/manager";
-import { formatCalloutColor } from "./util/color";
+import { formatSwatchColor } from "./util/color";
 
 /** A fast callout picker that inserts a callout block at the cursor. */
 export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
@@ -81,7 +81,7 @@ export class QuickPickCalloutModal extends SuggestModal<CalloutTypeInfo> {
 			setIcon(iconEl, item.icon);
 		}
 
-		iconEl.style.setProperty("--callout-color", formatCalloutColor(item.color));
+		iconEl.style.setProperty("--callout-color", formatSwatchColor(item.color));
 		container.createDiv({ cls: "quick-pick-callout-label", text: item.label });
 
 		// Show source tag for non-builtin types

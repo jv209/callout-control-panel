@@ -138,6 +138,11 @@ function formatCalloutColor(color) {
   if (!isTriplet) return value;
   return (0, import_obsidian2.requireApiVersion)("1.13.0") ? `rgb(${value})` : value;
 }
+function formatSwatchColor(color) {
+  const value = color.trim();
+  const isTriplet = /^\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}$/.test(value);
+  return isTriplet ? `rgb(${value})` : value;
+}
 function hexToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
@@ -258,7 +263,7 @@ function buildDetectionTab(el, ctx) {
       } else {
         (0, import_obsidian3.setIcon)(iconEl, st.icon);
       }
-      iconEl.style.setProperty("--callout-color", formatCalloutColor(st.color));
+      iconEl.style.setProperty("--callout-color", formatSwatchColor(st.color));
       rowEl.createSpan({ text: st.label, cls: "detected-snippet-col-callout" });
       const iconText = st.icon === "transparent" ? "transparent" : st.iconDefault ? "\u2014" : st.icon;
       const iconNameEl = rowEl.createSpan({
@@ -905,7 +910,7 @@ function buildCustomCalloutsTab(el, ctx) {
       }
     }
     if (callout.color) {
-      iconEl.style.setProperty("--callout-color", formatCalloutColor(callout.color));
+      iconEl.style.setProperty("--callout-color", formatSwatchColor(callout.color));
     }
     rowEl.createSpan({ text: callout.type, cls: "custom-callout-col-callout" });
     const iconName = (_c = (_b = callout.icon) == null ? void 0 : _b.name) != null ? _c : "\u2014";
@@ -1629,7 +1634,7 @@ var InsertCalloutModal = class extends import_obsidian15.Modal {
       if (!rendered) {
         (0, import_obsidian15.setIcon)(iconContainer, typeInfo.icon);
       }
-      iconContainer.style.setProperty("--callout-color", formatCalloutColor(typeInfo.color));
+      iconContainer.style.setProperty("--callout-color", formatSwatchColor(typeInfo.color));
     } else {
       (0, import_obsidian15.setIcon)(iconContainer, "lucide-alert-circle");
       iconContainer.style.removeProperty("--callout-color");
@@ -1736,7 +1741,7 @@ var QuickPickCalloutModal = class extends import_obsidian16.SuggestModal {
     if (!rendered) {
       (0, import_obsidian16.setIcon)(iconEl, item.icon);
     }
-    iconEl.style.setProperty("--callout-color", formatCalloutColor(item.color));
+    iconEl.style.setProperty("--callout-color", formatSwatchColor(item.color));
     container.createDiv({ cls: "quick-pick-callout-label", text: item.label });
     if (item.source !== "builtin") {
       container.createDiv({
