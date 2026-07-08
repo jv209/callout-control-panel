@@ -38,39 +38,11 @@ export class CalloutManager extends Component {
 	private indexing: string[] = [];
 	/** Formatted rule strings parallel to indexing — used for snippet file output. */
 	private formattedRules: string[] = [];
-	/**
-	 * Injected <style> element that holds the in-memory callout rules.
-	 *
-	 * We deliberately use a plain <style> element instead of a constructed
-	 * `CSSStyleSheet` + `adoptedStyleSheets`. A `new CSSStyleSheet()` is bound to
-	 * the document it is constructed in; adopting that same instance into a
-	 * *different* document — e.g. Obsidian's `activeDocument` when a popout window
-	 * is focused while the plugin loads/reloads — throws
-	 * `NotAllowedError: Sharing constructed stylesheets in multiple documents is
-	 * not allowed`, which aborts onload and leaves the plugin unable to enable.
-	 * A <style> element has no such cross-document constraint and exposes the same
-	 * insertRule/deleteRule/cssRules API via its `.sheet`. Persistent, all-window
-	 * styling is handled separately by the vault snippet (writeSnippet).
-	 */
-	private styleEl: HTMLStyleElement | null = null;
+	private sheet: CSSStyleSheet;
 
 	constructor(public plugin: CalloutManagerPluginRef) {
 		super();
-	}
-
-	/** The live CSSStyleSheet backing the injected <style> element. */
-	private get sheet(): CSSStyleSheet {
-		return this.ensureStyleEl().sheet!;
-	}
-
-	/** Lazily create (or recreate, if detached) the injected <style> element. */
-	private ensureStyleEl(): HTMLStyleElement {
-		if (this.styleEl?.isConnected) return this.styleEl;
-		const styleEl = document.createElement("style");
-		styleEl.id = "callout-control-panel-callouts";
-		document.head.appendChild(styleEl);
-		this.styleEl = styleEl;
-		return styleEl;
+		this.sheet = new CSSStyleSheet();
 	}
 
 	private get snippetPath(): string {
@@ -81,13 +53,24 @@ export class CalloutManager extends Component {
 	}
 
 	onload(): void {
-		this.ensureStyleEl();
-		// Component.register cleanup runs on unload — removes the <style> element
-		// and clears our reference so a later reload starts fresh (idempotent, no leak).
-		this.register(() => {
-			this.styleEl?.remove();
-			this.styleEl = null;
-		});
+		// Adopt into the MAIN window `document`, NOT `activeDocument`.
+		//
+		// `new CSSStyleSheet()` is permanently bound to the document of the realm
+		// it was constructed in — here, the main window. Adopting that instance
+		// into a *different* document (e.g. `activeDocument` when a popout window
+		// is focused during load/reload) throws `NotAllowedError: Sharing
+		// constructed stylesheets in multiple documents is not allowed`, which
+		// aborts onload and leaves the plugin unable to enable. Adopting into the
+		// same (main) document the sheet was constructed in is always allowed, so
+		// this is popout-safe. Persistent, all-window styling is handled
+		// separately by the vault snippet (writeSnippet).
+		document.adoptedStyleSheets = [...document.adoptedStyleSheets, this.sheet];
+	}
+
+	onunload(): void {
+		document.adoptedStyleSheets = document.adoptedStyleSheets.filter(
+			(s) => s !== this.sheet,
+		);
 	}
 
 	/** Load all custom callouts into the style sheet and write the snippet. */

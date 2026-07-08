@@ -19516,47 +19516,19 @@ var CalloutManager = class extends import_obsidian20.Component {
     this.indexing = [];
     /** Formatted rule strings parallel to indexing — used for snippet file output. */
     this.formattedRules = [];
-    /**
-     * Injected <style> element that holds the in-memory callout rules.
-     *
-     * We deliberately use a plain <style> element instead of a constructed
-     * `CSSStyleSheet` + `adoptedStyleSheets`. A `new CSSStyleSheet()` is bound to
-     * the document it is constructed in; adopting that same instance into a
-     * *different* document — e.g. Obsidian's `activeDocument` when a popout window
-     * is focused while the plugin loads/reloads — throws
-     * `NotAllowedError: Sharing constructed stylesheets in multiple documents is
-     * not allowed`, which aborts onload and leaves the plugin unable to enable.
-     * A <style> element has no such cross-document constraint and exposes the same
-     * insertRule/deleteRule/cssRules API via its `.sheet`. Persistent, all-window
-     * styling is handled separately by the vault snippet (writeSnippet).
-     */
-    this.styleEl = null;
-  }
-  /** The live CSSStyleSheet backing the injected <style> element. */
-  get sheet() {
-    return this.ensureStyleEl().sheet;
-  }
-  /** Lazily create (or recreate, if detached) the injected <style> element. */
-  ensureStyleEl() {
-    var _a;
-    if ((_a = this.styleEl) == null ? void 0 : _a.isConnected) return this.styleEl;
-    const styleEl = document.createElement("style");
-    styleEl.id = "callout-control-panel-callouts";
-    document.head.appendChild(styleEl);
-    this.styleEl = styleEl;
-    return styleEl;
+    this.sheet = new CSSStyleSheet();
   }
   get snippetPath() {
     const css2 = this.plugin.app.customCss;
     return css2.getSnippetPath(SNIPPET_NAME);
   }
   onload() {
-    this.ensureStyleEl();
-    this.register(() => {
-      var _a;
-      (_a = this.styleEl) == null ? void 0 : _a.remove();
-      this.styleEl = null;
-    });
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, this.sheet];
+  }
+  onunload() {
+    document.adoptedStyleSheets = document.adoptedStyleSheets.filter(
+      (s2) => s2 !== this.sheet
+    );
   }
   /** Load all custom callouts into the style sheet and write the snippet. */
   async loadCallouts(callouts) {
