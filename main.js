@@ -19514,23 +19514,14 @@ var CalloutManager = class extends import_obsidian20.Component {
     super();
     this.plugin = plugin;
     this.indexing = [];
-    /** Formatted rule strings parallel to indexing — used for snippet file output. */
+    /** Formatted rule strings parallel to indexing — the snippet file output. */
     this.formattedRules = [];
-    this.sheet = new CSSStyleSheet();
   }
   get snippetPath() {
     const css2 = this.plugin.app.customCss;
     return css2.getSnippetPath(SNIPPET_NAME);
   }
-  onload() {
-    document.adoptedStyleSheets = [...document.adoptedStyleSheets, this.sheet];
-  }
-  onunload() {
-    document.adoptedStyleSheets = document.adoptedStyleSheets.filter(
-      (s2) => s2 !== this.sheet
-    );
-  }
-  /** Load all custom callouts into the style sheet and write the snippet. */
+  /** Load all custom callouts into the snippet and write it. */
   async loadCallouts(callouts) {
     for (const callout of Object.values(callouts)) {
       void this.addCallout(callout, false);
@@ -19570,13 +19561,11 @@ var CalloutManager = class extends import_obsidian20.Component {
     }
     const existingIndex = this.indexing.indexOf(callout.type);
     if (existingIndex !== -1) {
-      this.sheet.deleteRule(existingIndex);
       this.indexing.splice(existingIndex, 1);
       this.formattedRules.splice(existingIndex, 1);
     }
     this.indexing.push(callout.type);
     this.formattedRules.push(formattedRule);
-    this.sheet.insertRule(formattedRule, this.sheet.cssRules.length);
     if (sync) {
       await this.writeSnippet();
     }
@@ -19585,7 +19574,6 @@ var CalloutManager = class extends import_obsidian20.Component {
   async removeCallout(callout) {
     const index = this.indexing.indexOf(callout.type);
     if (index === -1) return;
-    this.sheet.deleteRule(index);
     this.indexing.splice(index, 1);
     this.formattedRules.splice(index, 1);
     await this.writeSnippet();
@@ -19601,7 +19589,7 @@ var CalloutManager = class extends import_obsidian20.Component {
     }
     return lines.join("\n\n");
   }
-  /** Write the in-memory styles to the vault snippet file, or delete it when empty. */
+  /** Write the generated styles to the vault snippet file, or delete it when empty. */
   async writeSnippet() {
     try {
       const adapter = this.plugin.app.vault.adapter;

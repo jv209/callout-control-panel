@@ -1,7 +1,19 @@
 /**
  * Callout CSS manager — generates CSS rules for custom callout types.
- * Uses dual output: an in-memory CSSStyleSheet for instant rendering
- * and a vault snippet file for persistence and user editability.
+ *
+ * Output goes to a single source of truth: the vault CSS snippet
+ * (`.obsidian/snippets/callout-control-panel.css`), which Obsidian loads and
+ * applies to every window — including popouts — for us. After each write we call
+ * `app.customCss.readSnippets()` so the change takes effect immediately.
+ *
+ * We deliberately do NOT inject a runtime stylesheet (no `<style>` element and
+ * no constructed `CSSStyleSheet` adopted via `adoptedStyleSheets`). The
+ * `<style>` route is forbidden by the Obsidian plugin guidelines
+ * (obsidianmd/no-forbidden-elements), and adopting a constructed sheet into a
+ * different document (e.g. a focused popout's `activeDocument`) throws
+ * `NotAllowedError` because a constructed sheet is bound to its construction
+ * realm — that was the original "plugin fails to load" crash. Relying on the
+ * Obsidian-loaded snippet sidesteps both problems entirely.
  *
  * Source: obsidian-admonition v10.3.2 (MIT, Jeremy Valentine)
  *
@@ -36,13 +48,11 @@ const SNIPPET_NAME = "callout-control-panel";
 
 export class CalloutManager extends Component {
 	private indexing: string[] = [];
-	/** Formatted rule strings parallel to indexing — used for snippet file output. */
+	/** Formatted rule strings parallel to indexing — the snippet file output. */
 	private formattedRules: string[] = [];
-	private sheet: CSSStyleSheet;
 
 	constructor(public plugin: CalloutManagerPluginRef) {
 		super();
-		this.sheet = new CSSStyleSheet();
 	}
 
 	private get snippetPath(): string {
@@ -52,28 +62,7 @@ export class CalloutManager extends Component {
 		return css.getSnippetPath(SNIPPET_NAME);
 	}
 
-	onload(): void {
-		// Adopt into the MAIN window `document`, NOT `activeDocument`.
-		//
-		// `new CSSStyleSheet()` is permanently bound to the document of the realm
-		// it was constructed in — here, the main window. Adopting that instance
-		// into a *different* document (e.g. `activeDocument` when a popout window
-		// is focused during load/reload) throws `NotAllowedError: Sharing
-		// constructed stylesheets in multiple documents is not allowed`, which
-		// aborts onload and leaves the plugin unable to enable. Adopting into the
-		// same (main) document the sheet was constructed in is always allowed, so
-		// this is popout-safe. Persistent, all-window styling is handled
-		// separately by the vault snippet (writeSnippet).
-		document.adoptedStyleSheets = [...document.adoptedStyleSheets, this.sheet];
-	}
-
-	onunload(): void {
-		document.adoptedStyleSheets = document.adoptedStyleSheets.filter(
-			(s) => s !== this.sheet,
-		);
-	}
-
-	/** Load all custom callouts into the style sheet and write the snippet. */
+	/** Load all custom callouts into the snippet and write it. */
 	async loadCallouts(callouts: Record<string, CustomCallout>): Promise<void> {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		for (const callout of Object.values(callouts)) {
@@ -100,8 +89,6 @@ export class CalloutManager extends Component {
 				: "";
 
 		// Build the formatted rule for the snippet file (clean, multi-line).
-		// The in-memory sheet also gets this string (browsers normalize it,
-		// but the formatted version is stored separately for file output).
 		let formattedRule: string;
 		if (callout.icon.type === "no-icon") {
 			// Structural callouts (dashboards, containers) use transparent
@@ -136,14 +123,12 @@ export class CalloutManager extends Component {
 		// Remove existing rule for this type if present
 		const existingIndex = this.indexing.indexOf(callout.type);
 		if (existingIndex !== -1) {
-			this.sheet.deleteRule(existingIndex);
 			this.indexing.splice(existingIndex, 1);
 			this.formattedRules.splice(existingIndex, 1);
 		}
 
 		this.indexing.push(callout.type);
 		this.formattedRules.push(formattedRule);
-		this.sheet.insertRule(formattedRule, this.sheet.cssRules.length);
 
 		if (sync) {
 			await this.writeSnippet();
@@ -154,7 +139,6 @@ export class CalloutManager extends Component {
 	async removeCallout(callout: CustomCallout): Promise<void> {
 		const index = this.indexing.indexOf(callout.type);
 		if (index === -1) return;
-		this.sheet.deleteRule(index);
 		this.indexing.splice(index, 1);
 		this.formattedRules.splice(index, 1);
 		await this.writeSnippet();
@@ -171,7 +155,7 @@ export class CalloutManager extends Component {
 		return lines.join("\n\n");
 	}
 
-	/** Write the in-memory styles to the vault snippet file, or delete it when empty. */
+	/** Write the generated styles to the vault snippet file, or delete it when empty. */
 	private async writeSnippet(): Promise<void> {
 		try {
 			const adapter = this.plugin.app.vault.adapter;
