@@ -43,7 +43,6 @@ export class IconManager {
 	} = {};
 
 	FONT_AWESOME_MAP = new Map(
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment -- @fortawesome types resolve to `any` when linted without node_modules; type-safe with deps installed
 		[...Object.values(fas), ...Object.values(far), ...Object.values(fab)]
 			.map((i: IconDefinition) => {
 				return [
@@ -87,7 +86,6 @@ export class IconManager {
 			if (!icons) continue;
 			downloaded.push(
 				...Object.keys(icons).map((name) => {
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- `pack` is `any` without node_modules; assertion required with deps installed
 					return { type: pack as IconType, name };
 				})
 			);
@@ -97,7 +95,6 @@ export class IconManager {
 				? this.FONT_AWESOME_MAP.values()
 				: []),
 			...getIconIds().map((name) => {
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- resolves to `any` without node_modules; assertion required with deps installed
 				return { type: "obsidian" as IconType, name };
 			}),
 			...downloaded,
@@ -162,7 +159,6 @@ export class IconManager {
 		if (getIconIds().includes(str)) {
 			return "obsidian";
 		}
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call -- `this.DOWNLOADED` value type resolves to `any` without node_modules
 		for (const [pack, icons] of Object.entries(this.DOWNLOADED)) {
 			if (icons && str in icons) return pack as DownloadableIconPack;
 		}

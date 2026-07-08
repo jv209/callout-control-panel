@@ -171,21 +171,17 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			selectEl.createEl("option", { value: "", text: "— (none)" });
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		const customTypes = Object.values(this.plugin.settings.customCallouts).map(
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 			(cc) => customCalloutToTypeInfo(cc, this.plugin.settings.injectColor),
 		);
 		const snippetTypes = this.plugin.snippetTypes;
 		const builtinTypes = BUILTIN_CALLOUT_TYPES;
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 		if (customTypes.length > 0) {
 			const group = selectEl.createEl("optgroup", {
 				attr: { label: "Custom" },
 			});
 			for (const ct of customTypes) {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 				group.createEl("option", { value: ct.type, text: ct.label });
 			}
 		}

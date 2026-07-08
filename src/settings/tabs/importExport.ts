@@ -48,7 +48,6 @@ export function buildImportExportTab(el: HTMLElement, ctx: SettingsTabContext): 
 				.setCta()
 				.setDisabled(!hasCallouts)
 				.onClick(() => {
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 					downloadJson(Object.values(ctx.plugin.settings.customCallouts));
 				}),
 		)
@@ -63,12 +62,9 @@ export function buildImportExportTab(el: HTMLElement, ctx: SettingsTabContext): 
 					});
 					modal.onClose = () => {
 						if (!modal.export) return;
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 						const selected = Object.values(
 							ctx.plugin.settings.customCallouts,
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 						).filter((cc) => modal.selectedCallouts.includes(cc.type));
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive: resolves to `any` when linted without node_modules (type-safe with deps installed)
 						downloadJson(selected);
 					};
 					modal.open();
