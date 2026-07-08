@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.11
+
+### Fixed
+
+- **Plugin failed to load / would not toggle on after an update (popout windows).** `CalloutManager` created its stylesheet with `new CSSStyleSheet()` (bound to the window it was constructed in) and then adopted that instance into `activeDocument.adoptedStyleSheets`. When a popout or second window was focused during load/reload, `activeDocument` was a different document, so the adopt threw `NotAllowedError: Sharing constructed stylesheets in multiple documents is not allowed`, aborting `onload`. The plugin now injects a plain `<style>` element (no cross-document constraint) into the document head, cleaned up on unload. Persistent, all-window styling continues to come from the vault snippet. (`src/callout/manager.ts`)
+- **Detected callouts using `rgb(...)` or hex colors showed an empty `rgb()` swatch in the settings Detection tab.** The snippet color parser only understood the bare `r, g, b` triplet; for any other valid CSS color the regex backtracked and captured the single space after the colon, which trimmed to an empty string and rendered as `rgb()`. Colors are now normalized from bare triplet, `rgb()`/`rgba()`, and hex (`#rrggbb` / `#rgb`) to the internal triplet, with unknown formats passed through verbatim. (`src/snippetParser.ts`)
+
 ## 1.6.10
 
 ### Fixed

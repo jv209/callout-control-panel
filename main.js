@@ -2742,7 +2742,34 @@ function collectCalloutTypes(css2, discoveredIds, results, builtinNames) {
   }
   return discoveredIds.length;
 }
+function normalizeCalloutColor(raw) {
+  var _a;
+  const value = raw.trim();
+  if (value.startsWith("var(")) return value;
+  if (value.startsWith("#")) {
+    let hex = value.slice(1);
+    if (hex.length === 3) {
+      hex = hex.split("").map((c) => c + c).join("");
+    }
+    if (/^[0-9a-f]{6}$/i.test(hex)) {
+      const r2 = parseInt(hex.slice(0, 2), 16);
+      const g2 = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return `${r2}, ${g2}, ${b}`;
+    }
+    return value;
+  }
+  const fnMatch = value.match(/^rgba?\(([^)]*)\)$/i);
+  const channelSource = (_a = fnMatch == null ? void 0 : fnMatch[1]) != null ? _a : value;
+  const nums = channelSource.match(/\d{1,3}(?:\.\d+)?/g);
+  if (nums && nums.length >= 3) {
+    const [r2, g2, b] = nums;
+    return `${Math.round(Number(r2))}, ${Math.round(Number(g2))}, ${Math.round(Number(b))}`;
+  }
+  return value;
+}
 function extractCalloutProperties(css2, calloutId) {
+  var _a;
   const escaped = calloutId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const blockRegex = new RegExp(
     `\\[data-callout(?:\\^)?=["']?${escaped}["']?\\][^{]*\\{([^}]*)\\}`,
@@ -2753,8 +2780,9 @@ function extractCalloutProperties(css2, calloutId) {
     return { color: "var(--callout-default)", icon: "lucide-box", iconDefault: true };
   }
   const block = match[1];
-  const colorMatch = block.match(/--callout-color:\s*([\d\s,]+)/);
-  const color = (colorMatch == null ? void 0 : colorMatch[1]) ? colorMatch[1].trim() : "var(--callout-default)";
+  const colorMatch = block.match(/--callout-color:\s*([^;}]+)/);
+  const rawColor = (_a = colorMatch == null ? void 0 : colorMatch[1]) == null ? void 0 : _a.trim();
+  const color = rawColor ? normalizeCalloutColor(rawColor) : "var(--callout-default)";
   const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
   const icon2 = (iconMatch == null ? void 0 : iconMatch[1]) ? iconMatch[1] : "lucide-box";
   const iconDefault = !(iconMatch == null ? void 0 : iconMatch[1]);
@@ -19488,17 +19516,47 @@ var CalloutManager = class extends import_obsidian20.Component {
     this.indexing = [];
     /** Formatted rule strings parallel to indexing — used for snippet file output. */
     this.formattedRules = [];
-    this.sheet = new CSSStyleSheet();
+    /**
+     * Injected <style> element that holds the in-memory callout rules.
+     *
+     * We deliberately use a plain <style> element instead of a constructed
+     * `CSSStyleSheet` + `adoptedStyleSheets`. A `new CSSStyleSheet()` is bound to
+     * the document it is constructed in; adopting that same instance into a
+     * *different* document — e.g. Obsidian's `activeDocument` when a popout window
+     * is focused while the plugin loads/reloads — throws
+     * `NotAllowedError: Sharing constructed stylesheets in multiple documents is
+     * not allowed`, which aborts onload and leaves the plugin unable to enable.
+     * A <style> element has no such cross-document constraint and exposes the same
+     * insertRule/deleteRule/cssRules API via its `.sheet`. Persistent, all-window
+     * styling is handled separately by the vault snippet (writeSnippet).
+     */
+    this.styleEl = null;
+  }
+  /** The live CSSStyleSheet backing the injected <style> element. */
+  get sheet() {
+    return this.ensureStyleEl().sheet;
+  }
+  /** Lazily create (or recreate, if detached) the injected <style> element. */
+  ensureStyleEl() {
+    var _a;
+    if ((_a = this.styleEl) == null ? void 0 : _a.isConnected) return this.styleEl;
+    const styleEl = document.createElement("style");
+    styleEl.id = "callout-control-panel-callouts";
+    document.head.appendChild(styleEl);
+    this.styleEl = styleEl;
+    return styleEl;
   }
   get snippetPath() {
     const css2 = this.plugin.app.customCss;
     return css2.getSnippetPath(SNIPPET_NAME);
   }
   onload() {
-    activeDocument.adoptedStyleSheets = [...activeDocument.adoptedStyleSheets, this.sheet];
-  }
-  onunload() {
-    activeDocument.adoptedStyleSheets = activeDocument.adoptedStyleSheets.filter((s2) => s2 !== this.sheet);
+    this.ensureStyleEl();
+    this.register(() => {
+      var _a;
+      (_a = this.styleEl) == null ? void 0 : _a.remove();
+      this.styleEl = null;
+    });
   }
   /** Load all custom callouts into the style sheet and write the snippet. */
   async loadCallouts(callouts) {

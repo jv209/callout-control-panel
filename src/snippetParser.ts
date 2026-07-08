@@ -208,6 +208,56 @@ function collectCalloutTypes(
 }
 
 /**
+ * Normalise a `--callout-color` value to the bare "r, g, b" triplet the plugin
+ * stores internally, regardless of which valid CSS color format the author used.
+ *
+ * Handles:
+ *   - bare triplet        "68, 138, 255"  or  "68 138 255"
+ *   - rgb() / rgba()      "rgb(68, 138, 255)"  (alpha channel is dropped)
+ *   - hex                 "#4488ff"  or  "#48f"
+ *
+ * `var(...)` values are returned unchanged (the plugin's "unset" sentinel).
+ * Any other format (named color, hsl(), …) is returned trimmed and unchanged so
+ * it still renders as a valid CSS color rather than an empty `rgb()`.
+ */
+export function normalizeCalloutColor(raw: string): string {
+	const value = raw.trim();
+
+	// CSS variable sentinel — leave as-is (e.g. var(--callout-default)).
+	if (value.startsWith("var(")) return value;
+
+	// Hex (#rgb or #rrggbb) — convert to a triplet.
+	if (value.startsWith("#")) {
+		let hex = value.slice(1);
+		if (hex.length === 3) {
+			hex = hex.split("").map((c) => c + c).join("");
+		}
+		if (/^[0-9a-f]{6}$/i.test(hex)) {
+			const r = parseInt(hex.slice(0, 2), 16);
+			const g = parseInt(hex.slice(2, 4), 16);
+			const b = parseInt(hex.slice(4, 6), 16);
+			return `${r}, ${g}, ${b}`;
+		}
+		return value;
+	}
+
+	// rgb()/rgba() — unwrap and read the channels from inside the parentheses.
+	const fnMatch = value.match(/^rgba?\(([^)]*)\)$/i);
+	const channelSource = fnMatch?.[1] ?? value;
+
+	// Bare triplet (comma- or space-separated) — take the first three numeric
+	// channels and normalise the spacing to "r, g, b".
+	const nums = channelSource.match(/\d{1,3}(?:\.\d+)?/g);
+	if (nums && nums.length >= 3) {
+		const [r, g, b] = nums;
+		return `${Math.round(Number(r))}, ${Math.round(Number(g))}, ${Math.round(Number(b))}`;
+	}
+
+	// Unknown but non-empty format (named color, hsl(), …) — keep it verbatim.
+	return value;
+}
+
+/**
  * Extract --callout-color and --callout-icon from the first CSS rule
  * block that references the given callout ID.
  *
@@ -235,13 +285,15 @@ export function extractCalloutProperties(
 
 	const block = match[1];
 
-	// Extract --callout-color: R, G, B
-	// Store as raw RGB tuple (e.g. "68, 138, 255") without rgb() wrapper,
-	// matching how built-in colors work with the CSS pattern rgb(var(--callout-color)).
-	const colorMatch = block.match(/--callout-color:\s*([\d\s,]+)/);
-	const color = colorMatch?.[1]
-		? colorMatch[1].trim()
-		: "var(--callout-default)";
+	// Extract --callout-color. Capture the whole value up to the `;` or the end
+	// of the block, then normalise it to the bare "68, 138, 255" RGB triplet the
+	// plugin stores internally. The old `[\d\s,]+` capture only understood the
+	// bare-triplet form; for any other valid CSS color (rgb(...), hex, …) it
+	// backtracked and captured the single space after the colon, which trimmed to
+	// "" and rendered as an empty `rgb()` in the settings preview.
+	const colorMatch = block.match(/--callout-color:\s*([^;}]+)/);
+	const rawColor = colorMatch?.[1]?.trim();
+	const color = rawColor ? normalizeCalloutColor(rawColor) : "var(--callout-default)";
 
 	// Extract --callout-icon: icon-name
 	const iconMatch = block.match(/--callout-icon:\s*([\w-]+)/);
