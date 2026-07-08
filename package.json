@@ -1,6 +1,6 @@
 {
 	"name": "callout-control-panel",
-	"version": "1.6.14",
+	"version": "1.6.15",
 	"description": "Insert, detect, and manage custom callout types with a unified modal and full icon support.",
 	"main": "main.js",
 	"type": "module",
@@ -21,6 +21,7 @@
 		"eslint-plugin-obsidianmd": "0.4.1",
 		"globals": "14.0.0",
 		"jiti": "2.6.1",
+		"obsidian": "1.12.3",
 		"tslib": "2.4.0",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "8.63.0",
@@ -30,7 +31,6 @@
 		"@fortawesome/fontawesome-svg-core": "^6.5.0",
 		"@fortawesome/free-brands-svg-icons": "^6.5.0",
 		"@fortawesome/free-regular-svg-icons": "^6.5.0",
-		"@fortawesome/free-solid-svg-icons": "^6.5.0",
-		"obsidian": "latest"
+		"@fortawesome/free-solid-svg-icons": "^6.5.0"
 	}
 }
