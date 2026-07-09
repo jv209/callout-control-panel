@@ -16,7 +16,11 @@
 import {
 	App,
 	PluginSettingTab,
+	requireApiVersion,
 	setIcon,
+	SettingPage,
+	type SettingDefinitionItem,
+	type SettingDefinitionPage,
 } from "obsidian";
 import {
 	type CalloutTypeInfo,
@@ -54,6 +58,13 @@ export interface SettingsTabPluginRef {
 	editCustomCallout(oldType: string, callout: CustomCallout): Promise<void>;
 }
 
+/** Options shared by the two declarative collapse-state dropdowns. */
+const COLLAPSE_OPTIONS: Record<string, string> = {
+	none: "Default (no fold)",
+	open: "Open (+)",
+	closed: "Closed (-)",
+};
+
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
 /**
@@ -85,11 +96,160 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		// Obsidian invokes display() to (re)render the tab. The declarative
-		// getSettingDefinitions() API (1.13+) doesn't fit this multi-tab UI, so
-		// we keep an imperative render but route every re-render through
-		// renderContent() to avoid calling the deprecated display() ourselves.
+		// Legacy path (Obsidian < 1.13 only). On 1.13+ Obsidian renders the
+		// declarative getSettingDefinitions() below and never calls display().
 		this.renderContent();
+	}
+
+	// ─── Declarative settings (Obsidian 1.13+) ──────────────────────────────
+	//
+	// PREVIEW (phase 1): the Defaults tab is fully declarative (native rows,
+	// indexed by settings search). The remaining six tabs are bridged as
+	// imperative sub-pages that reuse the existing tab builders unchanged, so
+	// no functionality is lost. Obsidian < 1.13 never calls this method and
+	// keeps the classic tab bar via display().
+
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				type: "page",
+				name: "Defaults",
+				desc: "Default type, insertion behavior, and collapse state",
+				items: [
+					{
+						name: "Default callout type",
+						desc: "The callout type pre-selected when the modal opens.",
+						control: {
+							type: "dropdown",
+							key: "defaultCalloutType",
+							options: this.buildTypeOptions(),
+						},
+					},
+					{
+						name: "Remember last used type",
+						desc: "When enabled, the modal defaults to the last callout type you inserted.",
+						control: { type: "toggle", key: "rememberLastType" },
+					},
+					{
+						name: "Auto-focus content",
+						desc: "Automatically focus the content textarea when the modal opens.",
+						control: { type: "toggle", key: "autoFocusContent" },
+					},
+					{
+						name: "Inject callout colors",
+						desc: "When enabled, the color you pick for a custom callout is applied automatically. When disabled, colors must be set manually via CSS.",
+						control: { type: "toggle", key: "injectColor" },
+					},
+					{
+						name: "Copy button",
+						desc: "Show a copy-to-clipboard button in each callout's title bar.",
+						control: { type: "toggle", key: "showCopyButton" },
+					},
+					{
+						name: "Default collapse state (modal)",
+						desc: "The default collapse state when inserting a callout via the full modal.",
+						control: {
+							type: "dropdown",
+							key: "defaultCollapseModal",
+							options: COLLAPSE_OPTIONS,
+						},
+					},
+					{
+						name: "Default collapse state (quick pick)",
+						desc: "The default collapse state when inserting a callout via quick pick or favorites.",
+						control: {
+							type: "dropdown",
+							key: "defaultCollapseQuickPick",
+							options: COLLAPSE_OPTIONS,
+						},
+					},
+				],
+			},
+			this.legacyPage("CSS type detection", "Snippet scanning and detected callout types", buildDetectionTab),
+			this.legacyPage("Custom callouts", "Add, edit, and delete your own callout types", buildCustomCalloutsTab),
+			this.legacyPage("Most used callouts", "Up to 5 pinned quick-access slots", buildFavoritesTab),
+			this.legacyPage("Title overrides", "Per-type title replacements", buildTitleOverridesTab),
+			this.legacyPage("Import / export", "Back up or share callout definitions", buildImportExportTab),
+			this.legacyPage("Icon packs", "Font Awesome toggle and downloadable packs", buildIconPacksTab),
+		];
+	}
+
+	/** Read a bound control value from plugin settings (declarative path). */
+	getControlValue(key: string): unknown {
+		return (this.plugin.settings as unknown as Record<string, unknown>)[key];
+	}
+
+	/** Persist a bound control value through the plugin's normal save path. */
+	setControlValue(key: string, value: unknown): void | Promise<void> {
+		(this.plugin.settings as unknown as Record<string, unknown>)[key] = value;
+		return this.plugin.saveSettings();
+	}
+
+	/**
+	 * Flat options for the declarative default-type dropdown, in the same
+	 * order as the legacy grouped dropdown: custom, then snippet, then
+	 * built-in. Cheap by design — getSettingDefinitions() runs on every
+	 * update() and must not do I/O.
+	 */
+	private buildTypeOptions(): Record<string, string> {
+		const options: Record<string, string> = {};
+		for (const cc of Object.values(this.plugin.settings.customCallouts)) {
+			const info = customCalloutToTypeInfo(cc, this.plugin.settings.injectColor);
+			options[info.type] = info.label;
+		}
+		for (const ct of this.plugin.snippetTypes) {
+			options[ct.type] ??= ct.label;
+		}
+		for (const ct of BUILTIN_CALLOUT_TYPES) {
+			options[ct.type] ??= ct.label;
+		}
+		return options;
+	}
+
+	/**
+	 * Bridge an existing imperative tab builder onto a declarative sub-page.
+	 * The SettingPage subclass is created inside the factory so the
+	 * `SettingPage` base (1.13+ API) is never touched on older Obsidian,
+	 * where getSettingDefinitions() is never called.
+	 */
+	private legacyPage(
+		name: string,
+		desc: string,
+		build: (el: HTMLElement, ctx: SettingsTabContext) => void,
+	): SettingDefinitionPage {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias -- the SettingPage subclass needs the tab instance alongside its own `this`
+		const tab = this;
+		return {
+			type: "page",
+			name,
+			desc,
+			page: () => {
+				if (requireApiVersion("1.13.0")) {
+					return new (class extends SettingPage {
+						constructor() {
+							super();
+							this.title = name;
+						}
+						display(): void {
+							// Auto-refresh when detected types rebuild (mirrors
+							// the legacy renderContent() wiring).
+							tab.plugin.onTypesChanged = () => this.display();
+							const ctx: SettingsTabContext = {
+								app: tab.app,
+								plugin: tab.plugin,
+								refresh: () => this.display(),
+								buildGroupedDropdown: (selectEl, includeNone) =>
+									tab.buildGroupedDropdown(selectEl, includeNone),
+							};
+							this.containerEl.empty();
+							build(this.containerEl, ctx);
+						}
+					})();
+				}
+				// Unreachable: Obsidian only calls getSettingDefinitions() on 1.13+.
+				throw new Error("Declarative settings require Obsidian 1.13+");
+			},
+		};
 	}
 
 	private renderContent(): void {

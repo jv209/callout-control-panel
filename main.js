@@ -1327,6 +1327,11 @@ function buildIconPacksTab(el, ctx) {
 }
 
 // src/settingsTab.ts
+var COLLAPSE_OPTIONS = {
+  none: "Default (no fold)",
+  open: "Open (+)",
+  closed: "Closed (-)"
+};
 function customCalloutToTypeInfo(cc, globalInjectColor) {
   var _a, _b, _c;
   const useColor = (_a = cc.injectColor) != null ? _a : globalInjectColor;
@@ -1347,6 +1352,143 @@ var EnhancedCalloutSettingTab = class extends import_obsidian14.PluginSettingTab
   }
   display() {
     this.renderContent();
+  }
+  // ─── Declarative settings (Obsidian 1.13+) ──────────────────────────────
+  //
+  // PREVIEW (phase 1): the Defaults tab is fully declarative (native rows,
+  // indexed by settings search). The remaining six tabs are bridged as
+  // imperative sub-pages that reuse the existing tab builders unchanged, so
+  // no functionality is lost. Obsidian < 1.13 never calls this method and
+  // keeps the classic tab bar via display().
+  getSettingDefinitions() {
+    return [
+      {
+        type: "page",
+        name: "Defaults",
+        desc: "Default type, insertion behavior, and collapse state",
+        items: [
+          {
+            name: "Default callout type",
+            desc: "The callout type pre-selected when the modal opens.",
+            control: {
+              type: "dropdown",
+              key: "defaultCalloutType",
+              options: this.buildTypeOptions()
+            }
+          },
+          {
+            name: "Remember last used type",
+            desc: "When enabled, the modal defaults to the last callout type you inserted.",
+            control: { type: "toggle", key: "rememberLastType" }
+          },
+          {
+            name: "Auto-focus content",
+            desc: "Automatically focus the content textarea when the modal opens.",
+            control: { type: "toggle", key: "autoFocusContent" }
+          },
+          {
+            name: "Inject callout colors",
+            desc: "When enabled, the color you pick for a custom callout is applied automatically. When disabled, colors must be set manually via CSS.",
+            control: { type: "toggle", key: "injectColor" }
+          },
+          {
+            name: "Copy button",
+            desc: "Show a copy-to-clipboard button in each callout's title bar.",
+            control: { type: "toggle", key: "showCopyButton" }
+          },
+          {
+            name: "Default collapse state (modal)",
+            desc: "The default collapse state when inserting a callout via the full modal.",
+            control: {
+              type: "dropdown",
+              key: "defaultCollapseModal",
+              options: COLLAPSE_OPTIONS
+            }
+          },
+          {
+            name: "Default collapse state (quick pick)",
+            desc: "The default collapse state when inserting a callout via quick pick or favorites.",
+            control: {
+              type: "dropdown",
+              key: "defaultCollapseQuickPick",
+              options: COLLAPSE_OPTIONS
+            }
+          }
+        ]
+      },
+      this.legacyPage("CSS type detection", "Snippet scanning and detected callout types", buildDetectionTab),
+      this.legacyPage("Custom callouts", "Add, edit, and delete your own callout types", buildCustomCalloutsTab),
+      this.legacyPage("Most used callouts", "Up to 5 pinned quick-access slots", buildFavoritesTab),
+      this.legacyPage("Title overrides", "Per-type title replacements", buildTitleOverridesTab),
+      this.legacyPage("Import / export", "Back up or share callout definitions", buildImportExportTab),
+      this.legacyPage("Icon packs", "Font Awesome toggle and downloadable packs", buildIconPacksTab)
+    ];
+  }
+  /** Read a bound control value from plugin settings (declarative path). */
+  getControlValue(key) {
+    return this.plugin.settings[key];
+  }
+  /** Persist a bound control value through the plugin's normal save path. */
+  setControlValue(key, value) {
+    this.plugin.settings[key] = value;
+    return this.plugin.saveSettings();
+  }
+  /**
+   * Flat options for the declarative default-type dropdown, in the same
+   * order as the legacy grouped dropdown: custom, then snippet, then
+   * built-in. Cheap by design — getSettingDefinitions() runs on every
+   * update() and must not do I/O.
+   */
+  buildTypeOptions() {
+    var _a, _b, _c, _d;
+    const options = {};
+    for (const cc of Object.values(this.plugin.settings.customCallouts)) {
+      const info = customCalloutToTypeInfo(cc, this.plugin.settings.injectColor);
+      options[info.type] = info.label;
+    }
+    for (const ct of this.plugin.snippetTypes) {
+      (_b = options[_a = ct.type]) != null ? _b : options[_a] = ct.label;
+    }
+    for (const ct of BUILTIN_CALLOUT_TYPES) {
+      (_d = options[_c = ct.type]) != null ? _d : options[_c] = ct.label;
+    }
+    return options;
+  }
+  /**
+   * Bridge an existing imperative tab builder onto a declarative sub-page.
+   * The SettingPage subclass is created inside the factory so the
+   * `SettingPage` base (1.13+ API) is never touched on older Obsidian,
+   * where getSettingDefinitions() is never called.
+   */
+  legacyPage(name, desc, build2) {
+    const tab = this;
+    return {
+      type: "page",
+      name,
+      desc,
+      page: () => {
+        if ((0, import_obsidian14.requireApiVersion)("1.13.0")) {
+          return new class extends import_obsidian14.SettingPage {
+            constructor() {
+              super();
+              this.title = name;
+            }
+            display() {
+              tab.plugin.onTypesChanged = () => this.display();
+              const ctx = {
+                app: tab.app,
+                plugin: tab.plugin,
+                refresh: () => this.display(),
+                buildGroupedDropdown: (selectEl, includeNone) => tab.buildGroupedDropdown(selectEl, includeNone)
+              };
+              this.containerEl.empty();
+              build2(this.containerEl, ctx);
+            }
+          }();
+        }
+        throw new Error("Declarative settings require Obsidian 1.13+");
+      }
+    };
   }
   renderContent() {
     this.plugin.onTypesChanged = () => this.renderContent();
