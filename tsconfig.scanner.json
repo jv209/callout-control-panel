@@ -1,0 +1,11 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		// Reproduce the community scanner's cleaner type environment:
+		// block @types auto-inclusion (e.g. @types/node) so it can't mask a
+		// missing `lib` entry. This is how the ES7-lib / Object.values gap
+		// (scorecard no-unsafe-* warnings, fixed in 1.6.17) slipped past
+		// local checks. Run with: npm run check:scanner-env
+		"types": []
+	}
+}
