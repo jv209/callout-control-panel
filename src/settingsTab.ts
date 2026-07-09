@@ -103,18 +103,19 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 
 	// ─── Declarative settings (Obsidian 1.13+) ──────────────────────────────
 	//
-	// PREVIEW (phase 1): the Defaults tab is fully declarative (native rows,
-	// indexed by settings search). The remaining six tabs are bridged as
-	// imperative sub-pages that reuse the existing tab builders unchanged, so
-	// no functionality is lost. Obsidian < 1.13 never calls this method and
-	// keeps the classic tab bar via display().
+	// PREVIEW (phase 1): the top level is organized into headed groups — the
+	// Defaults controls sit inline under "Inserting callouts" (native rows,
+	// indexed by settings search); the remaining six tabs are bridged as
+	// imperative sub-page rows with live value badges, reusing the existing
+	// tab builders unchanged so no functionality is lost. Obsidian < 1.13
+	// never calls this method and keeps the classic tab bar via display().
 
 	getSettingDefinitions(): SettingDefinitionItem[] {
+		const s = this.plugin.settings;
 		return [
 			{
-				type: "page",
-				name: "Defaults",
-				desc: "Default type, insertion behavior, and collapse state",
+				type: "group",
+				heading: "Inserting callouts",
 				items: [
 					{
 						name: "Default callout type",
@@ -165,12 +166,36 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 					},
 				],
 			},
-			this.legacyPage("CSS type detection", "Snippet scanning and detected callout types", buildDetectionTab),
-			this.legacyPage("Custom callouts", "Add, edit, and delete your own callout types", buildCustomCalloutsTab),
-			this.legacyPage("Most used callouts", "Up to 5 pinned quick-access slots", buildFavoritesTab),
-			this.legacyPage("Title overrides", "Per-type title replacements", buildTitleOverridesTab),
-			this.legacyPage("Import / export", "Back up or share callout definitions", buildImportExportTab),
-			this.legacyPage("Icon packs", "Font Awesome toggle and downloadable packs", buildIconPacksTab),
+			{
+				type: "group",
+				heading: "Callout types",
+				items: [
+					this.legacyPage("Custom callouts", "Add, edit, and delete your own callout types", buildCustomCalloutsTab, {
+						displayValue: () => `${Object.keys(s.customCallouts).length} types`,
+					}),
+					this.legacyPage("CSS type detection", "Snippet scanning and detected callout types", buildDetectionTab, {
+						displayValue: () => `${this.plugin.snippetTypes.length} detected`,
+						status: () => (this.plugin.snippetWarnings.length > 0 ? "warning" : null),
+					}),
+					this.legacyPage("Title overrides", "Per-type title replacements", buildTitleOverridesTab, {
+						displayValue: () => `${Object.keys(s.titleOverrides).length} overrides`,
+					}),
+				],
+			},
+			{
+				type: "group",
+				heading: "Library & sharing",
+				items: [
+					this.legacyPage("Most used callouts", "Up to 5 pinned quick-access slots", buildFavoritesTab, {
+						displayValue: () => `${s.favoriteCallouts.filter(Boolean).length} pinned`,
+					}),
+					this.legacyPage("Icon packs", "Font Awesome toggle and downloadable packs", buildIconPacksTab, {
+						displayValue: () =>
+							s.useFontAwesome ? "Font Awesome on" : "Font Awesome off",
+					}),
+					this.legacyPage("Import / export", "Back up or share callout definitions", buildImportExportTab),
+				],
+			},
 		];
 	}
 
@@ -216,6 +241,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 		name: string,
 		desc: string,
 		build: (el: HTMLElement, ctx: SettingsTabContext) => void,
+		badges?: Pick<SettingDefinitionPage, "displayValue" | "status">,
 	): SettingDefinitionPage {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias -- the SettingPage subclass needs the tab instance alongside its own `this`
 		const tab = this;
@@ -223,6 +249,7 @@ export class EnhancedCalloutSettingTab extends PluginSettingTab {
 			type: "page",
 			name,
 			desc,
+			...badges,
 			page: () => {
 				if (requireApiVersion("1.13.0")) {
 					return new (class extends SettingPage {

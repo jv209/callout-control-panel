@@ -1355,17 +1355,18 @@ var EnhancedCalloutSettingTab = class extends import_obsidian14.PluginSettingTab
   }
   // ─── Declarative settings (Obsidian 1.13+) ──────────────────────────────
   //
-  // PREVIEW (phase 1): the Defaults tab is fully declarative (native rows,
-  // indexed by settings search). The remaining six tabs are bridged as
-  // imperative sub-pages that reuse the existing tab builders unchanged, so
-  // no functionality is lost. Obsidian < 1.13 never calls this method and
-  // keeps the classic tab bar via display().
+  // PREVIEW (phase 1): the top level is organized into headed groups — the
+  // Defaults controls sit inline under "Inserting callouts" (native rows,
+  // indexed by settings search); the remaining six tabs are bridged as
+  // imperative sub-page rows with live value badges, reusing the existing
+  // tab builders unchanged so no functionality is lost. Obsidian < 1.13
+  // never calls this method and keeps the classic tab bar via display().
   getSettingDefinitions() {
+    const s2 = this.plugin.settings;
     return [
       {
-        type: "page",
-        name: "Defaults",
-        desc: "Default type, insertion behavior, and collapse state",
+        type: "group",
+        heading: "Inserting callouts",
         items: [
           {
             name: "Default callout type",
@@ -1416,12 +1417,35 @@ var EnhancedCalloutSettingTab = class extends import_obsidian14.PluginSettingTab
           }
         ]
       },
-      this.legacyPage("CSS type detection", "Snippet scanning and detected callout types", buildDetectionTab),
-      this.legacyPage("Custom callouts", "Add, edit, and delete your own callout types", buildCustomCalloutsTab),
-      this.legacyPage("Most used callouts", "Up to 5 pinned quick-access slots", buildFavoritesTab),
-      this.legacyPage("Title overrides", "Per-type title replacements", buildTitleOverridesTab),
-      this.legacyPage("Import / export", "Back up or share callout definitions", buildImportExportTab),
-      this.legacyPage("Icon packs", "Font Awesome toggle and downloadable packs", buildIconPacksTab)
+      {
+        type: "group",
+        heading: "Callout types",
+        items: [
+          this.legacyPage("Custom callouts", "Add, edit, and delete your own callout types", buildCustomCalloutsTab, {
+            displayValue: () => `${Object.keys(s2.customCallouts).length} types`
+          }),
+          this.legacyPage("CSS type detection", "Snippet scanning and detected callout types", buildDetectionTab, {
+            displayValue: () => `${this.plugin.snippetTypes.length} detected`,
+            status: () => this.plugin.snippetWarnings.length > 0 ? "warning" : null
+          }),
+          this.legacyPage("Title overrides", "Per-type title replacements", buildTitleOverridesTab, {
+            displayValue: () => `${Object.keys(s2.titleOverrides).length} overrides`
+          })
+        ]
+      },
+      {
+        type: "group",
+        heading: "Library & sharing",
+        items: [
+          this.legacyPage("Most used callouts", "Up to 5 pinned quick-access slots", buildFavoritesTab, {
+            displayValue: () => `${s2.favoriteCallouts.filter(Boolean).length} pinned`
+          }),
+          this.legacyPage("Icon packs", "Font Awesome toggle and downloadable packs", buildIconPacksTab, {
+            displayValue: () => s2.useFontAwesome ? "Font Awesome on" : "Font Awesome off"
+          }),
+          this.legacyPage("Import / export", "Back up or share callout definitions", buildImportExportTab)
+        ]
+      }
     ];
   }
   /** Read a bound control value from plugin settings (declarative path). */
@@ -1460,12 +1484,13 @@ var EnhancedCalloutSettingTab = class extends import_obsidian14.PluginSettingTab
    * `SettingPage` base (1.13+ API) is never touched on older Obsidian,
    * where getSettingDefinitions() is never called.
    */
-  legacyPage(name, desc, build2) {
+  legacyPage(name, desc, build2, badges) {
     const tab = this;
     return {
       type: "page",
       name,
       desc,
+      ...badges,
       page: () => {
         if ((0, import_obsidian14.requireApiVersion)("1.13.0")) {
           return new class extends import_obsidian14.SettingPage {
